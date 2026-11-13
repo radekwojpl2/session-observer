@@ -1,0 +1,11 @@
+{
+  "name": "session-observer-marketplace",
+  "owner": { "name": "Radek" },
+  "plugins": [
+    {
+      "name": "session-observer",
+      "source": "./",
+      "description": "Live local dashboard of everything happening in your Claude Code sessions."
+    }
+  ]
+}

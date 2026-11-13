@@ -1,0 +1,8 @@
+{
+  "name": "session-observer",
+  "version": "0.1.0",
+  "description": "Observe everything that happens in a Claude Code session (prompts, tool calls, skills, questions, subagents, permissions, compactions, tokens) on a live local dashboard.",
+  "author": { "name": "Radek" },
+  "license": "MIT",
+  "keywords": ["observability", "hooks", "dashboard", "telemetry"]
+}
