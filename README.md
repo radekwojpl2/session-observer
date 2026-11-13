@@ -56,8 +56,11 @@ claude --plugin-dir /path/to/session-observer
 /plugin marketplace add /path/to/session-observer
 /plugin install session-observer@session-observer-marketplace
 ```
-Or straight from GitHub: `/plugin marketplace add radekwojpl2/session-observer`
-(you need access to the repo while it's private).
+Or straight from GitHub:
+```
+/plugin marketplace add radekwojpl2/session-observer
+/plugin install session-observer@session-observer-marketplace
+```
 
 Restart Claude Code after installing — hooks load at session start.
 
