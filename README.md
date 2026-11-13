@@ -131,3 +131,7 @@ browser: the centre with a context-window ring, the stations around it, spokes t
 use, a pulse out and back for each call, clock hands on running calls, subagents orbiting the
 Agents station, the dashed route through recently visited stations, and the feed markers
 (● running · done ✕ failed ◆ model step). No code was copied, but the design is theirs.
+
+## License
+
+[MIT](LICENSE)
