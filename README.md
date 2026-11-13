@@ -8,6 +8,9 @@ token usage per session.
 
 ![Live hub map and feed](docs/live-map.jpg)
 
+> The live hub map (Claude in the centre, stations around it, pulses along the spokes) is
+> based on [**lot-map** by alexeyw](https://github.com/alexeyw/lot-map). See [Credits](#credits).
+
 ## Quick start
 
 Needs Node.js 18+ and Claude Code. No `npm install`.
@@ -67,7 +70,7 @@ Run it manually: `node server/server.js`.
 
 Dashboard:
 * filter bar — time range, full-text search, station, category, "only problems"
-* top — **live hub map** (inspired by [lot-map](https://github.com/alexeyw/lot-map)): Claude in
+* top — **live hub map** (based on [lot-map](https://github.com/alexeyw/lot-map)): Claude in
   the centre with a context-window ring (amber ≥70 %, red ≥90 %), twelve stations around it
   (You, Model, Files, Shell, Git, MCP, Network, Browser, Agents, Skills, Context, Other).
   Every call pulses out along its spoke and back when it finishes (red on failure); spokes
@@ -115,3 +118,13 @@ each turn is captured via `Stop`).
 
 The log holds your prompts, commands and tool outputs in plain text. Use **Clear log** in
 the dashboard or delete `~/.claude/session-observer/events.jsonl`.
+
+## Credits
+
+The hub map section of the dashboard is based on
+[**lot-map**](https://github.com/alexeyw/lot-map) by alexeyw (MIT), a Claude Code plugin that
+draws a live map of the session beside the chat. Session Observer rebuilds its design in the
+browser: the centre with a context-window ring, the stations around it, spokes that thicken with
+use, a pulse out and back for each call, clock hands on running calls, subagents orbiting the
+Agents station, the dashed route through recently visited stations, and the feed markers
+(● running · done ✕ failed ◆ model step). No code was copied, but the design is theirs.

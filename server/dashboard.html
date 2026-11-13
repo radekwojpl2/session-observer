@@ -61,7 +61,10 @@
   /* stage: hub map + feed + replay */
   .stage { padding: 10px 14px 12px; margin-bottom: 10px; }
   .stage-grid { display: grid; grid-template-columns: minmax(0, 700px) minmax(0, 1fr); gap: 18px; height: 440px; }
+  .map-wrap { position: relative; min-height: 0; }
   #map { width: 100%; height: 100%; display: block; user-select: none; }
+  .credit { position: absolute; left: 2px; bottom: 0; font-size: 11px; color: var(--faint); text-decoration: none; }
+  .credit:hover { color: var(--accent); text-decoration: underline; }
   #map .spoke { stroke: var(--spoke); stroke-linecap: round; transition: stroke-width .4s; }
   #map .st { cursor: pointer; }
   #map .st .node { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
@@ -231,7 +234,11 @@
 
 <section class="panel stage">
   <div class="stage-grid">
-    <svg id="map" viewBox="0 0 660 440" preserveAspectRatio="xMidYMid meet" aria-label="Live hub map of the session"></svg>
+    <div class="map-wrap">
+      <!-- Hub map design based on lot-map by alexeyw: https://github.com/alexeyw/lot-map -->
+      <svg id="map" viewBox="0 0 660 440" preserveAspectRatio="xMidYMid meet" aria-label="Live hub map of the session"></svg>
+      <a class="credit" href="https://github.com/alexeyw/lot-map" target="_blank" rel="noopener">map based on lot-map ↗</a>
+    </div>
     <div class="feed-wrap">
       <div class="feed-head">
         <div class="last" id="feedLast"></div>
@@ -444,6 +451,9 @@ function turnRunning(t) {
 }
 
 // ---------------------------------------------------------------- hub map engine
+// Design based on lot-map by alexeyw (https://github.com/alexeyw/lot-map): centre with a
+// context ring, stations on spokes, pulses out/back per call, clock hands on running calls,
+// orbiting subagents, and a fading dashed route through recently visited stations.
 function newMap() { return { counts: {}, running: new Map(), agents: new Map(), route: [], ctx: null, lastModel: null, lastModelTs: null, busy: new Set(), flash: {}, steps: 0, tools: 0, turns: 0, events: 0, errors: 0, modelPing: 0 }; }
 let M = newMap();
 const fx = { pulses: [], waves: [] };
