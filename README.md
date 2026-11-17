@@ -27,11 +27,11 @@ working, on **http://localhost:4800**. It doesn't touch `~/.claude`.
 
 ### Screenshots
 
-All taken from the demo (`node scripts/demo.js`): made-up sessions in a made-up .NET order service with a React client.
+Overview, the browser turn, Chat and Context are from a real Claude Code session, taken with Claude in Chrome. The rest are from the demo (`node scripts/demo.js`): made-up sessions in a made-up .NET order service with a React client.
 
 **Overview**
 
-![Overview: stat tiles, turns chart, context chart, activity by group](docs/overview.jpg)
+![Overview of a real session: stat tiles, turns chart, context chart, activity by group, commands](docs/overview.jpg)
 
 Totals up top. One bar per turn. Context use over time. Busiest tool groups.
 
@@ -41,9 +41,9 @@ Two Agent calls fork into two lanes. Each lane is one subagent and its tools. Th
 
 **Route: a browser turn**
 
-![Turn 4: a skill, then Claude in Chrome calls in a row](docs/browser-turn.jpg)
+![Turn 2 of a real session, still running: Bash, ToolSearch, then Claude in Chrome calls in a row](docs/browser-turn.jpg)
 
-Loads the Chrome skill, opens a tab, records a GIF while it takes screenshots and clicks, closes the tab.
+Loads the Chrome tools, opens a tab, then navigates, clicks and takes screenshots. The last stop is still running.
 
 **MCP call**
 
@@ -71,13 +71,13 @@ Each stop shows what it works with. A chained command lists every program it run
 
 **Chat**
 
-![Chat view: prompt, replies and tool-call chips](docs/chat.jpg)
+![Chat view of a real session: prompt, replies and tool-call chips while Claude is working](docs/chat.jpg)
 
 You on the right, Claude on the left, tool calls as chips.
 
 **Context**
 
-![Context view: the conversation in turns, Turn 3 open and shown in Details, Turns 4 and 5 folded to their headers](docs/context.jpg)
+![Context view of a real session: context usage by category, and the system prompt opened in full](docs/context.jpg)
 
 The whole session on one page, in full, in the same turns as Details. Fold a turn down to its header,
 or click the header to open that turn in Details.
