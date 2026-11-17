@@ -27,7 +27,7 @@ working, on **http://localhost:4800**. It doesn't touch `~/.claude`.
 
 ### Screenshots
 
-All taken from one real session, except the badges one, which uses a made-up .NET session.
+All taken from the demo (`node scripts/demo.js`): made-up sessions in a made-up .NET order service with a React client.
 
 **Overview**
 
@@ -41,9 +41,9 @@ Two Agent calls fork into two lanes. Each lane is one subagent and its tools. Th
 
 **Route: a browser turn**
 
-![Turn 8: a skill, then Claude in Chrome calls in a row](docs/browser-turn.jpg)
+![Turn 4: a skill, then Claude in Chrome calls in a row](docs/browser-turn.jpg)
 
-Loads the Chrome skill, opens a tab, takes screenshots, exports a GIF, closes the tab.
+Loads the Chrome skill, opens a tab, records a GIF while it takes screenshots and clicks, closes the tab.
 
 **MCP call**
 
@@ -77,7 +77,7 @@ You on the right, Claude on the left, tool calls as chips.
 
 **Context**
 
-![Context view on a real session: the conversation in turns, Turn 3 open and shown in Details, Turn 4 folded to its header](docs/context.jpg)
+![Context view: the conversation in turns, Turn 3 open and shown in Details, Turns 4 and 5 folded to their headers](docs/context.jpg)
 
 The whole session on one page, in full, in the same turns as Details. Fold a turn down to its header,
 or click the header to open that turn in Details.
@@ -185,7 +185,7 @@ The session list shows each session's title and a dot for its state (working, li
 session for the rest: when it was last active, its turns, tool calls and output tokens, the tool it ran
 last, and its folder, model, failures and context use.
 
-![A session hovered in the list: its details in a card beside it](docs/pr/sessions-hover.png)
+![A session hovered in the list: its details in a card beside it](docs/sessions-hover.jpg)
 
 Hovering links the views both ways: an event row in Details lights up its stop on the Route
 and its bubble or chip in the Chat, and hovering a Route stop or a Chat item lights up its
