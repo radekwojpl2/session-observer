@@ -1,49 +1,64 @@
 name: Release
 
-# Bump "version" in .claude-plugin/plugin.json, commit, then:
-#   git tag v0.2.0 && git push origin v0.2.0
+# release-please keeps one "release PR" open against main. It reads the Conventional Commits merged since the
+# last release (feat: → minor, fix: / perf: / refactor: → patch, "!" → breaking), works out the next version,
+# and in that PR sets "version" in .claude-plugin/plugin.json (plus .release-please-manifest.json and
+# CHANGELOG.md). Merging the PR tags that same commit vX.Y.Z and publishes the GitHub release; this workflow
+# then attaches the plugin zip. Nobody edits the version or pushes a tag by hand.
+# Config: release-please-config.json
 on:
   push:
-    tags: ['v*.*.*']
+    branches: [main]
 
 permissions:
   contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
-  ci:
-    uses: ./.github/workflows/ci.yml
-
   release:
-    needs: ci
     runs-on: ubuntu-latest
     steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          # A personal access token (contents + pull requests: read and write). A PR opened with the built-in
+          # token does not start workflows, so CI would never run on the release PR and it could not be merged.
+          token: ${{ secrets.RELEASE_TOKEN || github.token }}
+
+      # ---- only when a release PR was just merged: the tag and the release now exist
       - uses: actions/checkout@v4
+        if: ${{ steps.release.outputs.release_created }}
+        with:
+          ref: ${{ steps.release.outputs.tag_name }}
 
       - name: Tag must match plugin.json version
+        if: ${{ steps.release.outputs.release_created }}
+        env:
+          TAG: ${{ steps.release.outputs.tag_name }}
         run: |
           VERSION=$(node -p "require('./.claude-plugin/plugin.json').version")
-          TAG="${GITHUB_REF_NAME#v}"
-          if [ "$VERSION" != "$TAG" ]; then
-            echo "::error::Tag v$TAG does not match plugin.json version $VERSION"
+          if [ "v$VERSION" != "$TAG" ]; then
+            echo "::error::Tag $TAG does not match plugin.json version $VERSION"
             exit 1
           fi
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Build plugin archive
+        if: ${{ steps.release.outputs.release_created }}
         run: |
           NAME="session-observer-v${VERSION}"
           git archive --format=zip --prefix="session-observer/" -o "${NAME}.zip" HEAD \
-            -- . ':!test' ':!.github'
+            -- . ':!test' ':!.github' ':!release-please-config.json' ':!.release-please-manifest.json'
           sha256sum "${NAME}.zip" > "${NAME}.zip.sha256"
 
-      - name: Create GitHub release
+      - name: Attach the archive to the release
+        if: ${{ steps.release.outputs.release_created }}
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          PRE=""
-          case "$VERSION" in *-*) PRE="--prerelease";; esac
-          gh release create "$GITHUB_REF_NAME" \
-            session-observer-v${VERSION}.zip \
-            session-observer-v${VERSION}.zip.sha256 \
-            --title "Session Observer v${VERSION}" \
-            --generate-notes $PRE
+          TAG: ${{ steps.release.outputs.tag_name }}
+        run: gh release upload "$TAG" "session-observer-v${VERSION}.zip" "session-observer-v${VERSION}.zip.sha256"

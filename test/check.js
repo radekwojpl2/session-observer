@@ -63,9 +63,21 @@ for (const [event, groups] of Object.entries(hooks)) {
   }
 }
 
-// 5. Version is semver
+// 5. Version is semver, and is the one the last release set (release-please writes both files in its release PR)
 const plugin = JSON.parse(fs.readFileSync(path.join(ROOT, '.claude-plugin', 'plugin.json'), 'utf8'));
 if (!/^\d+\.\d+\.\d+(-[\w.]+)?$/.test(plugin.version || '')) fail(`plugin.json: version "${plugin.version}" is not semver`);
+const released = JSON.parse(fs.readFileSync(path.join(ROOT, '.release-please-manifest.json'), 'utf8'))['.'];
+if (plugin.version !== released) {
+  fail(`plugin.json: version "${plugin.version}" differs from the released version "${released}" in .release-please-manifest.json.` +
+    ' The version is set by the release PR; do not edit it by hand');
+}
+
+// 6. In CI on a pull request: the title is a Conventional Commit. A squash merge puts it on main, where
+//    release-please reads it to pick the next version and write the changelog.
+const title = process.env.PR_TITLE;
+if (title && !/^(feat|fix|perf|refactor|revert|docs|test|ci|chore|build|style)(\([^)]+\))?!?: \S/.test(title)) {
+  fail(`PR title "${title}" is not a Conventional Commit, e.g. "feat: …", "fix: …", "refactor: …", "docs: …" (add "!" for a breaking change)`);
+}
 
 if (errors.length) {
   console.error(`✘ ${errors.length} problem(s):\n` + errors.map(e => '  - ' + e).join('\n'));

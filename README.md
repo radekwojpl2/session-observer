@@ -248,9 +248,34 @@ file can use anything from the files above it.
 CI (`.github/workflows/ci.yml`) runs all of them on every push and PR, on Node 18–24 (Linux)
 and Node 22 on macOS and Windows.
 
-**Releasing:** bump `version` in `.claude-plugin/plugin.json`, commit, then
-`git tag vX.Y.Z && git push origin vX.Y.Z`. The release workflow re-runs CI, checks the tag
-matches the version, and publishes a GitHub release with a zip and its SHA-256.
+### Releasing
+
+Releases are made by [release-please](https://github.com/googleapis/release-please). Nobody
+edits the version or pushes a tag by hand.
+
+1. Give every PR a [Conventional Commit](https://www.conventionalcommits.org) title and
+   squash-merge it, so the title becomes the commit on `main`. CI checks the title.
+
+   | Title starts with | Next version | In the changelog |
+   |---|---|---|
+   | `feat:` | minor (0.3.0 → 0.4.0) | Features |
+   | `fix:`, `perf:`, `refactor:` | patch (0.3.0 → 0.3.1) | Bug Fixes, Performance, Code Changes |
+   | `feat!:`, `fix!:`… | breaking: minor while below 1.0.0, major after | marked as breaking |
+   | `docs:`, `test:`, `ci:`, `chore:`, `build:`, `style:` | no release | left out |
+
+2. After each merge the release workflow opens, or updates, one **release PR**. It sets
+   `version` in `.claude-plugin/plugin.json` and `.release-please-manifest.json`, and adds
+   the new entries to `CHANGELOG.md`.
+3. Merge the release PR when you want to ship. The workflow tags that commit `vX.Y.Z`,
+   publishes the GitHub release and attaches the plugin zip with its SHA-256.
+
+The tag and `plugin.json` cannot drift apart: the tag is put on the very commit in which the
+release PR set the version. `node test/check.js` fails if `plugin.json` and the manifest
+disagree, and the release workflow fails if the tag and `plugin.json` do.
+
+The workflow needs a repository secret `RELEASE_TOKEN`: a fine-grained personal access token
+for this repository with read and write access to **Contents** and **Pull requests**. With
+the built-in token, CI would not run on the release PR.
 
 ## Credits
 

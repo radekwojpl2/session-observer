@@ -4,7 +4,8 @@ on:
   push:
     branches: [main]
   pull_request:
-  workflow_call:      # reused by release.yml
+    types: [opened, synchronize, reopened, edited]   # edited: the title is checked, so a new title re-runs it
+  workflow_call:
   workflow_dispatch:
 
 permissions:
@@ -23,7 +24,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: JSON, JS syntax, hook wiring, version
+      - name: JSON, JS syntax, hook wiring, version, PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}   # empty on a push
         run: node test/check.js
 
   validate:
