@@ -77,7 +77,7 @@ You on the right, Claude on the left, tool calls as chips.
 
 **Context**
 
-![Context view of a real session: context usage by category, and the system prompt opened in full](docs/context.jpg)
+![Context view of a real session: context usage by category, and the context sections folded to their headers](docs/context.png)
 
 The whole session on one page, in full, in the same turns as Details. Fold a turn down to its header,
 or click the header to open that turn in Details.
