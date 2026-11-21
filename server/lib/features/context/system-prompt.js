@@ -111,4 +111,4 @@ function systemPromptOf(rows) {
   };
 }
 
-module.exports = { systemPromptOf, firstRequestShape };
+module.exports = { systemPromptOf, firstRequestShape, readListingLines };

@@ -67,7 +67,9 @@ function contextUsageHtml(data, idPrefix) {
   if (!lastStep) return '';
   const window = contextSizeInfo(lastStep.ctx, null).window, usedTokens = lastStep.ctx;
   const categories = usageCategories(data, usedTokens);
-  const bufferTokens = Math.min(AUTOCOMPACT_BUFFER_TOKENS, Math.max(0, window - usedTokens));
+  // Claude Code's buffer; Codex reports a window it already keeps its own headroom out of
+  const buffer = data.agent === CODEX ? 0 : AUTOCOMPACT_BUFFER_TOKENS;
+  const bufferTokens = Math.min(buffer, Math.max(0, window - usedTokens));
   const freeTokens = Math.max(0, window - usedTokens - bufferTokens);
   const tokensWord = escapeHtml(TEXT.tokens), usedPercent = Math.round(usedTokens / window * 100);
 

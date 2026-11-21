@@ -64,6 +64,7 @@ function toolArgument(data) {
   if (tool === 'AskUserQuestion') return (input.questions || []).map(question => question.question).join(' | ');
   if (isSubagentCall(tool)) return [input.subagent_type, input.description].filter(Boolean).join(' — ');
   if (tool === 'WebFetch' && input.url) return webFetchTarget(input.url);
+  if (tool === PATCH_TOOL) return patchedFiles(input).join(', ') || patchTextOf(input);
   return input.command || input.file_path || input.notebook_path || input.path || input.pattern || input.url || input.query
     || input.description || input.subject || input.prompt
     || Object.values(input).find(value => typeof value === 'string')
@@ -107,6 +108,7 @@ const DESCRIBE_EVENT = {
   MessageDisplay: data => [TEXT.event.message, data.message || data.text],
   Stop: data => [TEXT.event.turn, data.last_assistant_message || TEXT.event.done],
   StopFailure: data => [TEXT.event.turnFailed, data.error || data.reason],
+  Interrupt: () => [TEXT.event.turn, TEXT.interruptedByUser],
   SubagentStart: data => [TEXT.subagent, `${TEXT.event.started} ${data.agent_type || data.agent_id || ''}`],
   SubagentStop: data => [TEXT.subagent, `${TEXT.event.finished} ${[data.agent_type, shorten(data.last_assistant_message, 120)].filter(Boolean).join(' — ')}`],
   TaskCreated: data => [TEXT.categories.task, TEXT.event.created + ' ' + (data.subject || data.task?.subject || data.description || '')],

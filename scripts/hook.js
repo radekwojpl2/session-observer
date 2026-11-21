@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-// session-observer hook: receives any Claude Code hook event on stdin and
-// appends it as one JSON line to the local event log. Never blocks Claude:
+// session-observer hook: receives any Claude Code or Codex hook event on stdin and
+// appends it as one JSON line to the local event log. Never blocks the agent:
 // it runs as an async hook, always exits 0, and swallows every error.
+// Usage: hook.js <EventName> [--agent codex]   (no --agent: Claude Code)
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -15,6 +16,15 @@ const PORT = Number(process.env.OBSERVER_PORT || 4777);
 const MAX_STRING = Number(process.env.OBSERVER_MAX_FIELD || 8000); // chars kept per string field
 const MAX_ARRAY_ITEMS = 200;
 const MAX_DEPTH = 8;
+const AGENTS = new Set(['claude', 'codex']);
+const DEFAULT_AGENT = 'claude';
+
+// which agent sent the event: Codex's hook commands pass --agent codex, Claude Code's pass nothing
+function agentFromArguments(args) {
+  const flag = args.indexOf('--agent');
+  const named = flag >= 0 ? args[flag + 1] : null;
+  return AGENTS.has(named) ? named : DEFAULT_AGENT;
+}
 
 // the payload with long strings and arrays cut short, so one huge tool output can't bloat the log
 function truncate(value, depth = 0) {
@@ -70,6 +80,7 @@ async function main() {
     ts: new Date().toISOString(),
     event: payload.hook_event_name || process.argv[2] || 'Unknown',
     session_id: payload.session_id || 'unknown',
+    agent: agentFromArguments(process.argv.slice(2)),
     data: truncate(payload),
   };
 

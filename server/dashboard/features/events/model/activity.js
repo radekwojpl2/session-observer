@@ -40,7 +40,7 @@ function applyEventToActivity(event) {
       countGroup('you');
       activity.busySessions.add(event.session_id);
       break;
-    case 'Stop': case 'StopFailure': case 'SessionEnd': endSessionActivity(event.session_id); break;
+    case 'Stop': case 'StopFailure': case 'SessionEnd': case 'Interrupt': endSessionActivity(event.session_id); break;
     case 'SubagentStart':
       countGroup('agents');
       activity.runningSubagents.set(data.agent_id || event.seq, { sessionId: event.session_id, start: time });

@@ -21,7 +21,7 @@ TRANSLATIONS.en = (() => {
       task: 'Task', mcp: 'MCP', permission: 'Permission', error: 'Error', notification: 'Notice',
       compact: 'Compact', context: 'Context', lifecycle: 'Lifecycle', env: 'Env',
     },
-    views: { overview: 'Overview', route: 'Route', chat: 'Chat', context: 'Context' },
+    views: { home: 'Home', overview: 'Overview', route: 'Route', chat: 'Chat', context: 'Context' },
     themes: { auto: 'auto', dark: 'dark', light: 'light' },
 
     // header and filters (the page's own text)
@@ -36,7 +36,7 @@ TRANSLATIONS.en = (() => {
     clearLog: 'Clear log', clearLogTitle: 'Delete the local event log', clearConfirm: 'Delete all recorded events?',
     range: 'Range', range1h: 'last 1 h', range6h: 'last 6 h', range24h: 'last 24 h', range7d: 'last 7 d', rangeAll: 'everything',
     search: 'Search', searchPh: 'prompts, replies, commands, paths, errors…',
-    group: 'Tool group', groupTitle: 'Which part of the map: Files, Shell, Git, MCP…', allGroups: 'all groups',
+    group: 'Tool group', groupTitle: 'Which part of the map: Files, Shell, Git, MCP…', allGroups: 'all groups', agent: 'Agent', allAgents: 'all agents', agentTitle: 'Show sessions from Claude Code, Codex or both',
     onlyProblems: 'only problems', resetFilters: 'Reset filters', view: 'View',
     replayBtn: '▶ Replay', pauseBtn: '❚❚ Pause', speedTitle: 'Replay speed', liveBtn: 'Live',
     replaying: 'Replaying', paused: 'Paused',
@@ -64,7 +64,13 @@ TRANSLATIONS.en = (() => {
     },
 
     // sessions panel
-    sessionState: { ended: 'ended', working: 'working', live: 'live', inactive: 'inactive' },
+    sessionState: { needsYou: 'needs you', yourTurn: 'your turn', ended: 'ended', working: 'working', live: 'live', inactive: 'inactive' },
+    needYouN: n => `Needs you: ${n}`,
+    home: {
+      needsYou: 'Needs you', allClear: 'Nothing needs you right now.',
+      permission: t => (t ? `Permission to use ${t}` : 'Permission needed'), question: 'Question for you', mcp: s => `${s || 'An MCP server'} asks for input`,
+      inSubagent: t => `in subagent ${t}`, noSessions: 'No sessions in this range.', done: 'done', more: n => `+${n} more`, open: 'Open this session', openRepository: 'Open GitHub repository',
+    },
     allActivity: 'All activity', everySession: 'every session combined', sessions: 'Sessions', lastLbl: 'last:',
     ctxWindow: 'context window', ctxShort: 'ctx', noSessions: 'No sessions in this range.',
 
@@ -88,7 +94,7 @@ TRANSLATIONS.en = (() => {
     subagents: 'Subagents', startedAt: t => `started ${t}`, problems: 'Problems', latestFirst: 'latest first',
 
     // chat
-    noConversation: 'No conversation yet', openTurn: 'Open this turn', claudeWorking: 'Claude is working…',
+    noConversation: 'No conversation yet', openTurn: 'Open this turn', agentWorking: name => `${name} is working…`, codexContextNote: 'Read from Codex\'s own session file, whose format is not documented and can change, so some parts may be missing. Codex stores reasoning encrypted: it counts in the totals, but its text is not shown.',
 
     // replay bar and event types
     eventTypes: 'Event types',

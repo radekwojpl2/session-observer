@@ -52,17 +52,28 @@ for (const r of refs.filter(r => r.endsWith('.js'))) {
   if (fs.existsSync(f) && !/^'use strict';/.test(fs.readFileSync(f, 'utf8'))) fail(`server/${r}: must start with 'use strict';`);
 }
 
-// 4. Hook commands reference existing scripts
-const hooks = JSON.parse(fs.readFileSync(path.join(ROOT, 'hooks', 'hooks.json'), 'utf8')).hooks || {};
-for (const [event, groups] of Object.entries(hooks)) {
-  for (const g of groups) for (const h of g.hooks || []) {
-    if (h.type !== 'command') continue;
-    for (const m of h.command.matchAll(/\$\{CLAUDE_PLUGIN_ROOT\}\/([^"'\s]+)/g)) {
-      if (!fs.existsSync(path.join(ROOT, m[1]))) fail(`hooks.json ${event}: missing ${m[1]}`);
+// 4. Hook commands reference existing scripts and never block the agent: Claude Code's hooks (hooks.json) and
+//    Codex's (inline in .codex-plugin/plugin.json, as Codex's own plugins write them; their commands also name their
+//    agent so the dashboard can tell the sessions apart)
+const readHooks = name => JSON.parse(fs.readFileSync(path.join(ROOT, 'hooks', name), 'utf8')).hooks || {};
+function checkHooks(name, hooks, rootReference, commandEnd) {
+  for (const [event, groups] of Object.entries(hooks)) {
+    for (const g of groups) for (const h of g.hooks || []) {
+      if (h.type !== 'command') continue;
+      const scripts = h.command.split(rootReference + '/').slice(1).map(rest => rest.split(/["'\s]/)[0]);
+      if (!scripts.length) fail(`${name} ${event}: the command must start from ${rootReference}`);
+      for (const script of scripts) if (!fs.existsSync(path.join(ROOT, script))) fail(`${name} ${event}: missing ${script}`);
+      if (h.async !== true) fail(`${name} ${event}: hook must be async so it never blocks the agent`);
+      if (!h.command.endsWith(event + commandEnd)) fail(`${name} ${event}: the command must end with "${event}${commandEnd}"`);
     }
-    if (h.async !== true) fail(`hooks.json ${event}: hook must be async so it never blocks Claude`);
   }
 }
+const hooks = readHooks('hooks.json');
+checkHooks('hooks.json', hooks, '${CLAUDE_PLUGIN_ROOT}', '');
+const codexPlugin = JSON.parse(fs.readFileSync(path.join(ROOT, '.codex-plugin', 'plugin.json'), 'utf8'));
+const codexHooks = codexPlugin.hooks?.hooks || {};
+if (!Object.keys(codexHooks).length) fail('.codex-plugin/plugin.json: no hooks under "hooks": { "hooks": { … } }');
+checkHooks('.codex-plugin/plugin.json', codexHooks, '${PLUGIN_ROOT}', ' --agent codex');
 
 // 5. Version is semver, and is the one the last release set (release-please writes both files in its release PR)
 const plugin = JSON.parse(fs.readFileSync(path.join(ROOT, '.claude-plugin', 'plugin.json'), 'utf8'));
@@ -72,6 +83,8 @@ if (plugin.version !== released) {
   fail(`plugin.json: version "${plugin.version}" differs from the released version "${released}" in .release-please-manifest.json.` +
     ' The version is set by the release PR; do not edit it by hand');
 }
+if (codexPlugin.version !== plugin.version) fail(`.codex-plugin/plugin.json: version "${codexPlugin.version}" differs from "${plugin.version}"`);
+if (codexPlugin.name !== plugin.name) fail('.codex-plugin/plugin.json: name differs from .claude-plugin/plugin.json');
 
 // 6. Every dashboard language has exactly the English keys, each the same kind of value (text, function or group),
 //    and every function returns text. LANGUAGE_NAMES (the language menu) and the tables name the same languages.
@@ -116,4 +129,4 @@ if (errors.length) {
   console.error(`✘ ${errors.length} problem(s):\n` + errors.map(e => '  - ' + e).join('\n'));
   process.exit(1);
 }
-console.log(`✔ checks passed (${files.length} files, ${Object.keys(hooks).length} hook events, v${plugin.version})`);
+console.log(`✔ checks passed (${files.length} files, ${Object.keys(hooks).length} + ${Object.keys(codexHooks).length} hook events, v${plugin.version})`);

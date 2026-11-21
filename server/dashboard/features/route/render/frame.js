@@ -24,6 +24,7 @@ function routeStateHtml(isLive, endEvent) {
   if (isLive) return `<span class="dot busy"></span>${escapeHtml(TEXT.running)}`;
   if (!endEvent) return `<span class="dot"></span>${escapeHtml(TEXT.unfinished)}`;
   if (endEvent.event === 'StopFailure') return `<span class="err">✕</span> ${escapeHtml(TEXT.failedLc)}`;
+  if (endEvent.event === 'Interrupt') return `<span class="muted">■</span> ${escapeHtml(TEXT.interrupted)}`;
   return `<span style="color:var(--ok)">✓</span> ${escapeHtml(TEXT.event.done)}`;
 }
 

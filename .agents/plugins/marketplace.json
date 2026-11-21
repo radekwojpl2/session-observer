@@ -1,0 +1,20 @@
+{
+  "name": "session-observer-marketplace",
+  "interface": {
+    "displayName": "Session Observer"
+  },
+  "plugins": [
+    {
+      "name": "session-observer",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

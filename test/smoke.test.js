@@ -224,6 +224,92 @@ test('context: the whole transcript, in full, with subagents and the request sha
   assert.equal((await get('/api/context?session=nope')).status, 404);
 });
 
+// ---- Home: what a session waits on you for, and its subagents
+const WAIT_SESSION = 'sess-wait';
+const waitHook = (eventName, fields) => runHook(eventName, { hook_event_name: eventName, session_id: WAIT_SESSION, cwd: '/tmp/waits', ...fields });
+const waitingSession = () => getJson('/api/sessions').then(list => list.find(session => session.id === WAIT_SESSION));
+const waitsAre = async expected => waitFor(async () => {
+  const session = await waitingSession();
+  return session && JSON.stringify(session.needsYou.map(wait => wait.kind)) === JSON.stringify(expected) && session;
+});
+
+test('a session tracks what it waits on you for, until it is answered', async () => {
+  waitHook('UserPromptSubmit', { prompt: 'deploy it' });
+  waitHook('PreToolUse', { tool_name: 'AskUserQuestion', tool_use_id: 'q1', tool_input: { questions: [{ question: 'Which region?' }] } });
+  // Claude Code asks permission for the question tool too: still one wait
+  waitHook('PermissionRequest', { tool_name: 'AskUserQuestion', tool_input: { questions: [{ question: 'Which region?' }] } });
+  waitHook('Notification', { notification_type: 'permission_prompt', message: 'Claude needs your permission' });
+  let session = await waitsAre(['question']);
+  assert.equal(session.needsYou[0].text, 'Which region?');
+
+  waitHook('PostToolUse', { tool_name: 'AskUserQuestion', tool_use_id: 'q1', tool_response: { answers: { 'Which region?': 'eu' } } });
+  await waitsAre([]);
+
+  waitHook('PreToolUse', { tool_name: 'Bash', tool_use_id: 'b1', tool_input: { command: 'rm -rf build' } });
+  waitHook('PermissionRequest', { tool_name: 'Bash', tool_input: { command: 'rm -rf build' } });
+  waitHook('Elicitation', { server_name: 'docs', message: 'Pick a space' });
+  session = await waitsAre(['permission', 'mcp']);
+  assert.deepEqual([session.needsYou[0].tool, session.needsYou[0].text], ['Bash', 'rm -rf build']);
+
+  waitHook('PostToolUse', { tool_name: 'Bash', tool_use_id: 'b1', tool_response: 'ok' });
+  await waitsAre(['mcp']);
+  waitHook('ElicitationResult', { server_name: 'docs', action: 'accept' });
+  await waitsAre([]);
+
+  waitHook('PermissionRequest', { tool_name: 'Write', tool_input: { file_path: '/tmp/a' } });
+  await waitsAre(['permission']);
+  waitHook('Stop', {});
+  await waitsAre([]);
+});
+
+test('a call refused at its prompt, or an interrupt, ends its wait though no hook comes', async () => {
+  const id = 'sess-refused', tp = path.join(DATA_DIR, 'refused.jsonl');
+  const hook = (eventName, fields) => runHook(eventName, { hook_event_name: eventName, session_id: id, cwd: '/tmp/waits', transcript_path: tp, ...fields });
+  const waits = async expected => waitFor(async () => {
+    const session = (await getJson('/api/sessions')).find(s => s.id === id);
+    return session && JSON.stringify(session.needsYou.map(wait => wait.kind)) === JSON.stringify(expected);
+  });
+  const writeTranscript = rows => fs.appendFileSync(tp, rows.map(row => JSON.stringify({ type: 'user', timestamp: new Date().toISOString(), ...row }) + '\n').join(''));
+  fs.writeFileSync(tp, '');
+  hook('UserPromptSubmit', { prompt: 'ask me' });
+  hook('PreToolUse', { tool_name: 'AskUserQuestion', tool_use_id: 'rq1', tool_input: { questions: [{ question: 'Tabs or spaces?' }] } });
+  hook('PermissionRequest', { tool_name: 'AskUserQuestion', tool_input: { questions: [{ question: 'Tabs or spaces?' }] } });
+  await waits(['question']);
+  // you decline: Claude Code writes the refusal and the interrupt to the transcript, and sends no hook
+  writeTranscript([
+    { message: { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'rq1', is_error: true, content: "The user doesn't want to proceed with this tool use." }] } },
+    { message: { role: 'user', content: [{ type: 'text', text: '[Request interrupted by user for tool use]' }] } },
+  ]);
+  await waits([]);
+  // and the interrupt ends the turn: no Stop comes, so the call no longer runs and the session is not busy
+  const ended = await waitFor(async () => {
+    const session = (await getJson('/api/sessions')).find(s => s.id === id);
+    return session && !session.busy && session.running === 0 && session;
+  });
+  assert.equal(ended.busy, false);
+  const interrupts = (await getJson('/api/events?session=' + id)).filter(event => event.event === 'Interrupt');
+  assert.equal(interrupts.length, 1);
+
+  hook('UserPromptSubmit', { prompt: 'clean up' });
+  hook('PreToolUse', { tool_name: 'Bash', tool_use_id: 'rb1', tool_input: { command: 'rm -rf build' } });
+  hook('PermissionRequest', { tool_name: 'Bash', tool_input: { command: 'rm -rf build' } });
+  await waits(['permission']);
+  // refused with a note for Claude: only the tool result, no interrupt
+  writeTranscript([{ message: { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'rb1', is_error: true, content: "The user doesn't want to proceed with this tool use." }] } }]);
+  await waits([]);
+});
+
+test("a session lists its subagents: each one's type, task and whether it still runs", async () => {
+  waitHook('UserPromptSubmit', { prompt: 'look around' });
+  waitHook('PreToolUse', { tool_name: 'Agent', tool_use_id: 'a1', tool_input: { description: 'Find the config', subagent_type: 'Explore' } });
+  waitHook('SubagentStart', { agent_id: 'sub-1', agent_type: 'Explore' });
+  const running = await waitFor(async () => (await waitingSession())?.subagentList.find(subagent => subagent.id === 'sub-1'));
+  assert.deepEqual([running.type, running.description, running.ended], ['Explore', 'Find the config', null]);
+
+  waitHook('SubagentStop', { agent_id: 'sub-1', agent_type: 'Explore' });
+  await waitFor(async () => (await waitingSession())?.subagentList.find(subagent => subagent.id === 'sub-1').ended);
+});
+
 // raw request with a chosen Host header (fetch always sends the real one)
 function rawGet(p, host, headers = {}) {
   return new Promise((resolve, reject) => {

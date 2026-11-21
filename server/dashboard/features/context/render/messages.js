@@ -102,7 +102,10 @@ function compactionHtml(item, oldestFirst) {
 
 function messageHtml(message, number, isSubagent) {
   const step = message.step, ts = step?.ts || message.ts;
-  const label = message.role === 'assistant' ? `${iconSvg('model')} ${escapeHtml(TEXT.claude)}`
+  // the assistant by name: "Claude", or the product's name for another agent ("Codex")
+  const agent = agentOfSession(contextView.sessionId);
+  const assistantName = agent === DEFAULT_AGENT ? TEXT.claude : agentName(agent);
+  const label = message.role === 'assistant' ? `${iconSvg('model')} ${escapeHtml(assistantName)}`
     : isSubagent ? `${iconSvg('model')} ${escapeHtml(TEXT.taskAndResults)}` : `${iconSvg('you')} ${escapeHtml(TEXT.groups.you)}`;
   const size = step
     ? `${contextBadgeHtml(contextSizeInfo(step.ctx, message.change))} <span class="sz muted">${escapeHtml(TEXT.outX(formatCompactNumber(step.out)))}</span>`

@@ -18,7 +18,7 @@ TRANSLATIONS.zh = (() => {
       task: '任务', mcp: 'MCP', permission: '权限', error: '错误', notification: '通知',
       compact: '压缩', context: '上下文', lifecycle: '生命周期', env: '环境',
     },
-    views: { overview: '概览', route: '路线', chat: '对话', context: '上下文' },
+    views: { home: '主页', overview: '概览', route: '路线', chat: '对话', context: '上下文' },
     themes: { auto: '自动', dark: '深色', light: '浅色' },
 
     language: '语言', langAuto: '自动',
@@ -32,7 +32,7 @@ TRANSLATIONS.zh = (() => {
     clearLog: '清空日志', clearLogTitle: '删除本地事件日志', clearConfirm: '删除所有已记录的事件？',
     range: '时间范围', range1h: '最近 1 小时', range6h: '最近 6 小时', range24h: '最近 24 小时', range7d: '最近 7 天', rangeAll: '全部',
     search: '搜索', searchPh: '提示词、回复、命令、路径、错误…',
-    group: '工具组', groupTitle: '地图的哪一部分：文件、Shell、Git、MCP…', allGroups: '所有组',
+    group: '工具组', groupTitle: '地图的哪一部分：文件、Shell、Git、MCP…', allGroups: '所有组', agent: '代理', allAgents: '所有代理', agentTitle: '显示来自 Claude Code、Codex 或两者的会话',
     onlyProblems: '只看问题', resetFilters: '重置筛选', view: '视图',
     replayBtn: '▶ 回放', pauseBtn: '❚❚ 暂停', speedTitle: '回放速度', liveBtn: '实时',
     replaying: '回放中', paused: '已暂停',
@@ -57,7 +57,13 @@ TRANSLATIONS.zh = (() => {
       startedSession: '已开始', createdWorktree: '已创建', changedConfig: '已更改',
     },
 
-    sessionState: { ended: '已结束', working: '工作中', live: '活跃', inactive: '不活跃' },
+    sessionState: { needsYou: '等你处理', yourTurn: '轮到你', ended: '已结束', working: '工作中', live: '活跃', inactive: '不活跃' },
+    needYouN: n => `${n} 个等你处理`,
+    home: {
+      needsYou: '等你处理', allClear: '目前没有需要你处理的事项。',
+      permission: t => (t ? `请求使用 ${t} 的权限` : '需要权限'), question: '给你的问题', mcp: s => `${s || 'MCP 服务器'} 请求输入`,
+      inSubagent: t => `在子代理 ${t} 中`, noSessions: '此时间范围内没有会话。', done: '已完成', more: n => `另有 ${n} 个`, open: '打开此会话', openRepository: '打开 GitHub 仓库',
+    },
     allActivity: '全部活动', everySession: '所有会话合计', sessions: '会话', lastLbl: '最近：',
     ctxWindow: '上下文窗口', ctxShort: '上下文', noSessions: '此时间范围内没有会话。',
 
@@ -79,7 +85,7 @@ TRANSLATIONS.zh = (() => {
     commands: '命令', noCommands: '没有 Shell 命令。', topN: n => `前 ${n} 个`, latestX: x => `最近：${x}`,
     subagents: '子代理', startedAt: t => `开始于 ${t}`, problems: '问题', latestFirst: '最新在前',
 
-    noConversation: '还没有对话', openTurn: '打开这一轮', claudeWorking: 'Claude 正在工作…',
+    noConversation: '还没有对话', openTurn: '打开这一轮', agentWorking: name => `${name} 正在工作…`, codexContextNote: '读取自 Codex 自己的会话文件。其格式没有公开文档且可能变化，因此部分内容可能缺失。Codex 以加密形式保存推理：它计入总量，但不显示其文本。',
 
     eventTypes: '事件类型',
 

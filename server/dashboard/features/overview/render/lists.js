@@ -22,13 +22,13 @@ function filesListHtml(events) {
   const byPath = new Map();
   for (const event of events) {
     if (event.event !== 'PreToolUse' || !FILE_TOOLS.has(event.data?.tool_name)) continue;
-    const input = event.data.tool_input || {}, filePath = input.file_path || input.notebook_path;
-    if (!filePath) continue;
-    const file = byPath.get(filePath) || { reads: 0, writes: 0, seq: event.seq };
-    file.seq = event.seq; // the latest call
-    if (READ_TOOLS.has(event.data.tool_name)) file.reads++;
-    else file.writes++;
-    byPath.set(filePath, file);
+    for (const filePath of filesOfToolCall(event.data.tool_name, event.data.tool_input || {})) {
+      const file = byPath.get(filePath) || { reads: 0, writes: 0, seq: event.seq };
+      file.seq = event.seq; // the latest call
+      if (READ_TOOLS.has(event.data.tool_name)) file.reads++;
+      else file.writes++;
+      byPath.set(filePath, file);
+    }
   }
   const top = [...byPath.entries()].sort((a, b) => (b[1].reads + b[1].writes) - (a[1].reads + a[1].writes)).slice(0, LIST_ROWS_MAX);
   if (!top.length) return overviewCardHtml(TEXT.files, '', noneHtml(TEXT.noFiles));

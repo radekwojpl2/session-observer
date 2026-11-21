@@ -1,4 +1,5 @@
-// Model steps and token usage, read from each session's transcript.
+// Model steps and token usage, read from each Claude Code session's transcript. Codex sessions: their steps come from
+// a hook (codex-model-steps.js), and what the model wrote from Codex's session file (codex-rollout-texts.js).
 //
 // Hooks don't see individual model calls, so each assistant API response in the transcript (and in the subagent
 // transcripts) becomes a synthetic "ModelStep" event, and every block of text or thinking it wrote a "ModelText".
@@ -8,22 +9,38 @@ const path = require('path');
 const { CONTEXT_WINDOW } = require('../../building-blocks/config');
 const { FileTail } = require('../../building-blocks/file-tail');
 const { ingest, sessionSummary } = require('./sessions');
+const { endWaitsFromTranscript } = require('./needs-you');
 const { broadcast } = require('../../building-blocks/live-updates');
 const { ONE_MILLION_WINDOW, contextTokensOf, hasOneMillionWindow } = require('../../building-blocks/token-usage');
+const { CODEX, isCodexModelRequest, noteCodexEvent, toCodexModelStep, addCodexUsage, resetCodexSteps } = require('./codex-model-steps');
+const { codexRolloutTexts, resetCodexRolloutTexts } = require('./codex-rollout-texts');
 
 const MODEL_TEXT_MAX = 2000;          // characters kept of one text / thinking block
 const REMEMBERED_STEPS_MAX = 2000;    // recent ModelSteps kept by message id
 const READ_DELAY_MS = 700;            // a burst of hook events triggers one read
+const WAITING_READ_MS = 1500;         // while a session waits on you: no hook may come, so the transcript is read again
+const INTERRUPTED = '[Request interrupted by user'; // the line Claude Code writes when you interrupt or refuse a call
 
 const transcriptTails = new Map();    // transcript file → FileTail
 const seenMessageIds = new Map();     // session id → Set(message id)
 const stepByMessageId = new Map();    // message id → its ModelStep event, so later lines can add their tool calls
 const scheduledReads = new Map();     // session id → timer
 
-// takes an event into its session and, unless it came from the transcript itself, reads the transcript soon after
+const readsTranscript = session => !!session.transcript_path;
+const isCodex = session => session.agent === CODEX;
+
+// takes an event into its session and, unless it came from the transcript itself, reads the transcript soon after.
+// A Codex model request becomes a ModelStep right here (with the tool calls it started) instead.
 function ingestEvent(event) {
+  noteCodexEvent(event);
+  const isCodexStep = isCodexModelRequest(event);
+  if (isCodexStep) toCodexModelStep(event);
   const session = ingest(event);
-  if (event.event !== 'ModelStep' && session.transcript_path) scheduleTranscriptRead(session);
+  if (isCodexStep) {
+    addCodexUsage(session, event);
+    if (event.data.msg_id) rememberStep(event.data.msg_id, event);
+  }
+  if (!event.synthetic && readsTranscript(session)) scheduleTranscriptRead(session);
   return session;
 }
 
@@ -47,6 +64,7 @@ const subagentDirOf = transcriptPath =>
 function transcriptFilesOf(session) {
   const mainTranscript = session.transcript_path;
   const files = [{ file: mainTranscript, isSubagent: false }];
+  if (isCodex(session)) return files; // (Codex keeps its subagents in rollouts of their own)
   const subagentDir = subagentDirOf(mainTranscript);
   try {
     for (const name of fs.readdirSync(subagentDir)) {
@@ -168,10 +186,40 @@ function ingestAll(events, fresh) {
   }
 }
 
+// an interrupt of the main agent: you pressed Esc or refused a call at its prompt. No hook comes then (no Stop), so
+// this event ends the turn instead.
+function interruptEvent(session, row) {
+  return { ts: row.timestamp, event: 'Interrupt', session_id: session.id, synthetic: true, data: {} };
+}
+
+// a user line: tool results, and an interrupt. They end waits that no hook ends (needs-you.js), and an interrupt of
+// the main agent also ends its turn.
+function readUserRow(session, row, message, isSubagentFile, fresh) {
+  const where = { ts: row.timestamp || null, agentId: isSubagentRow(row, isSubagentFile) ? row.agentId || null : null };
+  const isInterrupt = typeof message.content === 'string'
+    ? message.content.startsWith(INTERRUPTED)
+    : contentBlocks(message).some(block => block?.type === 'text' && String(block.text || '').startsWith(INTERRUPTED));
+  if (typeof message.content !== 'string') {
+    for (const block of contentBlocks(message)) {
+      if (block?.type === 'tool_result' && block.tool_use_id) endWaitsFromTranscript(session, { ...where, toolUseId: block.tool_use_id });
+    }
+  }
+  if (!isInterrupt) return;
+  endWaitsFromTranscript(session, { ...where, interrupted: true });
+  // (only from the logged part of the session, as with the model's steps)
+  if (where.agentId == null && row.timestamp && !(session.started && row.timestamp < session.started)) {
+    const event = interruptEvent(session, row);
+    ingestEvent(event);
+    fresh.push(event);
+  }
+}
+
 // One API response spans several lines (one per content block): its first line becomes the ModelStep, and every
 // non-empty text / thinking block, on whichever line it comes, also becomes a ModelText.
 function readTranscriptRow(session, row, isSubagentFile, seen, fresh) {
   const message = row.message;
+  // (row.type: a transcript also holds copies of the requests sent, whose messages must not count again)
+  if (message && message.role === 'user' && row.type === 'user') readUserRow(session, row, message, isSubagentFile, fresh);
   if (!message || message.role !== 'assistant' || !message.usage) return;
   const messageId = message.id || row.uuid;
   // only responses from the logged part of the session: after "Clear log" the log restarts at the next hook event,
@@ -201,7 +249,7 @@ function readTranscriptRow(session, row, isSubagentFile, seen, fresh) {
 }
 
 function readTranscripts(session) {
-  if (!session.transcript_path) return;
+  if (!readsTranscript(session)) return;
   const seen = seenIdsOf(session.id);
   const fresh = []; // events to push to the open pages
   for (const { file, isSubagent } of transcriptFilesOf(session)) {
@@ -209,17 +257,21 @@ function readTranscripts(session) {
       if (!line) continue;
       let row;
       try { row = JSON.parse(line); } catch { continue; }
-      readTranscriptRow(session, row, isSubagent, seen, fresh);
+      if (isCodex(session)) ingestAll(codexRolloutTexts(session, row, id => stepByMessageId.get(id)), fresh);
+      else readTranscriptRow(session, row, isSubagent, seen, fresh);
     }
   }
   for (const event of fresh) broadcast('event', event);
   broadcast('session', sessionSummary(session));
+  if (session.needsYou.length && !session.ended) scheduleTranscriptRead(session, WAITING_READ_MS);
 }
 
 function resetTranscriptState() {
   seenMessageIds.clear();
   stepByMessageId.clear();
   transcriptTails.clear();
+  resetCodexSteps();
+  resetCodexRolloutTexts();
 }
 
 module.exports = {

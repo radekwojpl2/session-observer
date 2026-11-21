@@ -1,14 +1,14 @@
 'use strict';
 // Session Observer dashboard — the sessions panel: All activity, and each session in the range with a hover card.
-const LIVE_SESSION_MS = 30 * 60000; // a session with an event this recent counts as live
-
-// [state word, dot class]
-function sessionStatus(session) {
-  if (session.ended) return [TEXT.sessionState.ended, 'dot'];
-  if (session.busy) return [TEXT.sessionState.working, 'dot busy'];
-  if (Date.now() - Date.parse(session.last) < LIVE_SESSION_MS) return [TEXT.sessionState.live, 'dot on'];
-  return [TEXT.sessionState.inactive, 'dot'];
-}
+// [state word, dot class] for each activity (session-activity.js)
+const SESSION_STATUS = {
+  needsYou: () => [TEXT.sessionState.needsYou, 'dot need'],
+  working: () => [TEXT.sessionState.working, 'dot busy'],
+  yourTurn: () => [TEXT.sessionState.live, 'dot on'],
+  inactive: () => [TEXT.sessionState.inactive, 'dot'],
+  ended: () => [TEXT.sessionState.ended, 'dot'],
+};
+const sessionStatus = session => SESSION_STATUS[sessionActivity(session)]();
 
 const sessionName = session => stripTags(session.title) || baseName(session.cwd) || session.id.slice(0, 8);
 
@@ -20,6 +20,7 @@ function visibleSessions() {
     || state.scope === session.id;
   return [...state.sessions.values()]
     .filter(session => !cutoff || (session.last || '') >= cutoff)
+    .filter(session => isAgentShown(session.agent || DEFAULT_AGENT) || state.scope === session.id)
     .filter(matchesSearch)
     .sort((a, b) => (b.last || '').localeCompare(a.last || ''));
 }
@@ -29,8 +30,13 @@ function selectedRangeLabel() {
   return option ? option.textContent : '';
 }
 
+// a badge colored by agent, so Claude Code and Codex sessions tell apart at a glance
+const agentBadgeHtml = (agent, className) =>
+  `<span class="${className} agent-${agentKey(agent)}">${escapeHtml(agentName(agent))}</span>`;
+
 function sessionChipsHtml(session) {
-  return (session.cwd ? `<span class="chip" title="${escapeHtml(session.cwd)}">${iconSvg('files')}${escapeHtml(baseName(session.cwd) || '?')}</span>` : '')
+  return agentBadgeHtml(session.agent, 'chip')
+    + (session.cwd ? `<span class="chip" title="${escapeHtml(session.cwd)}">${iconSvg('files')}${escapeHtml(baseName(session.cwd) || '?')}</span>` : '')
     + (session.model ? `<span class="chip">${escapeHtml(session.model)}</span>` : '')
     + (session.subagents ? `<span class="chip">${iconSvg('agents')}${session.subagents}</span>` : '')
     + (session.failures ? `<span class="chip"><span class="x">✕ ${session.failures}</span></span>` : '')
@@ -44,10 +50,11 @@ function sessionCardHtml(session) {
   const lastTool = !session.ended && session.lastTool
     ? `<div class="meta">${escapeHtml(TEXT.lastLbl)} <b>${escapeHtml(toolDisplayName(session.lastTool.name))}</b> <span class="mono">${escapeHtml(shorten(session.lastTool.arg, 60))}</span></div>` : '';
   const name = escapeHtml(sessionName(session));
+  const agentTag = seesSeveralAgents() ? agentBadgeHtml(session.agent, 'agent-tag') : '';
   const meta = `${session.last ? escapeHtml(formatAgo(session.last)) : ''} · ${escapeHtml(countOf(session.turns || 0, 'turn'))} · ${escapeHtml(countOf(session.toolCalls || 0, 'tool'))}`
     + (outputTokens ? ` · ${escapeHtml(TEXT.outX(formatCompactNumber(outputTokens)))}` : '');
   return `<div class="card ${session.id === state.scope ? 'sel' : ''}" data-id="${escapeHtml(session.id)}">
-        <div class="row1"><span class="${dotClass}" title="${status}"></span><span class="name">${name}</span></div>
+        <div class="row1"><span class="${dotClass}" title="${status}"></span><span class="name">${name}</span>${agentTag}</div>
         <template class="sdet"><div class="row1"><span class="name">${name}</span><span class="state"><span class="${dotClass}"></span>${status}</span></div>
         <div class="meta">${meta}</div>${lastTool}
         <div class="chips">${sessionChipsHtml(session)}</div></template>
@@ -55,6 +62,8 @@ function sessionCardHtml(session) {
 }
 
 function renderSessions() {
+  // the agent filter shows once there is more than one agent to choose from (or one is chosen)
+  elementById('agentFilter').style.display = seesSeveralAgents() || state.agent ? '' : 'none';
   const sessions = visibleSessions();
   const panel = elementById('sessions'), scrollTop = panel.scrollTop;
   panel.innerHTML = `

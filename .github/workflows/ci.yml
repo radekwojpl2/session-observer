@@ -61,7 +61,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - name: Run tests
-        run: node --test test/smoke.test.js test/tech.test.js
+        run: node --test test/smoke.test.js test/tech.test.js test/codex.test.js
 
   # Single required status check for branch protection — stays stable when the
   # matrix above changes.

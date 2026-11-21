@@ -15,6 +15,7 @@ const state = {
   group: '',                // a tool group id, or '' for all
   category: '',
   onlyProblems: false,
+  agent: storage.get(SETTING_KEYS.agent, ''), // '' = every agent, or one agent's id (agents.js)
   // replay
   replayCursor: null,       // the replayed time (ms); null while following live
   replaying: false,

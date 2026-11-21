@@ -28,6 +28,12 @@ function initViewClicks() {
     const tab = event.target.closest('[data-layout]');
     if (tab) setView(tab.dataset.layout);
   };
+  addEventListener('popstate', () => {
+    const sessionId = sessionFromAddress();
+    const scope = sessionId || ALL_SESSIONS;
+    if (scope !== state.scope) selectScope(scope);
+    setView(new URLSearchParams(location.search).get('layout') || storage.get(SETTING_KEYS.layout, 'home'), 'none');
+  });
   viewBox().addEventListener('click', event => {
     if (event.target.closest('[data-follow]')) {
       state.selectedTurnKey = null;

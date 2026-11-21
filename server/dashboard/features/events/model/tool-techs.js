@@ -17,7 +17,7 @@ function techsOfToolCall(tool, input) {
   else if (tool === 'Grep') {
     const type = String(input.type || '').toLowerCase();
     tech = techOfFile(input.glob) || TECH_BY_EXTENSION[TECH_BY_RIPGREP_TYPE[type] || type] || techOfFile(input.path);
-  } else if (FILE_TOOLS.has(tool)) tech = techOfFile(input.file_path || input.notebook_path || input.path);
+  } else if (FILE_TOOLS.has(tool)) tech = techOfFile(filesOfToolCall(tool, input)[0] || input.path);
   return tech ? [tech] : [];
 }
 

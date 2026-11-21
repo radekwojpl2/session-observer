@@ -20,7 +20,7 @@ TRANSLATIONS.it = (() => {
       task: 'Attività', mcp: 'MCP', permission: 'Permesso', error: 'Errore', notification: 'Avviso',
       compact: 'Compattazione', context: 'Contesto', lifecycle: 'Ciclo di vita', env: 'Ambiente',
     },
-    views: { overview: 'Panoramica', route: 'Percorso', chat: 'Chat', context: 'Contesto' },
+    views: { home: 'Home', overview: 'Panoramica', route: 'Percorso', chat: 'Chat', context: 'Contesto' },
     themes: { auto: 'auto', dark: 'scuro', light: 'chiaro' },
 
     language: 'Lingua', langAuto: 'Auto',
@@ -34,7 +34,7 @@ TRANSLATIONS.it = (() => {
     clearLog: 'Svuota log', clearLogTitle: 'Elimina il log locale degli eventi', clearConfirm: 'Eliminare tutti gli eventi registrati?',
     range: 'Periodo', range1h: 'ultima 1 h', range6h: 'ultime 6 h', range24h: 'ultime 24 h', range7d: 'ultimi 7 giorni', rangeAll: 'tutto',
     search: 'Cerca', searchPh: 'prompt, risposte, comandi, percorsi, errori…',
-    group: 'Gruppo di strumenti', groupTitle: 'Quale parte della mappa: File, Shell, Git, MCP…', allGroups: 'tutti i gruppi',
+    group: 'Gruppo di strumenti', groupTitle: 'Quale parte della mappa: File, Shell, Git, MCP…', allGroups: 'tutti i gruppi', agent: 'Agente', allAgents: 'tutti gli agenti', agentTitle: 'Mostra le sessioni di Claude Code, di Codex o di entrambi',
     onlyProblems: 'solo problemi', resetFilters: 'Azzera filtri', view: 'Vista',
     replayBtn: '▶ Riproduci', pauseBtn: '❚❚ Pausa', speedTitle: 'Velocità di riproduzione', liveBtn: 'Diretta',
     replaying: 'Riproduzione', paused: 'In pausa',
@@ -59,7 +59,13 @@ TRANSLATIONS.it = (() => {
       startedSession: 'avviata', createdWorktree: 'creato', changedConfig: 'modificata',
     },
 
-    sessionState: { ended: 'terminata', working: 'al lavoro', live: 'attiva', inactive: 'inattiva' },
+    sessionState: { needsYou: 'ti aspetta', yourTurn: 'tocca a te', ended: 'terminata', working: 'al lavoro', live: 'attiva', inactive: 'inattiva' },
+    needYouN: n => `Ti aspettano: ${n}`,
+    home: {
+      needsYou: 'Ti aspetta', allClear: 'Al momento niente ti aspetta.',
+      permission: t => (t ? `Permesso di usare ${t}` : 'Serve un permesso'), question: 'Domanda per te', mcp: s => `${s || 'Un server MCP'} chiede un input`,
+      inSubagent: t => `nel subagente ${t}`, noSessions: 'Nessuna sessione in questo intervallo.', done: 'finito', more: n => `+${n} altri`, open: 'Apri questa sessione', openRepository: 'Apri il repository GitHub',
+    },
     allActivity: 'Tutta l\'attività', everySession: 'tutte le sessioni insieme', sessions: 'Sessioni', lastLbl: 'ultimo:',
     ctxWindow: 'finestra di contesto', ctxShort: 'ctx', noSessions: 'Nessuna sessione in questo periodo.',
 
@@ -81,7 +87,7 @@ TRANSLATIONS.it = (() => {
     commands: 'Comandi', noCommands: 'Nessun comando shell.', topN: n => `top ${n}`, latestX: x => `ultimo: ${x}`,
     subagents: 'Subagenti', startedAt: t => `avviato ${t}`, problems: 'Problemi', latestFirst: 'più recenti prima',
 
-    noConversation: 'Ancora nessuna conversazione', openTurn: 'Apri questo turno', claudeWorking: 'Claude è al lavoro…',
+    noConversation: 'Ancora nessuna conversazione', openTurn: 'Apri questo turno', agentWorking: name => `${name} è al lavoro…`, codexContextNote: 'Letto dal file di sessione di Codex, il cui formato non è documentato e può cambiare, quindi alcune parti possono mancare. Codex salva il ragionamento cifrato: conta nei totali, ma il testo non viene mostrato.',
 
     eventTypes: 'Tipi di evento',
 

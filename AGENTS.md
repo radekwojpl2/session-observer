@@ -1,7 +1,8 @@
 # session-observer: notes for agents working on this repo
 
 ## What this is
-A Claude Code plugin. `scripts/hook.js` receives every hook event and appends it to
+A Claude Code and Codex plugin. `scripts/hook.js` receives every hook event (Codex's hook commands add
+`--agent codex`; Claude Code's add nothing) and appends it to
 `~/.claude/session-observer/events.jsonl`; `server/server.js` (with its modules in `server/lib/`) tails that log, reads session transcripts,
 and serves a live dashboard on http://127.0.0.1:4777.
 

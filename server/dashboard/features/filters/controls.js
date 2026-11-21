@@ -5,10 +5,20 @@ const SEARCH_DELAY_MS = 150;
 const refilter = () => scheduleRender('mid', 'detail', 'sessions', 'cats', 'map');
 
 
+// the agent filter changes which events All activity loads, and which sessions the list shows
+function setAgentFilter(agent) {
+  state.agent = agent;
+  elementById('agent').value = agent;
+  storage.set(SETTING_KEYS.agent, agent);
+  scheduleRender('sessions');
+  loadScope();
+}
+
 function initFilterControls() {
   elementById('station').innerHTML = `<option value="">${escapeHtml(TEXT.allGroups)}</option>`
     + TOOL_GROUPS.map(group => `<option value="${group.id}">${escapeHtml(group.label)}</option>`).join('');
   state.rangeMs = setSelectValue('range', state.rangeMs, DEFAULT_RANGE_MS);
+  state.agent = setSelectValue('agent', state.agent, '');
 
   let searchTimer;
   elementById('q').oninput = event => {
@@ -17,7 +27,9 @@ function initFilterControls() {
   };
   elementById('station').onchange = event => { state.group = event.target.value; refilter(); };
   elementById('problems').onchange = event => { state.onlyProblems = event.target.checked; refilter(); };
+  elementById('agent').onchange = event => { setAgentFilter(event.target.value); };
   elementById('clearFilters').onclick = () => {
+    if (state.agent) setAgentFilter('');
     state.searchText = state.group = state.category = '';
     state.onlyProblems = false;
     elementById('q').value = '';

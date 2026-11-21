@@ -171,7 +171,7 @@ function buildRouteModel(turn, limit) {
         addMainStop(event, 'context', label, baseName(detail));
         break;
       }
-      case 'Stop': case 'StopFailure': case 'SessionEnd': endEvent = endEvent || event; break;
+      case 'Stop': case 'StopFailure': case 'SessionEnd': case 'Interrupt': endEvent = endEvent || event; break;
     }
   }
   for (const [toolUseId, stop] of openToolStops) stop.running = activity.runningTools.has(toolUseId);

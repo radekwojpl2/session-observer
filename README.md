@@ -1,6 +1,6 @@
 <p align="center"><img src="docs/brand/cover.png" alt="Session Observer: a live dashboard of every prompt, tool call, subagent and token in a Claude Code session" width="860"></p>
 
-# Session Observer — a Claude Code plugin
+# Session Observer — a Claude Code and Codex plugin
 
 [![CI](https://github.com/radekwojpl2/session-observer/actions/workflows/ci.yml/badge.svg)](https://github.com/radekwojpl2/session-observer/actions/workflows/ci.yml)
 
@@ -9,6 +9,9 @@ prompts, every tool call (with timing), **skills loaded**, **questions Claude as
 (AskUserQuestion + MCP elicitations), subagents, tasks, MCP calls, permission prompts,
 failures, notifications, context compactions, model switches, file/cwd changes,
 token usage per session, and what the model wrote and which tools it asked for at each step.
+
+It works with **Codex** too: Codex sessions show up on the same dashboard, next to your Claude Code sessions,
+each marked with the agent it came from. See [Codex](#codex).
 
 ![Route view: a turn drawn as a metro line, two Explore subagents branching below and merging back](docs/route.jpg)
 
@@ -87,9 +90,11 @@ or click the header to open that turn in Details.
 ## How it works
 
 ```
-Claude Code ──(33 async hooks)──▶ scripts/hook.js ──▶ ~/.claude/session-observer/events.jsonl
-                                                                │ (tailed)
-                                    browser ◀──SSE── server/server.js (127.0.0.1:4777)
+Claude Code ──(33 async hooks)──────────────┐
+                                            ▼
+Codex ──(14 async hooks, --agent codex)──▶ scripts/hook.js ──▶ ~/.claude/session-observer/events.jsonl
+                                                                         │ (tailed)
+                                             browser ◀──SSE── server/server.js (127.0.0.1:4777)
 ```
 
 * **Zero dependencies** — plain Node.js (18+).
@@ -178,6 +183,51 @@ rm -rf ~/.claude/session-observer ~/.claude/plugins/cache/session-observer-marke
 Claude Code on Windows and Claude Code in WSL each have their own `~/.claude`, so uninstall
 and clean up in each one you installed it in.
 
+## Codex
+
+The same plugin records Codex sessions. Both agents write to the same log and the same dashboard: the sessions list
+marks each session **Claude Code** or **Codex**, and once both kinds are there an **Agent** filter appears next to the
+other filters. *All activity* then shows both, or one of them.
+
+There are two ways to add the hooks. Use either; both send the same events.
+
+**Codex desktop app: install it as a plugin.** The repository is also a Codex marketplace
+(`.agents/plugins/marketplace.json`; the manifest and its hooks are in `.codex-plugin/plugin.json`):
+
+```
+codex plugin marketplace add radekwojpl2/session-observer
+```
+Then install **session-observer** in the desktop app (Codex runs hooks bundled in a plugin only for plugins installed
+by hand in the desktop app).
+
+**Codex CLI: add the hooks to your Codex config.** From a copy of this repository (a clone, or the folder Claude Code
+installed the plugin to):
+
+```
+node scripts/setup-codex.js            # adds the hooks to ~/.codex/hooks.json ($CODEX_HOME), keeps your own hooks
+node scripts/setup-codex.js --remove   # takes them out again
+```
+The hooks point at this folder, so run it again if you move or update the folder.
+
+Either way, Codex runs a new hook only after you trust it: run `/hooks` in Codex once and trust the Session Observer
+hooks. The first Codex session then starts the dashboard on <http://localhost:4777> if it isn't running already.
+
+What differs from Claude Code:
+
+- **Model steps** come from Codex's `PostModelRequest` hook (with its token counts); `PreModelRequest` events are also recorded, including retries. Each
+  step lists the tool calls it started (Codex sends their `PreToolUse` while the response still streams).
+- **What the model wrote** (its replies, and its reasoning when Codex kept a summary of it) is read live from Codex's
+  session file, as for Claude Code's transcript, and shows on the Route, in the Chat and in Details. Reasoning without
+  a summary is stored encrypted and stays out.
+- **Context window:** Codex's own figure when it reports one, otherwise 272k tokens
+  (`OBSERVER_CODEX_CONTEXT_WINDOW`).
+- **Tools:** `apply_patch` counts as a file edit (the files are read from the patch), `exec_command` / `shell` as
+  shell commands and `spawn_agent` as a subagent.
+- **The Context view** reads Codex's own session file (`~/.codex/sessions/…/rollout-*.jsonl`, which every Codex hook
+  event points to): the system prompt, tool definitions, instructions (AGENTS.md included), skills, deferred tools and
+  the whole conversation. That file's format isn't documented, so what the reader doesn't recognize is left out, and
+  reasoning, which Codex stores encrypted, shows only as tokens.
+
 ## Use
 
 The server starts automatically on the first `SessionStart`. Open
@@ -193,7 +243,16 @@ Markdown.
 
 ![Dashboard layout: 1 filters, 2 sessions, 3 views, 4 route, 5 event types and replay, 6 details](docs/layout.jpg)
 
-The session list shows each session's title and a dot for its state (working, live or ended). Hover a
+**Home** is the first view. On top, **Needs you** lists every session waiting on you: a permission to approve
+(with the command or file it is for), a question (`AskUserQuestion`, or Codex's `request_user_input`), or an MCP
+server asking for input, and how long it has waited. When nothing needs you, that section collapses to a small
+“Nothing needs you right now” status. Home uses the full width: the duplicate session list, event filters, replay
+bar and Details pane stay out of the way. Sessions are grouped by project; working and waiting sessions stay
+visible, while inactive and ended sessions fold under **+N more**. Each session shows its agent, state, turns and
+last activity. Click a row to open it. While something waits on you, the header shows **Needs you: N** and the
+browser tab title starts with the count, so you see it from another tab.
+
+The session list shows each session's title and a dot for its state (needs you, working, live or ended). Hover a
 session for the rest: when it was last active, its turns, tool calls and output tokens, the tool it ran
 last, and its folder, model, failures and context use.
 
@@ -281,6 +340,7 @@ word. Thinking is often stored empty, in which case there is nothing to show.
 | `OBSERVER_ALLOWED_HOSTS` | — | extra host names the dashboard answers to, comma-separated (loopback names always work) |
 | `OBSERVER_TOKEN` | — | lets other machines in when `OBSERVER_HOST` isn't loopback; without it they are refused |
 | `OBSERVER_CONTEXT_FIELD` | `100000` | max chars per text in the Context view |
+| `OBSERVER_CODEX_CONTEXT_WINDOW` | `272000` | a Codex session's context window, when Codex doesn't report one |
 
 ## Privacy and security
 
@@ -304,6 +364,7 @@ the dashboard or delete `~/.claude/session-observer/events.jsonl`.
 node test/check.js                 # JSON, JS syntax, hook wiring, version
 node --test test/smoke.test.js     # hook → log → server → API, end to end
 node --test test/tech.test.js      # language / tool badges: what each command and file maps to
+node --test test/codex.test.js     # Codex: hook → Codex sessions and model steps, setup-codex.js, Codex tool names
 claude plugin validate .           # plugin + marketplace manifests
 ```
 
@@ -324,7 +385,7 @@ The server is `server/server.js` (it loads the log and starts listening) plus `s
 | Folder | What is in it |
 |---|---|
 | `building-blocks/` | `config` (settings, paths, version), `file-tail` (new lines of a growing file), `token-usage`, `live-updates` (Server-Sent Events) |
-| `features/sessions/` | `event-categories`, `sessions` (sessions in memory and their totals), `transcript-steps` (model steps and usage from the transcripts) |
+| `features/sessions/` | `event-categories`, `sessions` (sessions in memory and their totals), `transcript-steps` (model steps and usage from Claude Code transcripts), `codex-model-steps` (model steps from Codex's model requests) |
 | `features/context/` | `/api/context`: a transcript read in full, its system prompt and listings, attachments, the "as sent" messages |
 | `features/web/` | `routes` (the page, its files and the JSON API), `request-guard` (Host / Origin / token checks, headers, CSP) |
 
@@ -339,9 +400,9 @@ with `'use strict';`.
 | `dashboard.css` | all styles, light and dark |
 | `building-blocks/language/` | the language list and plural helper (`i18n`), one table per language (`translations/<code>`), the chosen language |
 | `building-blocks/` | `dom` (elements, storage), `icons`, `format` (escaping, numbers, times), `tech-badges`, `code-highlight`, `json-view`, `card-parts` |
-| `features/events/` | the event model shared by every view: tool groups, what an event means, the page state, turns, running activity, the context window; tool input / output and the context badge |
+| `features/events/` | the event model shared by every view: tool groups, the agents (Claude Code, Codex), what an event means, the page state, turns, running activity, the context window; tool input / output and the context badge |
 | `features/sessions/` | the sessions panel and its hover card |
-| `features/filters/` | search, tool group, problems, range, event-type chips |
+| `features/filters/` | search, tool group, agent, problems, range, event-type chips |
 | `features/replay/` | the replay bar |
 | `features/overview/` | Overview: tiles, charts and lists |
 | `features/route/` | Route: stops and lanes, the SVG, the header and turn navigator |

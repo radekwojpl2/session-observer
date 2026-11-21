@@ -13,7 +13,7 @@ const storage = {
 // is LANGUAGE_STORAGE_KEY in i18n.js, which loads before this file.)
 const SETTING_KEYS = {
   theme: 'so.theme', layout: 'so.layout', range: 'so.range', replaySpeed: 'so.speed', detailSections: 'so.dsec',
-  contextRange: 'so.ctxMode', contextOrder: 'so.ctxOrder', contextBookkeeping: 'so.ctxMeta',
+  agent: 'so.agent', contextRange: 'so.ctxMode', contextOrder: 'so.ctxOrder', contextBookkeeping: 'so.ctxMeta',
 };
 
 // CSS animations restart when their element is re-rendered: this placeholder becomes a negative delay that keeps

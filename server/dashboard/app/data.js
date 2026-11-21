@@ -21,6 +21,7 @@ async function loadScope() {
     if (response.ok) events = await response.json();
   } catch { /* offline */ }
   if (load !== latestLoad) return;
+  if (state.scope === ALL_SESSIONS) events = events.filter(event => isAgentShown(agentOfEvent(event)));
   events.sort(byTimeThenSeq);
   state.events = events;
   state.frozenEvents = [];
@@ -36,12 +37,16 @@ function selectScope(id) {
   state.scope = id;
   state.selectedTurnKey = null;
   state.openEventSeqs.clear();
-  try { history.replaceState(null, '', id === ALL_SESSIONS ? location.pathname : '#session=' + encodeURIComponent(id)); } catch { /* ignore */ }
+  try {
+    const address = new URL(location.href);
+    address.hash = id === ALL_SESSIONS ? '' : 'session=' + encodeURIComponent(id);
+    history.replaceState(null, '', address.pathname + address.search + address.hash);
+  } catch { /* ignore */ }
   scheduleRender('sessions', 'header');
   loadScope();
 }
 
-const isInScope = event => state.scope === ALL_SESSIONS || event.session_id === state.scope;
+const isInScope = event => (state.scope === ALL_SESSIONS ? isAgentShown(agentOfEvent(event)) : event.session_id === state.scope);
 
 // inserts an event in time order; true when it went at the end
 function insertEvent(event) {

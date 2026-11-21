@@ -1,0 +1,190 @@
+{
+  "name": "session-observer",
+  "version": "0.7.1",
+  "description": "Observe everything that happens in a Codex session (prompts, tool calls, patches, subagents, permissions, compactions, tokens) on a live local dashboard, together with your Claude Code sessions.",
+  "author": {
+    "name": "Radek"
+  },
+  "license": "MIT",
+  "keywords": [
+    "observability",
+    "hooks",
+    "dashboard",
+    "telemetry"
+  ],
+  "homepage": "https://github.com/radekwojpl2/session-observer",
+  "repository": "https://github.com/radekwojpl2/session-observer",
+  "interface": {
+    "displayName": "Session Observer",
+    "shortDescription": "Live dashboard of your Codex and Claude Code sessions",
+    "longDescription": "Records every prompt, tool call, patch, subagent, permission, compaction and token count of your Codex sessions to a local log, and shows them on a live dashboard at http://localhost:4777, next to your Claude Code sessions. Nothing leaves your machine.",
+    "developerName": "Radek",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read"
+    ]
+  },
+  "hooks": {
+    "hooks": {
+      "SessionStart": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "node \"${PLUGIN_ROOT}/scripts/hook.js\" SessionStart --agent codex",
+              "async": true
+            }
+          ]
+        }
+      ],
+      "UserPromptSubmit": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "node \"${PLUGIN_ROOT}/scripts/hook.js\" UserPromptSubmit --agent codex",
+              "async": true
+            }
+          ]
+        }
+      ],
+      "PreToolUse": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "node \"${PLUGIN_ROOT}/scripts/hook.js\" PreToolUse --agent codex",
+              "async": true
+            }
+          ],
+          "matcher": "*"
+        }
+      ],
+      "PermissionRequest": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "node \"${PLUGIN_ROOT}/scripts/hook.js\" PermissionRequest --agent codex",
+              "async": true
+            }
+          ],
+          "matcher": "*"
+        }
+      ],
+      "PostToolUse": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "node \"${PLUGIN_ROOT}/scripts/hook.js\" PostToolUse --agent codex",
+              "async": true
+            }
+          ],
+          "matcher": "*"
+        }
+      ],
+      "PreCompact": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "node \"${PLUGIN_ROOT}/scripts/hook.js\" PreCompact --agent codex",
+              "async": true
+            }
+          ]
+        }
+      ],
+      "PostCompact": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "node \"${PLUGIN_ROOT}/scripts/hook.js\" PostCompact --agent codex",
+              "async": true
+            }
+          ]
+        }
+      ],
+      "SubagentStart": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "node \"${PLUGIN_ROOT}/scripts/hook.js\" SubagentStart --agent codex",
+              "async": true
+            }
+          ]
+        }
+      ],
+      "SubagentStop": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "node \"${PLUGIN_ROOT}/scripts/hook.js\" SubagentStop --agent codex",
+              "async": true
+            }
+          ]
+        }
+      ],
+      "PreModelRequest": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "node \"${PLUGIN_ROOT}/scripts/hook.js\" PreModelRequest --agent codex",
+              "async": true
+            }
+          ]
+        }
+      ],
+      "PostModelRequest": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "node \"${PLUGIN_ROOT}/scripts/hook.js\" PostModelRequest --agent codex",
+              "async": true
+            }
+          ]
+        }
+      ],
+      "Stop": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "node \"${PLUGIN_ROOT}/scripts/hook.js\" Stop --agent codex",
+              "async": true
+            }
+          ]
+        }
+      ],
+      "Interrupt": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "node \"${PLUGIN_ROOT}/scripts/hook.js\" Interrupt --agent codex",
+              "async": true,
+              "timeout": 3
+            }
+          ]
+        }
+      ],
+      "SessionEnd": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "node \"${PLUGIN_ROOT}/scripts/hook.js\" SessionEnd --agent codex",
+              "async": true,
+              "timeout": 3
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

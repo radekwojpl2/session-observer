@@ -1,13 +1,19 @@
 'use strict';
 // Session Observer dashboard — the header: connection, working sessions, Freeze, theme, language and Clear log.
 const NEXT_THEME = { auto: 'dark', dark: 'light', light: 'auto' };
+const PAGE_TITLE = document.title;
 
 function renderHeader() {
   const connection = elementById('conn');
   connection.className = 'dot ' + (state.connected ? 'on' : 'bad');
   elementById('connTxt').textContent = state.connected ? TEXT.live : TEXT.disconnected;
-  const workingSessions = [...state.sessions.values()].filter(session => session.busy && !session.ended).length;
-  elementById('hdrBusy').innerHTML = `<span class="dot ${workingSessions ? 'busy' : ''}"></span>${escapeHtml(TEXT.working(workingSessions))}`;
+  // a session waiting on you is counted there, not as working
+  const workingSessions = [...state.sessions.values()].filter(session => sessionActivity(session) === 'working').length;
+  const waitingOnYou = sessionsNeedingYou([...state.sessions.values()]).length;
+  elementById('hdrBusy').innerHTML = `<span class="dot ${workingSessions ? 'busy' : ''}"></span>${escapeHtml(TEXT.working(workingSessions))}`
+    + (waitingOnYou ? `<button class="hdr-need" data-go-home><span class="dot need"></span>${escapeHtml(TEXT.needYouN(waitingOnYou))}</button>` : '');
+  // the browser tab says so too, so a wait shows from another tab
+  document.title = (waitingOnYou ? `(${waitingOnYou}) ` : '') + PAGE_TITLE;
   connection.parentElement.title = TEXT.connTitle + (state.lastUpdateAt ? TEXT.lastUpdate(formatTime(state.lastUpdateAt)) : '');
   elementById('pause').textContent = state.frozen ? TEXT.unfreeze(state.frozenEvents.length) : TEXT.freeze;
   elementById('pause').classList.toggle('on', state.frozen);
@@ -44,6 +50,7 @@ function initHeaderButtons() {
     }
     scheduleRender('header');
   };
+  elementById('hdrBusy').onclick = event => { if (event.target.closest('[data-go-home]')) setView('home'); };
   elementById('clearLog').onclick = async () => {
     if (!confirm(TEXT.clearConfirm)) return;
     await fetch('/api/clear', { method: 'POST' });

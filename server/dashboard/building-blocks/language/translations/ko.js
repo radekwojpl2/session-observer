@@ -18,7 +18,7 @@ TRANSLATIONS.ko = (() => {
       task: '작업', mcp: 'MCP', permission: '권한', error: '오류', notification: '알림',
       compact: '압축', context: '컨텍스트', lifecycle: '수명 주기', env: '환경',
     },
-    views: { overview: '개요', route: '경로', chat: '채팅', context: '컨텍스트' },
+    views: { home: '홈', overview: '개요', route: '경로', chat: '채팅', context: '컨텍스트' },
     themes: { auto: '자동', dark: '다크', light: '라이트' },
 
     language: '언어', langAuto: '자동',
@@ -32,7 +32,7 @@ TRANSLATIONS.ko = (() => {
     clearLog: '로그 지우기', clearLogTitle: '로컬 이벤트 로그 삭제', clearConfirm: '기록된 이벤트를 모두 삭제할까요?',
     range: '기간', range1h: '최근 1시간', range6h: '최근 6시간', range24h: '최근 24시간', range7d: '최근 7일', rangeAll: '전체',
     search: '검색', searchPh: '프롬프트, 응답, 명령, 경로, 오류…',
-    group: '도구 그룹', groupTitle: '지도의 어느 부분인지: 파일, 셸, Git, MCP…', allGroups: '모든 그룹',
+    group: '도구 그룹', groupTitle: '지도의 어느 부분인지: 파일, 셸, Git, MCP…', allGroups: '모든 그룹', agent: '에이전트', allAgents: '모든 에이전트', agentTitle: 'Claude Code, Codex 또는 둘 다의 세션 표시',
     onlyProblems: '문제만', resetFilters: '필터 초기화', view: '보기',
     replayBtn: '▶ 재생', pauseBtn: '❚❚ 일시 정지', speedTitle: '재생 속도', liveBtn: '실시간',
     replaying: '재생 중', paused: '일시 정지됨',
@@ -57,7 +57,13 @@ TRANSLATIONS.ko = (() => {
       startedSession: '시작', createdWorktree: '생성됨', changedConfig: '변경됨',
     },
 
-    sessionState: { ended: '종료됨', working: '작업 중', live: '활성', inactive: '비활성' },
+    sessionState: { needsYou: '내 응답 필요', yourTurn: '내 차례', ended: '종료됨', working: '작업 중', live: '활성', inactive: '비활성' },
+    needYouN: n => `응답 필요 ${n}`,
+    home: {
+      needsYou: '내 응답 필요', allClear: '지금 응답이 필요한 항목이 없습니다.',
+      permission: t => (t ? `${t} 사용 권한` : '권한 필요'), question: '나에게 온 질문', mcp: s => `${s || 'MCP 서버'}가 입력을 요청함`,
+      inSubagent: t => `서브에이전트 ${t}`, noSessions: '이 기간에는 세션이 없습니다.', done: '완료', more: n => `+${n}개 더`, open: '이 세션 열기', openRepository: 'GitHub 저장소 열기',
+    },
     allActivity: '전체 활동', everySession: '모든 세션 합계', sessions: '세션', lastLbl: '최근:',
     ctxWindow: '컨텍스트 창', ctxShort: 'ctx', noSessions: '이 기간에는 세션이 없습니다.',
 
@@ -79,7 +85,7 @@ TRANSLATIONS.ko = (() => {
     commands: '명령', noCommands: '셸 명령이 없습니다.', topN: n => `상위 ${n}`, latestX: x => `최근: ${x}`,
     subagents: '서브에이전트', startedAt: t => `${t} 시작`, problems: '문제', latestFirst: '최신순',
 
-    noConversation: '아직 대화가 없습니다', openTurn: '이 턴 열기', claudeWorking: 'Claude가 작업 중…',
+    noConversation: '아직 대화가 없습니다', openTurn: '이 턴 열기', agentWorking: name => `${name}가 작업 중…`, codexContextNote: 'Codex 자체 세션 파일에서 읽었습니다. 형식이 문서화되지 않았고 바뀔 수 있어 일부가 빠질 수 있습니다. Codex는 추론을 암호화해 저장하므로 합계에는 포함되지만 내용은 표시되지 않습니다.',
 
     eventTypes: '이벤트 종류',
 

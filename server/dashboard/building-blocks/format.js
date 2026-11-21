@@ -13,8 +13,13 @@ function shorten(text, maxLength = 160) {
 const TITLE_PREVIEW_MAX = 140;   // a session title, or a prompt standing in for one
 const TOOLTIP_PREVIEW_MAX = 400; // the longer text a hover tooltip shows
 
-// text without HTML / XML-like tags (prompts often carry <system-reminder> and the like), on one line
-const stripTags = text => String(text ?? '').replace(/<\/?[a-z][\w-]*(?:\s[^>]*)?>/gi, ' ').replace(/\s+/g, ' ').trim();
+// text without HTML / XML-like tags (prompts often carry <system-reminder> and the like), on one line. A plugin
+// mention, which Codex writes as "[@Session Observer](plugin://…)", goes; any other markdown link keeps its label.
+const stripTags = text => String(text ?? '')
+  .replace(/<\/?[a-z][\w-]*(?:\s[^>]*)?>/gi, ' ')
+  .replace(/\[[^\]\n]*\]\(plugin:\/\/[^)\s]*\)/g, ' ')
+  .replace(/\[([^\]\n]*)\]\([^)\s]*\)/g, '$1')
+  .replace(/\s+/g, ' ').trim();
 // the last part of a path ("src/app.ts" → "app.ts"), for both / and \ paths
 const baseName = filePath => String(filePath || '').split(/[\\/]/).filter(Boolean).pop() || filePath || '';
 // hook enum values (user_settings, add_dir…) as words

@@ -42,6 +42,7 @@ function countEventInTurn(turn, event, subagentKey, turnBySubagent) {
   if (event.event === 'Stop') { turn.done = true; turn.answer = data.last_assistant_message || turn.answer; }
   if (event.event === 'StopFailure') { turn.done = true; turn.failed = true; }
   if (event.event === 'SessionEnd') turn.done = true;
+  if (event.event === 'Interrupt') { turn.done = true; turn.interrupted = true; }
 }
 
 // Splits events into turns, and fills turnBySeq. Returns the turns that have something in them.

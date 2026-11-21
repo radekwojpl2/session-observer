@@ -14,9 +14,22 @@ const CATEGORY_COLOR = {
 };
 // hidden from the Details list: MessageDisplay repeats the model's text, PostToolBatch repeats the tool rows
 const HIDDEN_IN_EVENT_LIST = new Set(['MessageDisplay', 'PostToolBatch']);
-const FILE_TOOLS = new Set(['Read', 'Write', 'Edit', 'MultiEdit', 'NotebookEdit', 'NotebookRead', 'Glob', 'Grep', 'LS']);
-const SHELL_TOOLS = new Set(['Bash', 'PowerShell', 'BashOutput', 'KillShell', 'KillBash', 'Monitor']);
-const SUBAGENT_CALL_TOOLS = new Set(['Agent', 'Task']); // the tool calls that start a subagent
+// Codex's own tools sit next to Claude Code's: apply_patch edits files, exec_command / shell run commands,
+// spawn_agent starts a subagent
+const PATCH_TOOL = 'apply_patch';
+const FILE_TOOLS = new Set(['Read', 'Write', 'Edit', 'MultiEdit', 'NotebookEdit', 'NotebookRead', 'Glob', 'Grep', 'LS', PATCH_TOOL]);
+const SHELL_TOOLS = new Set(['Bash', 'PowerShell', 'BashOutput', 'KillShell', 'KillBash', 'Monitor', 'exec_command', 'shell', 'local_shell']);
+const SUBAGENT_CALL_TOOLS = new Set(['Agent', 'Task', 'spawn_agent']); // the tool calls that start a subagent
+
+// an apply_patch call's patch text, and the files it adds, changes, deletes or moves to ("*** Update File: a.ts")
+const patchTextOf = input => {
+  const patch = input?.command ?? input?.patch ?? input?.input ?? '';
+  return Array.isArray(patch) ? patch.join('\n') : String(patch);
+};
+const PATCH_FILE_LINE = /^\*\*\* (?:(?:Add|Update|Delete) File|Move to): (.+)$/gm;
+const patchedFiles = input => [...new Set([...patchTextOf(input).matchAll(PATCH_FILE_LINE)].map(match => match[1].trim()))];
+// the files a file tool call works on
+const filesOfToolCall = (tool, input) => (tool === PATCH_TOOL ? patchedFiles(input) : [input?.file_path || input?.notebook_path].filter(Boolean));
 
 // an event's time in ms, parsed once
 const eventTime = event => event._t ?? (event._t = Date.parse(event.ts));

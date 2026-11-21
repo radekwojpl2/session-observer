@@ -34,7 +34,8 @@ function toolInputHtml(tool, input) {
   input = input || {};
   const fields = TEXT.fields;
   switch (tool) {
-    case 'Bash': return shellCommandHtml(input);
+    case 'Bash': case 'exec_command': case 'shell': case 'local_shell': return shellCommandHtml(input);
+    case PATCH_TOOL: return fieldTableHtml({ [fields.file]: patchedFiles(input).join('\n') }, NO_FIELDS_SKIPPED) + cardCodeHtml(patchTextOf(input));
     case 'Edit': return fieldTableHtml({ [fields.file]: input.file_path, [fields.replaceAll]: input.replace_all || null }, NO_FIELDS_SKIPPED) + diffHtml(input.old_string, input.new_string);
     case 'MultiEdit': return fieldTableHtml({ [fields.file]: input.file_path }, NO_FIELDS_SKIPPED) + (input.edits || []).map(edit => diffHtml(edit.old_string, edit.new_string)).join('');
     case 'Write': return fieldTableHtml({ [fields.file]: input.file_path }, NO_FIELDS_SKIPPED) + writtenContentHtml(input);
