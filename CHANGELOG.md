@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.0](https://github.com/radekwojpl2/session-observer/compare/v0.7.1...v0.8.0) (2026-11-21)
+
+
+### Features
+
+* update skill that updates the plugin and restarts the dashboard ([dbe24d4](https://github.com/radekwojpl2/session-observer/commit/dbe24d44b5117ac6509730752232ddc8b4771068))
+* update skill that updates the plugin and restarts the dashboard ([27c1ad8](https://github.com/radekwojpl2/session-observer/commit/27c1ad8c45f5623430acf7adc3774dfd5d02a5e6))
+
 ## [0.7.1](https://github.com/radekwojpl2/session-observer/compare/v0.7.0...v0.7.1) (2026-11-20)
 
 
