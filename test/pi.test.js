@@ -194,7 +194,8 @@ test("a pi session's Context comes from its session file: the active branch, pro
   const file = path.join(DATA_DIR, 'pi-agent', 'sessions', '--work--', '2026-11-24T10-00-00-000Z_pi-ctx.jsonl');
   writeJsonl(file, [
     { type: 'session', version: 3, id: 'pi-ctx', timestamp: '2026-11-24T10:00:00.000Z', cwd: '/work' },
-    entry('s1', null, { type: 'message', message: { role: 'system', content: '', sections: { preamble: 'You are pi.', rules: 'Be brief.' },
+    entry('s1', null, { type: 'message', message: { role: 'system', content: '', sections: { preamble: 'You are pi.', rules: 'Be brief.',
+      project_context: '<project_instructions path="/work/AGENTS.md">\nUse tabs.\n</project_instructions>' },
       toolsAdded: [{ name: 'read', description: 'Read a file', parameters: { type: 'object' } }, { name: 'bash', description: 'Run a command', parameters: {} }] } }),
     entry('u1', 's1', { type: 'message', message: { role: 'user', content: [{ type: 'text', text: 'first try' }] } }),
     entry('a1', 'u1', { type: 'message', message: { role: 'assistant', content: [{ type: 'text', text: 'abandoned answer' }], model: 'm1', usage: usage(900, 5) } }),
@@ -213,7 +214,9 @@ test("a pi session's Context comes from its session file: the active branch, pro
   const context = await getJson('/api/context?session=pi-ctx');
   assert.equal(context.error, undefined, context.error);
   assert.equal(context.agent, 'pi');
-  assert.equal(context.system, 'You are pi.\n\n<skills>x</skills>', 'the sections as patched: rules removed, skills added');
+  assert.equal(context.system, 'You are pi.\n\n<project_instructions path="/work/AGENTS.md">\nUse tabs.\n</project_instructions>\n\n<skills>x</skills>',
+    'the sections as patched: rules removed, skills added');
+  assert.deepEqual(context.instructions, [{ path: '/work/AGENTS.md', type: null, content: 'Use tabs.' }]);
   assert.deepEqual(context.tools.map(tool => tool.name), ['bash']);
   assert.deepEqual(context.tools[0], { name: 'bash', description: 'Run a command', schema: {} });
   const items = context.items.map(item => [item.kind, item.text ?? item.name ?? item.ctx]);
@@ -263,6 +266,31 @@ test("an omp session's Context lists its tools by name and nests each subagent u
   assert.deepEqual([scout.type, scout.toolUseId, scout.system], ['explore', 'call-task', 'You are a scout.\n\nRead only.']);
   assert.deepEqual(scout.tools.map(tool => tool.name), ['read', 'grep']);
   assert.deepEqual(scout.items.map(item => [item.kind, item.text ?? item.ctx]), [['user', 'list modules'], ['step', 11000], ['text', 'Three modules.']]);
+});
+
+test("omp's system prompt, which its file keeps only as a digest, comes from the extension, with its AGENTS.md", async () => {
+  const file = path.join(DATA_DIR, 'omp-agent', 'sessions', '-proj', '2026-11-24T11-00-00-000Z_omp-prompt.jsonl');
+  writeJsonl(file, [
+    { type: 'session', version: 3, id: 'omp-prompt', timestamp: '2026-11-24T11:00:00.000Z', cwd: '/proj' },
+    entry('u1', null, { type: 'message', message: { role: 'user', content: [{ type: 'text', text: 'codeword?' }] } }),
+    entry('x1', 'u1', { type: 'custom', customType: 'system-prompt-digest', data: 'c39a34b9' }),
+    entry('a1', 'x1', { type: 'message', message: { role: 'assistant', content: [{ type: 'text', text: 'BLUE-HERON' }], model: 'm', usage: usage(9000, 4) } }),
+  ]);
+  const long = 'x'.repeat(9000); // longer than one field of the log: kept in parts
+  const systemPrompt = ['You are omp.', '<project-context>\n<file path="/proj/AGENTS.md">\nThe codeword is BLUE-HERON.\n</file>\n</project-context>', long];
+  const omp = fakeHarness('omp');
+  const ctx = ctxOf('omp-prompt', { file });
+  omp.fire('session_start', {}, ctx);
+  omp.fire('before_agent_start', { reason: 'prompt', prompt: 'codeword?', systemPrompt }, ctx);
+  omp.fire('before_agent_start', { reason: 'prompt', prompt: 'again?', systemPrompt }, ctx); // the same prompt: not again
+  await waitFor(async () => (await getJson('/api/events?session=omp-prompt')).filter(event => event.event === 'UserPromptSubmit').length === 2);
+  const loads = (await getJson('/api/events?session=omp-prompt')).filter(event => event.event === 'InstructionsLoaded');
+  assert.equal(loads.length, 1, 'recorded when it changes');
+  assert.deepEqual(loads[0].data.files, ['/proj/AGENTS.md']);
+  assert.equal(loads[0].category, 'context');
+  const context = await getJson('/api/context?session=omp-prompt');
+  assert.equal(context.system, systemPrompt.join('\n\n'), 'whole, from its parts');
+  assert.deepEqual(context.instructions, [{ path: '/proj/AGENTS.md', type: null, content: 'The codeword is BLUE-HERON.' }]);
 });
 
 test("a missing session file says so instead of failing", async () => {

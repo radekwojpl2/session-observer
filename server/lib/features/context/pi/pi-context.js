@@ -96,10 +96,34 @@ function preludeOf(branch) {
   } else if (latestToolNames) {
     tools = named(latestToolNames);
   }
+  return { system, tools };
+}
+
+// The instruction files inside a system prompt (AGENTS.md…): pi wraps each in <project_instructions path=…>, omp in
+// <file path=…>. They stay in the prompt too, as the model got them.
+const INSTRUCTION_FILE = /<(project_instructions|file) path="([^"]+)">\n?([\s\S]*?)\n?<\/\1>/g;
+const instructionFilesOf = system => [...String(system || '').matchAll(INSTRUCTION_FILE)]
+  .map(match => ({ path: match[2], type: null, content: clipText(match[3]) }));
+
+// The system prompt the extension recorded (InstructionsLoaded), for a session whose file doesn't keep it (omp's main
+// session): the latest one, in its parts.
+function recordedSystemPrompt(session) {
+  const events = session?.events || [];
+  for (let index = events.length - 1; index >= 0; index--) {
+    const parts = events[index].event === 'InstructionsLoaded' && events[index].data?.system_prompt_parts;
+    if (Array.isArray(parts)) return parts.join('');
+  }
+  return null;
+}
+
+// the prelude as the view takes it: the prompt clipped for the page, and the instruction files found in it
+function finishPrelude({ system, tools }, fallbackSystem = null) {
+  const text = system ?? fallbackSystem;
   return {
-    system: system != null ? clipText(system) : null,
+    system: text != null ? clipText(text) : null,
     tools,
-    instructions: [], skills: null, agents: null, mcp: null, deferred: null, // inside the system prompt, not apart
+    instructions: instructionFilesOf(text),
+    skills: null, agents: null, mcp: null, deferred: null, // inside the system prompt, not apart
   };
 }
 
@@ -206,7 +230,7 @@ function subagentContexts(file, items) {
     const init = branch.find(row => row.type === 'session_init');
     subagents[id] = {
       type: init?.agent || null, description: id, toolUseId: callByTaskName.get(id) || null,
-      ...preludeOf(branch), items: conversationItems(branch),
+      ...finishPrelude(preludeOf(branch)), items: conversationItems(branch),
     };
   }
   return subagents;
@@ -217,7 +241,7 @@ function piSessionContext(session) {
   const rows = file && readTranscriptRows(file);
   if (!rows) return { error: `${session.agent} session file not found`, transcript: file || null };
   const branch = activeBranch(rows);
-  const prelude = preludeOf(branch);
+  const prelude = finishPrelude(preludeOf(branch), recordedSystemPrompt(session));
   const items = conversationItems(branch);
   return {
     session: session.id, agent: session.agent, transcript: file, model: session.model, context: session.context,

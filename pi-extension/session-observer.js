@@ -9,12 +9,15 @@
 // returns nothing, so it never blocks a tool or changes a result.
 'use strict';
 const path = require('path');
+const crypto = require('crypto');
 
 const HOOK_SCRIPT = path.join(__dirname, '..', 'scripts', 'hook.js');
 const TEXT_MAX = 2000;     // characters kept of one reply or thinking block (as the server keeps from transcripts)
 const SUMMARY_MAX = 4000;  // characters kept of a tool's output or the last reply
 // omp keeps a subagent started without a session file under /tmp/omp-task-*/ (no header names its parent)
-const TASK_FILE = /[\\/]omp-task-[^\\/]+[\\/][^\\/]+\.jsonl$/;
+const PROMPT_PART = 7000;  // characters per part of a recorded system prompt (the hook cuts any field at 8000)
+const INSTRUCTION_FILE = /<(project_instructions|file) path="([^"]+)">/g;
+const TASK_FILE =/[\\/]omp-task-[^\\/]+[\\/][^\\/]+\.jsonl$/;
 
 const registered = new WeakSet(); // the extension APIs already subscribed to (both shims may load in one process)
 
@@ -52,6 +55,14 @@ function idFromSessionFile(file) {
   return cut >= 0 ? name.slice(cut + 1) : name;
 }
 
+// the system prompt as text: pi's before_agent_start has it as a string, omp's as a list of parts
+function systemPromptOf(event, ctx) {
+  let prompt = event?.systemPrompt;
+  if (prompt == null && typeof ctx?.getSystemPrompt === 'function') prompt = ctx.getSystemPrompt();
+  if (Array.isArray(prompt)) prompt = prompt.filter(part => typeof part === 'string').join('\n\n');
+  return typeof prompt === 'string' ? prompt : '';
+}
+
 const modelName = model => (model && typeof model === 'object' ? [model.provider, model.id].filter(Boolean).join('/') : '');
 const count = value => (Number.isFinite(Number(value)) ? Number(value) : 0);
 
@@ -61,6 +72,7 @@ function forAgent(agent) {
   let rootSession = '';                 // omp: the first main session in this process, a subagent's fallback parent
   const toolInputs = new Map();         // tool call id → its input, until its result
   const lastReplies = new Map();        // session id → the main agent's last reply, for its Stop
+  const promptDigests = new Map();      // session id → the digest of the system prompt last recorded
 
   function sessionOf(ctx) {
     const id = call(ctx?.sessionManager, 'getSessionId');
@@ -105,8 +117,27 @@ function forAgent(agent) {
     observer().ensureServer(node).catch(() => {});
   }
 
+  // The system prompt each turn is sent with, recorded when it changes. omp keeps only a digest of it in its session
+  // file, so the Context view reads it from here; pi keeps it, but this marks when it changed. Instruction files
+  // (AGENTS.md…) are inside it: pi wraps each in <project_instructions path=…>, omp in <file path=…>.
+  function recordSystemPrompt(event, ctx) {
+    const text = systemPromptOf(event, ctx);
+    if (!text) return;
+    const sessionId = sessionOf(ctx);
+    const digest = crypto.createHash('sha256').update(text).digest('hex').slice(0, 16);
+    if (promptDigests.get(sessionId) === digest) return;
+    promptDigests.set(sessionId, digest);
+    const files = [...new Set([...text.matchAll(INSTRUCTION_FILE)].map(match => match[2]))];
+    const parts = [];
+    for (let start = 0; start < text.length; start += PROMPT_PART) parts.push(text.slice(start, start + PROMPT_PART));
+    record('InstructionsLoaded', ctx, {
+      files, path: files.length ? null : 'system prompt', digest, system_prompt_chars: text.length, system_prompt_parts: parts,
+    });
+  }
+
   function onPrompt(event, ctx) {
     if (event?.reason === 'revive') return; // omp waking a parked subagent: no new prompt
+    quietly(() => recordSystemPrompt(event, ctx));
     record('UserPromptSubmit', ctx, { prompt: textOf(event?.prompt ?? event?.message) });
   }
 
