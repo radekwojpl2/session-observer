@@ -4,6 +4,80 @@ Session Observer shows [pi](https://github.com/earendil-works/pi) and [omp (oh-m
 sessions next to Claude Code and Codex. Neither runs hook commands, so the integration is an extension that runs
 inside the agent's own process.
 
+## Install
+
+You need Node.js (18 or newer) on the machine that runs pi or omp. omp runs on Bun, but the dashboard server runs on
+Node, so `node` must be on your PATH there too.
+
+### On your own machine
+
+1. Get the code (until `feat/pi-omp` is merged, use that branch):
+   ```sh
+   git clone -b feat/pi-omp https://github.com/radekwojpl2/session-observer
+   cd session-observer
+   ```
+2. Install the extension:
+   ```sh
+   node scripts/setup-pi.js          # for each of pi (~/.pi) and omp (~/.omp) set up here
+   node scripts/setup-pi.js omp      # or name one: pi, omp, or both
+   ```
+   This writes `extensions/session-observer.js` into `~/.pi/agent` and/or `~/.omp/agent`: one line that loads
+   `pi-extension/session-observer.js` from this clone. Keep the clone where it is; after moving it, run the script
+   again.
+3. Restart pi or omp (or run `/reload` in it). The first session starts the dashboard: open http://127.0.0.1:4777.
+   Sessions show with a **pi** or **omp** badge, next to Claude Code's and Codex's.
+
+Where it installs:
+
+| Agent | Folder | Change it with |
+|---|---|---|
+| pi | `~/.pi/agent/extensions/` | `PI_CODING_AGENT_DIR` |
+| omp | `~/.omp/agent/extensions/` | `OMP_PROFILE` (a profile's folder), or `OMP_AGENT_DIR` |
+
+### When the agent runs in a sandbox or on a remote machine
+
+By default events go to `~/.claude/session-observer`. If the agent can't write there (a sandbox that hides
+`~/.claude`), or it starts without your shell's variables (scheduled runs), give the log a folder it can write to:
+
+```sh
+node scripts/setup-pi.js omp --data-dir ~/.omp/session-observer
+```
+
+The folder goes into the installed loader, so every way the agent starts logs there (`OBSERVER_DATA_DIR`, when set,
+still wins). Then run the dashboard server outside the sandbox, on the same folder, and keep it running: a server
+the extension starts inside a sandbox stops when the agent does.
+
+```sh
+OBSERVER_DATA_DIR=~/.omp/session-observer nohup node server/server.js >/dev/null 2>&1 &
+```
+
+On a remote machine the server listens on its own loopback only. View it through an SSH tunnel that keeps the port
+number the same (the server accepts requests only for its own port):
+
+```sh
+ssh -N -L 4777:127.0.0.1:4777 <remote>     # then open http://127.0.0.1:4777
+```
+
+If 4777 is taken on your side (your own Observer runs there), start a second server on the remote machine with
+`OBSERVER_PORT=4787` and the same `OBSERVER_DATA_DIR`, and tunnel `4787:127.0.0.1:4787`.
+
+A sandboxed agent can read the log folder and reach the dashboard on loopback: see Open item 1 in
+[HANDOFF.md](HANDOFF.md).
+
+### Update and remove
+
+- Update: `git pull` in the clone, then restart pi / omp (the loader always loads the clone's current code) and the
+  dashboard server.
+- Remove: `node scripts/setup-pi.js --remove` (both) or `--remove omp`. It deletes only the file it wrote. The log
+  folder stays; delete it yourself if you want the events gone. pi's and omp's own session files are never touched.
+
+### Check that it works
+
+- At start, pi / omp lists extension load errors; there should be none for `session-observer`.
+- After a prompt, the log folder has a file for the session: `ls ~/.claude/session-observer/sessions/*/`
+  (or your `--data-dir`).
+- `curl -s http://127.0.0.1:4777/api/health` answers `{"ok":true,…}` with the session count.
+
 ## Pieces
 
 | File | What it does |
