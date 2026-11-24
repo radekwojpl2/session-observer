@@ -4,7 +4,7 @@
   --ok: #137138; --warn: #a24b06; --err: #c81e1e; --err-bg: #fde4e4; --spoke: #b9bec8;
   --s-you: #0f766e; --s-model: #6d28d9; --s-files: #1d4ed8; --s-shell: #475569; --s-git: #be185d; --s-mcp: #b23b0b;
   --s-network: #4338ca; --s-browser: #047857; --s-agents: #a14a08; --s-skills: #42690c; --s-context: #0e7490; --s-other: #565d6a;
-  --a-claude: #b4532a; --a-codex: #3f4652;
+  --a-claude: #b4532a; --a-codex: #3f4652; --a-pi: #0b6e99; --a-omp: #1e6b52;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   color-scheme: light;
 }
@@ -15,7 +15,7 @@
     --ok: #22c55e; --warn: #f59e0b; --err: #f87171; --err-bg: #3a1618; --spoke: #3a3e46;
     --s-you: #2dd4bf; --s-model: #a78bfa; --s-files: #60a5fa; --s-shell: #cbd5e1; --s-git: #f472b6; --s-mcp: #fb923c;
     --s-network: #949cf9; --s-browser: #34d399; --s-agents: #fbbf24; --s-skills: #a3e635; --s-context: #22d3ee; --s-other: #9ca3af;
-    --a-claude: #e8875f; --a-codex: #d4d7dd;
+    --a-claude: #e8875f; --a-codex: #d4d7dd; --a-pi: #74c0fc; --a-omp: #63e6be;
     color-scheme: dark;
   }
 }
@@ -25,7 +25,7 @@
   --ok: #22c55e; --warn: #f59e0b; --err: #f87171; --err-bg: #3a1618; --spoke: #3a3e46;
   --s-you: #2dd4bf; --s-model: #a78bfa; --s-files: #60a5fa; --s-shell: #cbd5e1; --s-git: #f472b6; --s-mcp: #fb923c;
   --s-network: #949cf9; --s-browser: #34d399; --s-agents: #fbbf24; --s-skills: #a3e635; --s-context: #22d3ee; --s-other: #9ca3af;
-    --a-claude: #e8875f; --a-codex: #d4d7dd;
+    --a-claude: #e8875f; --a-codex: #d4d7dd; --a-pi: #74c0fc; --a-omp: #63e6be;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -143,6 +143,8 @@ select, input[type=search] { background: var(--panel); border: 1px solid var(--l
 .bub.ai { align-self: flex-start; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--s-model); border-bottom-left-radius: 5px; box-shadow: 0 1px 2px rgb(0 0 0 / .06); }
 .bub.ai::before { content: 'Claude'; display: block; font-size: 11.5px; font-weight: 700; color: var(--s-model); margin-bottom: 2px; }
 .bub.ai.agent-codex::before { content: 'Codex'; }
+.bub.ai.agent-pi::before { content: 'pi'; }
+.bub.ai.agent-omp::before { content: 'omp'; }
 .bub.think { align-self: flex-start; background: transparent; border: 1px dashed var(--line); color: var(--muted); font-style: italic; font-size: 12.5px; max-height: 5.2em; overflow: hidden; }
 .bub.think::before { content: 'thinking'; display: block; font-style: normal; font-size: 11px; font-weight: 600; color: var(--faint); }
 .bub.fail { border-color: var(--err); background: var(--err-bg); }
@@ -236,7 +238,9 @@ svg.metro { display: block; }
 /* each agent has its own color, on the list's tag and on the hover card's chip */
 .agent-claude { --agent: var(--a-claude); }
 .agent-codex { --agent: var(--a-codex); }
-.agent-tag, .chip.agent-claude, .chip.agent-codex { color: var(--agent); border-color: color-mix(in srgb, var(--agent) 55%, transparent); background: color-mix(in srgb, var(--agent) 12%, transparent); }
+.agent-pi { --agent: var(--a-pi); }
+.agent-omp { --agent: var(--a-omp); }
+.agent-tag, .chip.agent-claude, .chip.agent-codex, .chip.agent-pi, .chip.agent-omp { color: var(--agent); border-color: color-mix(in srgb, var(--agent) 55%, transparent); background: color-mix(in srgb, var(--agent) 12%, transparent); }
 /* links between agent sessions: one started the other (features/sessions/links.js) */
 .slinks { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0 8px; font-size: 12.5px; }
 .slink { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; padding: 2px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); font: inherit; cursor: pointer; }

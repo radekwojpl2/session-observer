@@ -3,11 +3,12 @@
 const DEFAULT_CONTEXT_WINDOW = 200000;
 const ONE_MILLION_WINDOW = 1000000;
 
-// A reported window takes precedence over token-count estimates. Claude Code reports its main agent's window
-// through the optional status line filter, so use that value for steps whose model matches the report.
+// A reported window takes precedence over token-count estimates. Codex, pi and omp report their own, used as is.
+// Claude Code reports its main agent's window through the optional status line filter, so use that value for steps
+// whose model matches the report.
 function contextWindowFor(session, tokens, model = session?.model) {
   const context = session?.context, observed = session?.observedContext;
-  if (session?.agent === CODEX && context?.window) return context.window;
+  if (session?.agent && session.agent !== DEFAULT_AGENT && context?.window) return context.window;
   if (observed && observed.model === model) return observed.window;
   if (tokens > DEFAULT_CONTEXT_WINDOW || /\[1m]|-1m/i.test(model || '')) return ONE_MILLION_WINDOW;
   return (context && (!context.model || context.model === model) && context.window) || DEFAULT_CONTEXT_WINDOW;

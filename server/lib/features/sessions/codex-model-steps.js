@@ -7,6 +7,7 @@
 // hooks, and the step moves to just before the first of them, where the request was.
 'use strict';
 const { CODEX_CONTEXT_WINDOW } = require('../../building-blocks/config');
+const { addStepUsage } = require('./reported-model-steps');
 
 const CODEX = 'codex';
 const isCodexModelRequest = event => event.agent === CODEX && event.event === 'PostModelRequest';
@@ -76,18 +77,6 @@ function toCodexModelStep(event) {
 }
 
 // adds a Codex step's tokens to the session's totals and, for the main agent, its context window use
-function addCodexUsage(session, step) {
-  const { tokens, model, subagent, token_usage: usage } = step.data;
-  const totals = session.usage;
-  totals.input += tokens.input;
-  totals.output += tokens.output;
-  totals.cache_read += tokens.cache_read;
-  totals.cache_write += tokens.cache_write;
-  totals.turns++;
-  if (model) totals.models[model] = (totals.models[model] || 0) + 1;
-  if (subagent || !tokens.context) return;
-  const window = count(usage?.model_context_window ?? step.data.model_context_window) || CODEX_CONTEXT_WINDOW;
-  session.context = { tokens: tokens.context, window, pct: Math.min(1, tokens.context / window), ts: step.ts };
-}
+const addCodexUsage = (session, step) => addStepUsage(session, step, CODEX_CONTEXT_WINDOW);
 
 module.exports = { CODEX, isCodexModelRequest, noteCodexEvent, toCodexModelStep, addCodexUsage, resetCodexSteps, clearCodexSession, tokensOf };

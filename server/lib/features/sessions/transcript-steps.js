@@ -1,5 +1,6 @@
 // Model steps and token usage, read from each Claude Code session's transcript. Codex sessions: their steps come from
-// a hook (codex-model-steps.js), and what the model wrote from Codex's session file (codex-rollout-texts.js).
+// a hook (codex-model-steps.js), and what the model wrote from Codex's session file (codex-rollout-texts.js). pi and
+// omp sessions: their extension writes both itself (reported-model-steps.js), and no transcript is read.
 //
 // Hooks don't see individual model calls, so each assistant API response in the transcript (and in the subagent
 // transcripts) becomes a synthetic "ModelStep" event, and every block of text or thinking it wrote a "ModelText".
@@ -16,6 +17,7 @@ const { noteContextThresholds } = require('./context-thresholds');
 const { ONE_MILLION_WINDOW, contextTokensOf, hasOneMillionWindow } = require('../../building-blocks/token-usage');
 const { CODEX, isCodexModelRequest, noteCodexEvent, toCodexModelStep, addCodexUsage, resetCodexSteps, clearCodexSession } = require('./codex-model-steps');
 const { codexRolloutTexts, resetCodexRolloutTexts, clearCodexSession: clearCodexRolloutSession } = require('./codex-rollout-texts');
+const { isExtensionModelStep, addStepUsage } = require('./reported-model-steps');
 
 const MODEL_TEXT_MAX = 2000;          // characters kept of one text / thinking block
 const REMEMBERED_STEPS_MAX = 2000;    // recent ModelSteps kept by message id
@@ -45,6 +47,8 @@ function ingestEvent(event) {
     addCodexUsage(session, event);
     if (!event.data.subagent && event.data.tokens.context) noteContextThresholds(session, event);
     if (event.data.msg_id) rememberStep(event.data.msg_id, event);
+  } else if (isExtensionModelStep(event)) {
+    addStepUsage(session, event);
   }
   if (!event.synthetic && readsTranscript(session)) scheduleTranscriptRead(session);
   return session;

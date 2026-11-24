@@ -78,7 +78,7 @@ TRANSLATIONS.zh = (() => {
     orderStarted: '最近开始', orderActivity: '最近活动', orderName: '名称', orderProject: '项目', noProject: '（无文件夹）',
     range: '时间范围', range1h: '最近 1 小时', range6h: '最近 6 小时', range24h: '最近 24 小时', range7d: '最近 7 天', rangeAll: '全部',
     search: '搜索', searchPh: '提示词、回复、命令、路径、错误…',
-    group: '工具组', groupTitle: '地图的哪一部分：文件、Shell、Git、MCP…', allGroups: '所有组', agent: '代理', allAgents: '所有代理', agentTitle: '显示来自 Claude Code、Codex 或两者的会话',
+    group: '工具组', groupTitle: '地图的哪一部分：文件、Shell、Git、MCP…', allGroups: '所有组', agent: '代理', allAgents: '所有代理', agentTitle: '显示某一个智能体或全部智能体的会话',
     onlyProblems: '只看问题', filters: '筛选', resetFilters: '重置筛选', view: '视图',
 
     subagent: '子代理', subagentLc: '子代理', mainAgent: '主代理', mainAgentLc: '主代理',
