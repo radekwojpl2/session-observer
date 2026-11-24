@@ -3,7 +3,8 @@
 // server stamps it); a session's agent is its events' agent.
 const DEFAULT_AGENT = 'claude';
 const CODEX = 'codex';
-const AGENT_NAMES = { claude: 'Claude Code', codex: 'Codex', pi: 'pi', omp: 'omp' }; // product names: the same in every language
+const AGENT_NAMES = { claude: 'Claude Code', codex: 'Codex', pi: 'pi', omp: 'omp' };
+const EXTENSION_AGENTS = new Set(['pi', 'omp']); // their extension reports events; their session file is read as is // product names: the same in every language
 
 // a known agent's key (an unknown or missing one counts as the default), safe to use in a class name
 const agentKey = agent => (agent in AGENT_NAMES ? agent : DEFAULT_AGENT);

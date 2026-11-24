@@ -189,8 +189,8 @@ To log somewhere other than `~/.claude/session-observer`, add `--data-dir <folde
 |---|---|---|---|
 | Hook setup | Installed with the Claude Code plugin | Desktop plugin or CLI setup script | Extension, installed by `scripts/setup-pi.js` |
 | Event source | Claude Code hook events | Codex hook events, including model request and usage events | Extension events, turned into the same hook events in the agent's own process |
-| Message and context source | Claude session transcript | Codex rollout file in ~/.codex/sessions | Each finished reply, as the extension reports it (tokens, tool calls, text and thinking) |
-| Context detail | Transcript, instructions, tools, skills and attachments when recorded | Rollout parser reads prompts, replies, tool activity and context metadata | No Context view yet: pi's session files are not read |
+| Message and context source | Claude session transcript | Codex rollout file in ~/.codex/sessions | Live: each finished reply, as the extension reports it. Context view: the agent's own session file (~/.pi/agent/sessions or ~/.omp/agent/sessions) |
+| Context detail | Transcript, instructions, tools, skills and attachments when recorded | Rollout parser reads prompts, replies, tool activity and context metadata | The active branch: prompts, replies, thinking, tool calls and results, compactions, prompt changes; pi's system prompt and tool definitions; omp subagents nested under their task call. omp keeps only a digest of the main session's system prompt, so the view shows its tool names |
 | Reasoning | Shown when the transcript provides it | Codex stores reasoning encrypted; only available summaries are readable | Shown when the model returns thinking text |
 | Subagents | Nested in the session | Nested in the session | An omp subagent (its task tool) is a session of its own, nested under the one that ran it; pi has none |
 | Dashboard | Same local dashboard and event log | Same local dashboard and event log | Same local dashboard and event log |

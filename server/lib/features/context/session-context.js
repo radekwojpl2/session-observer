@@ -15,6 +15,7 @@ const { CODEX } = require('../sessions/codex-model-steps');
 const { codexSessionContext } = require('./codex/codex-context');
 const { contextUsage } = require('../sessions/observed-context');
 const { EXTENSION_AGENTS } = require('../sessions/reported-model-steps');
+const { piSessionContext } = require('./pi/pi-context');
 
 const SUBAGENT_TRANSCRIPT = /^agent-([\w-]+)\.jsonl$/;
 
@@ -47,8 +48,7 @@ function subagentContexts(mainTranscript) {
 
 function sessionContext(session) {
   if (session.agent === CODEX) return codexSessionContext(session); // Codex's session file has its own format
-  // pi's and omp's session files are not read: their extension reports events, and the Context view has no reader yet
-  if (EXTENSION_AGENTS.has(session.agent)) return { error: `${session.agent} sessions have no Context view yet` };
+  if (EXTENSION_AGENTS.has(session.agent)) return piSessionContext(session); // pi's and omp's own session file
   const mainTranscript = session.transcript_path;
   const rows = mainTranscript && readTranscriptRows(mainTranscript);
   if (!rows) return { error: 'transcript not found', transcript: mainTranscript || null };

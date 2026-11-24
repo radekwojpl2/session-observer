@@ -192,6 +192,7 @@ TRANSLATIONS.zh = (() => {
     measuredNote: (first, cpt) => `实测：第一次请求为 ${first} 个 token（系统提示词、工具、指令、列表和第一条提示词）。${cpt
       ? `卡片上的大小按本会话平均每 token ${cpt} 个字符计算。` : '卡片上的大小按每 token 约 4 个字符估算。'}`,
     systemPrompt: '系统提示词', charsN: x => `${x} 个字符`, toolDefs: '工具定义', builtIn: '内置',
+    harnessContextNote: n => `读取自 ${n} 自己的会话文件，其格式可能变化，因此部分内容可能缺失。${n} 会把 AGENTS.md 等指令文件放进系统提示词，因此不单独列出。`, harnessNoSystem: n => `${n} 只保存本会话系统提示词的指纹，因此无法显示。工具名称来自它的回复。`,
     noSystem: '本记录中没有系统提示词和工具定义：Claude Code 只在部分版本中记录它们。下方内容都在。',
     instructions: '指令',
     noInstructions: '本记录中没有指令文件：没有加载任何 CLAUDE.md（全局、项目或本地）、AGENTS.md、规则或自动记忆。',

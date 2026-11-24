@@ -194,6 +194,7 @@ TRANSLATIONS.fr = (() => {
     measuredNote: (first, cpt) => `Mesuré : la première requête faisait ${first} jetons (prompt système, outils, instructions, listes et premier prompt). ${cpt
       ? `Les tailles des cartes utilisent la moyenne de cette session : ${cpt} caractères par jeton.` : 'Les tailles des cartes sont estimées à environ 4 caractères par jeton.'}`,
     systemPrompt: 'Prompt système', charsN: x => `${x} caractères`, toolDefs: 'Définitions des outils', builtIn: 'Intégrés',
+    harnessContextNote: n => `Lu depuis le fichier de session de ${n}, dont le format peut changer : certaines parties peuvent manquer. ${n} intègre les fichiers d’instructions comme AGENTS.md à son prompt système, ils ne sont donc pas listés à part.`, harnessNoSystem: n => `${n} ne garde qu’une empreinte du prompt système de cette session : il ne peut pas être affiché. Les noms des outils viennent de ses réponses.`,
     noSystem: 'Le prompt système et les définitions des outils ne figurent pas dans cette transcription : Claude Code ne les enregistre que dans certaines versions. Tout ce qui suit y figure.',
     instructions: 'Instructions',
     noInstructions: 'Aucun fichier d’instructions dans cette transcription : aucun CLAUDE.md (global, de projet ou local), AGENTS.md, règle ni mémoire automatique n’a été chargé.',

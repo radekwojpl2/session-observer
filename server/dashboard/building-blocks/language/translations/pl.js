@@ -196,6 +196,7 @@ TRANSLATIONS.pl = (() => {
     measuredNote: (first, cpt) => `Zmierzone: pierwsze zapytanie miało ${first} tokenów (prompt systemowy, narzędzia, instrukcje, listy i pierwszy prompt). ${cpt
       ? `Rozmiary na kartach używają średniej tej sesji: ${cpt} znaków na token.` : 'Rozmiary na kartach są szacunkowe, ok. 4 znaki na token.'}`,
     systemPrompt: 'Prompt systemowy', charsN: x => `${x} znaków`, toolDefs: 'Definicje narzędzi', builtIn: 'Wbudowane',
+    harnessContextNote: n => `Odczytane z własnego pliku sesji ${n}. Jego format może się zmienić, więc części mogą brakować. ${n} wkłada pliki instrukcji, takie jak AGENTS.md, do promptu systemowego, więc nie są wymienione osobno.`, harnessNoSystem: n => `${n} zapisuje tylko odcisk promptu systemowego tej sesji, więc nie da się go pokazać. Nazwy narzędzi pochodzą z odpowiedzi.`,
     noSystem: 'Promptu systemowego i definicji narzędzi nie ma w tym transkrypcie: Claude Code zapisuje je tylko w niektórych wersjach. Wszystko poniżej jest.',
     instructions: 'Instrukcje',
     noInstructions: 'Brak plików instrukcji w tym transkrypcie: nie wczytano CLAUDE.md (globalnego, projektu ani lokalnego), AGENTS.md, reguł ani auto-pamięci.',

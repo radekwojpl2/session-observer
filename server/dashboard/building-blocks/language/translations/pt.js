@@ -194,6 +194,7 @@ TRANSLATIONS.pt = (() => {
     measuredNote: (first, cpt) => `Medido: a primeira requisição tinha ${first} tokens (prompt do sistema, ferramentas, instruções, listas e o primeiro prompt). ${cpt
       ? `Os tamanhos nos cartões usam a média desta sessão: ${cpt} caracteres por token.` : 'Os tamanhos nos cartões são estimativas de cerca de 4 caracteres por token.'}`,
     systemPrompt: 'Prompt do sistema', charsN: x => `${x} caracteres`, toolDefs: 'Definições de ferramentas', builtIn: 'Integradas',
+    harnessContextNote: n => `Lido do próprio arquivo de sessão do ${n}, cujo formato pode mudar, então algumas partes podem faltar. O ${n} coloca arquivos de instruções como AGENTS.md no prompt de sistema, por isso eles não aparecem à parte.`, harnessNoSystem: n => `O ${n} guarda só uma impressão digital do prompt de sistema desta sessão, então ele não pode ser mostrado. Os nomes das ferramentas vêm das respostas.`,
     noSystem: 'O prompt do sistema e as definições de ferramentas não estão nesta transcrição: o Claude Code só os grava em algumas versões. Todo o resto abaixo está.',
     instructions: 'Instruções',
     noInstructions: 'Nenhum arquivo de instruções nesta transcrição: não foi carregado nenhum CLAUDE.md (global, do projeto ou local), AGENTS.md, regra ou memória automática.',

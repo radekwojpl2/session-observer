@@ -75,6 +75,7 @@ const getJson = async apiPath => (await fetch(`http://127.0.0.1:${port}${apiPath
 const sessionById = async id => waitFor(async () => (await getJson('/api/sessions')).find(session => session.id === id));
 
 const handlerResults = [];
+let parentAfterOmp = null; // what the environment names once the omp scenario has run
 before(async () => {
   port = await freePort();
 
@@ -109,6 +110,7 @@ before(async () => {
   omp.fire('tool_execution_end', { toolCallId: 'task-1', toolName: 'task', result: { content: [{ type: 'text', text: 'Three modules.' }] }, isError: false }, mainCtx);
   omp.fire('agent_end', { messages: [], willContinue: false }, mainCtx); // the main session's turn ends with session_stop
   omp.fire('session_stop', { messages: [], turn_id: 1, session_id: 'omp-main', stop_hook_active: false }, mainCtx);
+  parentAfterOmp = [process.env.OBSERVER_PARENT_AGENT, process.env.OBSERVER_PARENT_SESSION];
 
   server = spawn(process.execPath, [SERVER], { env: { ...process.env, OBSERVER_PORT: String(port) }, stdio: 'ignore' });
   await waitFor(async () => (await getJson('/api/health')).ok);
@@ -180,14 +182,96 @@ test('an omp subagent is a session of its own, nested under the session that ran
   assert.equal(main.busy, false);
 });
 
-test('pi and omp sessions say they have no Context view yet', async () => {
-  const context = await getJson('/api/context?session=pi-sess-1');
-  assert.match(context.error, /pi sessions have no Context view/);
+// ---- the Context view, from the agent's own session file (shaped as pi's docs and omp's real files give it)
+const writeJsonl = (file, rows) => {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, rows.map(row => JSON.stringify(row)).join('\n') + '\n');
+};
+const entry = (id, parentId, fields) => ({ id, parentId, timestamp: '2026-11-24T10:00:00.000Z', ...fields });
+const usage = (input, output) => ({ input, output, cacheRead: 0, cacheWrite: 0, totalTokens: input + output });
+
+test("a pi session's Context comes from its session file: the active branch, prompt, tools and changes", async () => {
+  const file = path.join(DATA_DIR, 'pi-agent', 'sessions', '--work--', '2026-11-24T10-00-00-000Z_pi-ctx.jsonl');
+  writeJsonl(file, [
+    { type: 'session', version: 3, id: 'pi-ctx', timestamp: '2026-11-24T10:00:00.000Z', cwd: '/work' },
+    entry('s1', null, { type: 'message', message: { role: 'system', content: '', sections: { preamble: 'You are pi.', rules: 'Be brief.' },
+      toolsAdded: [{ name: 'read', description: 'Read a file', parameters: { type: 'object' } }, { name: 'bash', description: 'Run a command', parameters: {} }] } }),
+    entry('u1', 's1', { type: 'message', message: { role: 'user', content: [{ type: 'text', text: 'first try' }] } }),
+    entry('a1', 'u1', { type: 'message', message: { role: 'assistant', content: [{ type: 'text', text: 'abandoned answer' }], model: 'm1', usage: usage(900, 5) } }),
+    // /tree: a new branch from the system message, which is the active one
+    entry('u2', 's1', { type: 'message', message: { role: 'user', content: [{ type: 'text', text: 'second try' }] } }),
+    entry('a2', 'u2', { type: 'message', message: { role: 'assistant', model: 'm1', usage: { ...usage(1000, 40), cacheRead: 3000 },
+      content: [{ type: 'thinking', thinking: 'Look first.' }, { type: 'toolCall', id: 'c1', name: 'bash', arguments: { command: 'ls' } }] } }),
+    entry('r1', 'a2', { type: 'message', message: { role: 'toolResult', toolCallId: 'c1', toolName: 'bash', content: [{ type: 'text', text: 'src' }], isError: false } }),
+    entry('s2', 'r1', { type: 'message', message: { role: 'system', content: '', sections: { rules: null, skills: '<skills>x</skills>' }, toolsRemoved: [{ name: 'read' }] } }),
+    entry('k1', 's2', { type: 'compaction', summary: 'Listed src.', firstKeptEntryId: 'r1', tokensBefore: 4000 }),
+    entry('a3', 'k1', { type: 'message', message: { role: 'assistant', content: [{ type: 'text', text: 'Done.' }], model: 'm1', usage: usage(500, 3) } }),
+  ]);
+  const pi = fakeHarness('pi');
+  pi.fire('session_start', { reason: 'startup' }, ctxOf('pi-ctx', { file }));
+  await sessionById('pi-ctx');
+  const context = await getJson('/api/context?session=pi-ctx');
+  assert.equal(context.error, undefined, context.error);
+  assert.equal(context.agent, 'pi');
+  assert.equal(context.system, 'You are pi.\n\n<skills>x</skills>', 'the sections as patched: rules removed, skills added');
+  assert.deepEqual(context.tools.map(tool => tool.name), ['bash']);
+  assert.deepEqual(context.tools[0], { name: 'bash', description: 'Run a command', schema: {} });
+  const items = context.items.map(item => [item.kind, item.text ?? item.name ?? item.ctx]);
+  assert.deepEqual(items, [
+    ['user', 'second try'], ['step', 4000], ['thinking', 'Look first.'], ['call', 'bash'], ['result', 'src'],
+    ['attachment', '[rules removed]\n\n[skills]\n<skills>x</skills>\n\n[tools removed] read'],
+    ['compact', undefined], ['summary', 'Listed src.'], ['step', 500], ['text', 'Done.'],
+  ], 'the abandoned branch stays out');
+  assert.equal(context.items.find(item => item.kind === 'call').id, context.items.find(item => item.kind === 'result').id);
+  assert.equal(context.items.find(item => item.kind === 'compact').preTokens, 4000);
+  assert.deepEqual(context.subagents, {});
+});
+
+test("an omp session's Context lists its tools by name and nests each subagent under the call that started it", async () => {
+  const file = path.join(DATA_DIR, 'omp-agent', 'sessions', '-work', '2026-11-24T10-00-00-000Z_omp-ctx.jsonl');
+  writeJsonl(file, [
+    { type: 'title', v: 1, title: '' },
+    { type: 'session', version: 3, id: 'omp-ctx', timestamp: '2026-11-24T10:00:00.000Z', cwd: '/work' },
+    entry('m0', null, { type: 'model_change', model: 'anthropic/claude-opus-5-5' }),
+    entry('d0', 'm0', { type: 'custom', customType: 'date-cwd-reminder', data: { reminder: '<system-reminder>Today: 2026-11-24</system-reminder>' } }),
+    entry('u1', 'd0', { type: 'message', message: { role: 'user', content: [{ type: 'text', text: 'map the repo' }] } }),
+    entry('x1', 'u1', { type: 'custom', customType: 'system-prompt-digest', data: 'abc123' }),
+    entry('a1', 'x1', { type: 'message', message: { role: 'assistant', model: 'claude-opus-5-5', usage: usage(17000, 60),
+      requestControls: { tools: { active: ['read', 'bash', 'task'] } },
+      content: [{ type: 'toolCall', id: 'call-task', name: 'task', arguments: { tasks: [{ name: 'Scout', agent: 'explore', task: 'list modules' }] } }] } }),
+    entry('r1', 'a1', { type: 'message', message: { role: 'toolResult', toolCallId: 'call-task', toolName: 'task', content: [{ type: 'text', text: 'Spawned agent `Scout`.' }], isError: false } }),
+    entry('e1', 'r1', { type: 'custom', customType: 'tool_execution_start', data: { toolCallId: 'x' } }),
+  ]);
+  writeJsonl(path.join(path.dirname(file), '2026-11-24T10-00-00-000Z_omp-ctx', 'Scout.jsonl'), [
+    { type: 'session', version: 3, id: 'omp-ctx-sub', timestamp: '2026-11-24T10:00:01.000Z', cwd: '/work', parentSession: file },
+    entry('i1', null, { type: 'session_init', systemPrompt: ['You are a scout.', 'Read only.'], tools: ['read', 'grep'], agent: 'explore' }),
+    entry('su', 'i1', { type: 'message', message: { role: 'user', content: [{ type: 'text', text: 'list modules' }] } }),
+    entry('sa', 'su', { type: 'message', message: { role: 'assistant', content: [{ type: 'text', text: 'Three modules.' }], model: 'claude-haiku-5-5',
+      usage: usage(11000, 5), requestControls: { tools: { active: ['read', 'grep'] } } } }),
+  ]);
+  const omp = fakeHarness('omp');
+  omp.fire('session_start', {}, ctxOf('omp-ctx', { file }));
+  await sessionById('omp-ctx');
+  const context = await getJson('/api/context?session=omp-ctx');
+  assert.equal(context.error, undefined, context.error);
+  assert.equal(context.system, null, 'omp keeps only a digest of the main prompt');
+  assert.deepEqual(context.tools, ['read', 'bash', 'task'].map(name => ({ name, description: '', schema: null })));
+  assert.equal(context.measured, null, 'nothing to measure without the prompt');
+  assert.deepEqual(context.items.map(item => item.kind), ['attachment', 'user', 'step', 'call', 'result']);
+  assert.equal(context.items[0].label, 'date-cwd-reminder');
+  const scout = context.subagents.Scout;
+  assert.deepEqual([scout.type, scout.toolUseId, scout.system], ['explore', 'call-task', 'You are a scout.\n\nRead only.']);
+  assert.deepEqual(scout.tools.map(tool => tool.name), ['read', 'grep']);
+  assert.deepEqual(scout.items.map(item => [item.kind, item.text ?? item.ctx]), [['user', 'list modules'], ['step', 11000], ['text', 'Three modules.']]);
+});
+
+test("a missing session file says so instead of failing", async () => {
+  const context = await getJson('/api/context?session=pi-sess-1'); // its fake file doesn't exist
+  assert.match(context.error, /pi session file not found/);
 });
 
 test('what a pi session runs names it as its parent', () => {
-  assert.equal(process.env.OBSERVER_PARENT_AGENT, 'omp', 'the latest main session in this process');
-  assert.equal(process.env.OBSERVER_PARENT_SESSION, 'omp-main', 'not the subagent');
+  assert.deepEqual(parentAfterOmp, ['omp', 'omp-main'], 'the latest main session in this process, not its subagent');
   const hook = require(path.join(ROOT, 'scripts', 'hook.js'));
   assert.deepEqual(hook.parentSessions('claude-child', { OBSERVER_PARENT_AGENT: 'pi', OBSERVER_PARENT_SESSION: 'pi-sess-1' }),
     [{ agent: 'pi', session_id: 'pi-sess-1' }]);
