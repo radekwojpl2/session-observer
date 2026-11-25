@@ -70,8 +70,6 @@ TRANSLATIONS.ko = (() => {
     openSession: '이 세션 열기', startedBy: '상위 세션', startedSessions: () => '시작한 세션',
     loadOlderSessions: day => `${day} 이전 세션 불러오기`,
     loadOlderTitle: '이전 날짜의 데이터가 저장되어 있지만 아직 불러오지 않았습니다',
-    sessionOrder: '정렬', sessionOrderTitle: '세션 목록의 정렬 방식. 세션이 작업하는 동안 순서가 바뀌는 것은 "최근 활동"뿐입니다.',
-    orderStarted: '최근 시작순', orderActivity: '최근 활동', orderName: '이름', orderProject: '프로젝트', noProject: '(폴더 없음)',
     range: '기간', range1h: '최근 1시간', range6h: '최근 6시간', range24h: '최근 24시간', range7d: '최근 7일', rangeAll: '전체',
     search: '검색', searchPh: '프롬프트, 응답, 명령, 경로, 오류…',
     group: '도구 그룹', groupTitle: '지도의 어느 부분인지: 파일, 셸, Git, MCP…', allGroups: '모든 그룹', agent: '에이전트', allAgents: '모든 에이전트', agentTitle: 'Claude Code, Codex 또는 둘 다의 세션 표시',

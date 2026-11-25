@@ -12,19 +12,7 @@ const sessionStatus = session => SESSION_STATUS[sessionActivity(session)]();
 
 const sessionName = session => stripTags(session.title) || baseName(session.cwd) || session.id.slice(0, 8);
 
-// The orders of the sessions list. Only "activity" moves a session while it works; the others change only when a
-// session starts or is renamed. "project" groups by folder (A–Z), newest started first inside each.
-const byStarted = (a, b) => (b.started || b.last || '').localeCompare(a.started || a.last || '');
-const projectOf = session => session.cwd || '';
-const SESSION_ORDERS = {
-  started: byStarted,
-  activity: (a, b) => (b.last || '').localeCompare(a.last || ''),
-  name: (a, b) => sessionName(a).localeCompare(sessionName(b), undefined, { sensitivity: 'base' }) || byStarted(a, b),
-  project: (a, b) => (baseName(projectOf(a)) || '\uffff').localeCompare(baseName(projectOf(b)) || '\uffff', undefined, { sensitivity: 'base' })
-    || projectOf(a).localeCompare(projectOf(b)) || byStarted(a, b),
-};
-
-// the sessions in the range that match the search (the selected one always), in the chosen order
+// the sessions in the range that match the search (the selected one always), newest first
 function visibleSessions() {
   const cutoff = rangeCutoffIso();
   const matchesSearch = session => !state.searchText
@@ -34,7 +22,7 @@ function visibleSessions() {
     .filter(session => !cutoff || (session.last || '') >= cutoff)
     .filter(session => isAgentShown(session.agent || DEFAULT_AGENT) || state.scope === session.id)
     .filter(matchesSearch)
-    .sort(SESSION_ORDERS[state.sessionOrder] || byStarted);
+    .sort((a, b) => (b.last || '').localeCompare(a.last || ''));
 }
 
 function selectedRangeLabel() {
@@ -83,19 +71,6 @@ function olderSessionsHtml() {
   return `<button class="load-older" type="button" data-load-older title="${escapeHtml(TEXT.loadOlderTitle)}">${escapeHtml(TEXT.loadOlderSessions(loadedFrom))}</button>`;
 }
 
-// the cards, under a heading per folder when ordered by project
-function sessionListHtml(sessions, showAgent) {
-  if (state.sessionOrder !== 'project') return sessions.map(session => sessionCardHtml(session, showAgent)).join('');
-  const groups = new Map();
-  for (const session of sessions) {
-    const key = projectOf(session);
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key).push(session);
-  }
-  return [...groups].map(([cwd, members]) => `<div class="sgrp" title="${escapeHtml(cwd)}">${escapeHtml(baseName(cwd) || TEXT.noProject)} <span>${members.length}</span></div>`
-    + members.map(session => sessionCardHtml(session, showAgent)).join('')).join('');
-}
-
 function renderSessions() {
   // the agent filter shows once there is more than one agent to choose from (or one is chosen)
   elementById('agentFilter').style.display = seesSeveralAgents() || state.agent ? '' : 'none';
@@ -108,7 +83,7 @@ function renderSessions() {
       <div class="meta">${escapeHtml(TEXT.everySession)}</div>
     </div>
     <div class="sect">${escapeHtml(TEXT.sessions)} <span>${sessions.length}</span></div>
-    <div class="sess-list">${sessionListHtml(sessions, showAgent) || `<div class="empty">${escapeHtml(TEXT.noSessions)}</div>`}</div>${olderSessionsHtml()}`;
+    <div class="sess-list">${sessions.map(session => sessionCardHtml(session, showAgent)).join('') || `<div class="empty">${escapeHtml(TEXT.noSessions)}</div>`}</div>${olderSessionsHtml()}`;
   panel.scrollTop = scrollTop;
   renderSessionHoverCard(); // the list was rebuilt: refresh (or hide) the hover card
 }

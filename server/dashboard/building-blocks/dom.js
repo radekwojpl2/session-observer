@@ -14,7 +14,7 @@ const storage = {
 const SETTING_KEYS = {
   theme: 'so.theme', layout: 'so.layout', range: 'so.range', detailSections: 'so.dsec',
   agent: 'so.agent', contextRange: 'so.ctxMode', contextOrder: 'so.ctxOrder', contextBookkeeping: 'so.ctxMeta',
-  alerts: 'so.notify', sessionOrder: 'so.sessOrder',
+  alerts: 'so.notify',
 };
 
 // CSS animations restart when their element is re-rendered: this placeholder becomes a negative delay that keeps

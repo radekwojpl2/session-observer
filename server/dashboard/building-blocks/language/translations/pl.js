@@ -74,8 +74,6 @@ TRANSLATIONS.pl = (() => {
     openSession: 'Otwórz tę sesję', startedBy: 'uruchomiona przez', startedSessions: n => (n === 1 ? 'Uruchomiona sesja' : 'Uruchomione sesje'),
     loadOlderSessions: day => `Wczytaj sesje sprzed ${day}`,
     loadOlderTitle: 'Starsze dni są zapisane, ale jeszcze niewczytane',
-    sessionOrder: 'Kolejność', sessionOrderTitle: 'Jak ułożona jest lista sesji. Tylko „ostatnia aktywność” przestawia ją, gdy sesje pracują.',
-    orderStarted: 'najnowsze rozpoczęte', orderActivity: 'ostatnia aktywność', orderName: 'nazwa', orderProject: 'projekt', noProject: '(bez folderu)',
     range: 'Zakres', range1h: 'ostatnia godzina', range6h: 'ostatnie 6 h', range24h: 'ostatnie 24 h', range7d: 'ostatnie 7 dni', rangeAll: 'wszystko',
     search: 'Szukaj', searchPh: 'prompty, odpowiedzi, polecenia, ścieżki, błędy…',
     group: 'Grupa narzędzi', groupTitle: 'Która część mapy: Pliki, Powłoka, Git, MCP…', allGroups: 'wszystkie grupy', agent: 'Agent', allAgents: 'wszyscy agenci', agentTitle: 'Pokaż sesje z Claude Code, z Codex albo z obu',
