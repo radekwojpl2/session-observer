@@ -134,6 +134,7 @@ TRANSLATIONS.pl = (() => {
     eventTypes: 'Typy zdarzeń',
 
     backX: d => `powrót · ${d}`,
+    tokensLc: 'tokenów',
     ctxTipTitle: 'Kontekst na końcu tej tury', ctxTipNew: 'nowe', ctxTipChange: 'zmiana od poprzedniej tury', ctxTipCompacted: 'skompaktowano',
     ctxWhatTip: 'Wszystko, co model przeczytał w tym momencie: cała dotychczasowa rozmowa, nie suma zużytych tokenów.', ctxCacheTip: (cached, fresh) => `W tym z cache: ${cached} · nowe: ${fresh}`,
     ctxEndTip: o => `Kontekst na końcu tej tury: ${o}`, ctxChangeTip: (d, comp) => `Zmiana od poprzedniej tury: ${d}${comp ? ' (skompaktowano)' : ''}`,

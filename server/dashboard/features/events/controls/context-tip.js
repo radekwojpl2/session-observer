@@ -24,8 +24,7 @@ function contextTipHtml(size) {
     rows.push(`<div class="ct-row ct-change"><span>${escapeHtml(label)}</span><b class="cd ${size.tone}">${escapeHtml(size.changeText)}</b></div>`);
   }
   return `<div class="ct-h">${escapeHtml(TEXT.ctxTipTitle)}</div>
-    <div class="ct-size"><b>${formatCompactNumber(size.tokens)}</b> <span>/ ${formatCompactNumber(size.window)} · ${percentOf(size)}%</span></div>
-    <div class="ct-bar"><i style="width:${(size.fraction * 100).toFixed(1)}%"></i></div>
+    <div class="ct-size"><b>${formatCompactNumber(size.tokens)}</b> <span>${escapeHtml(TEXT.tokensLc)}</span></div>
     <div class="ct-what">${escapeHtml(TEXT.ctxWhatTip)}</div>
     ${rows.length ? `<div class="ct-rows">${rows.join('')}</div>` : ''}`;
 }

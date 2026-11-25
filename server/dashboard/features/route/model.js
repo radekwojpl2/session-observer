@@ -194,6 +194,13 @@ function turnEndStepTokens(turn) {
 }
 const turnEndContextTokens = turn => turnEndStepTokens(turn)?.context ?? null;
 
+// the largest end-of-turn context of a session's turns (cached per list of turns: every turn's badge asks)
+const largestContextCache = new WeakMap();
+function largestTurnContext(sessionTurns) {
+  if (!largestContextCache.has(sessionTurns)) largestContextCache.set(sessionTurns, Math.max(0, ...sessionTurns.map(turn => turnEndContextTokens(turn) || 0)));
+  return largestContextCache.get(sessionTurns);
+}
+
 // context at the end of this turn, its change from the end of the turn before, and how full the window is
 function turnContextInfo(sessionTurns, turn) {
   const stepTokens = turnEndStepTokens(turn);
@@ -202,7 +209,7 @@ function turnContextInfo(sessionTurns, turn) {
   let previous = null;
   for (let index = sessionTurns.indexOf(turn) - 1; index >= 0 && previous == null; index--) previous = turnEndContextTokens(sessionTurns[index]);
   const session = state.sessions.get(turn.sessionId);
-  const window = contextWindowFor(session?.agent, session?.context?.window, tokens);
+  const window = contextWindowFor(session?.agent, session?.context?.window, largestTurnContext(sessionTurns));
   const change = previous == null ? null : tokens - previous;
   return contextSize(tokens, change, window, change == null ? '' : signedTokens(change), stepTokens.cache_read ?? null);
 }

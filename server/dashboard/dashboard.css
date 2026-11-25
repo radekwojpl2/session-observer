@@ -318,11 +318,9 @@ svg.metro { display: block; }
 #ctxtip { display: none; position: fixed; z-index: 50; width: 280px; pointer-events: none; padding: 11px 13px; background: var(--panel); color: var(--text);
   border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 6px 24px rgba(0, 0, 0, .25); font-size: 12.5px; line-height: 1.4; }
 #ctxtip .ct-h { color: var(--muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
-#ctxtip .ct-size { margin-top: 4px; font-variant-numeric: tabular-nums; }
+#ctxtip .ct-size { margin: 4px 0 6px; font-variant-numeric: tabular-nums; }
 #ctxtip .ct-size b { font-size: 18px; }
 #ctxtip .ct-size span { color: var(--muted); }
-#ctxtip .ct-bar { height: 6px; margin: 6px 0 8px; border-radius: 3px; background: var(--line); overflow: hidden; }
-#ctxtip .ct-bar i { display: block; height: 100%; background: var(--s-context); }
 #ctxtip .ct-what { color: var(--muted); }
 #ctxtip .ct-rows { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); display: grid; gap: 3px; }
 #ctxtip .ct-row { display: flex; justify-content: space-between; gap: 12px; font-variant-numeric: tabular-nums; }

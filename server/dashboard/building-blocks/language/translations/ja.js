@@ -130,6 +130,7 @@ TRANSLATIONS.ja = (() => {
     eventTypes: 'イベントの種類',
 
     backX: d => `戻り · ${d}`,
+    tokensLc: 'トークン',
     ctxTipTitle: 'このターン終了時のコンテキスト', ctxTipNew: '新規', ctxTipChange: '前のターンからの変化', ctxTipCompacted: '圧縮済み',
     ctxWhatTip: 'この時点でモデルが読んだすべて：これまでの会話全体であり、使用トークンの累計ではありません。', ctxCacheTip: (cached, fresh) => `うちキャッシュから: ${cached} · 新規: ${fresh}`,
     ctxEndTip: o => `このターン終了時のコンテキスト: ${o}`, ctxChangeTip: (d, comp) => `前のターンからの変化: ${d}${comp ? '（圧縮済み）' : ''}`,

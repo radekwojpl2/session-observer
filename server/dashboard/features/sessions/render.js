@@ -52,7 +52,7 @@ function sessionChipsHtml(session) {
     + (session.model ? `<span class="chip">${escapeHtml(session.model)}</span>` : '')
     + (session.subagents ? `<span class="chip">${iconSvg('agents')}${session.subagents}</span>` : '')
     + (session.failures ? `<span class="chip"><span class="x">✕ ${session.failures}</span></span>` : '')
-    + (session.context ? `<span class="chip" title="${escapeHtml(TEXT.ctxWindow)}">${escapeHtml(TEXT.ctxShort)} ${Math.round(session.context.pct * 100)}%</span>` : '');
+    + (session.context ? `<span class="chip" title="${escapeHtml(TEXT.ctxWindow)}">${escapeHtml(TEXT.ctxShort)} ${formatCompactNumber(session.context.tokens)}</span>` : '');
 }
 
 // The list shows the state dot, the title, and under it when and where; the rest is in a card that floats beside it on hover.

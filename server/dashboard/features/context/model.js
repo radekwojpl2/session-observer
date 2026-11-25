@@ -61,7 +61,9 @@ const splitMcpToolName = name => { const match = /^mcp__(.+?)__(.+)$/.exec(name)
 // a context size for a badge (see contextSize in features/events/model/context-window.js)
 function contextSizeInfo(tokens, change, cached = null) {
   const data = contextView.data;
-  const window = data?.window || contextWindowFor(data?.agent, data?.context?.window, tokens);
+  // the largest step of the session picks the window, so every badge uses the same scale
+  const largest = Math.max(tokens, ...(data?.items || []).filter(item => item.kind === 'step').map(step => step.ctx || 0));
+  const window = data?.window || contextWindowFor(data?.agent, data?.context?.window, largest);
   return contextSize(tokens, change, window, change ? signedTokens(change) : '', cached);
 }
 

@@ -132,6 +132,7 @@ TRANSLATIONS.de = (() => {
     eventTypes: 'Ereignistypen',
 
     backX: d => `zurück · ${d}`,
+    tokensLc: 'Tokens',
     ctxTipTitle: 'Kontext am Ende dieser Runde', ctxTipNew: 'neu', ctxTipChange: 'Änderung zur vorherigen Runde', ctxTipCompacted: 'komprimiert',
     ctxWhatTip: 'Alles, was das Modell an dieser Stelle gelesen hat: das ganze bisherige Gespräch, keine laufende Summe verbrauchter Tokens.', ctxCacheTip: (cached, fresh) => `Davon aus dem Cache: ${cached} · neu: ${fresh}`,
     ctxEndTip: o => `Kontext am Ende dieser Runde: ${o}`, ctxChangeTip: (d, comp) => `Änderung zur vorherigen Runde: ${d}${comp ? ' (komprimiert)' : ''}`,

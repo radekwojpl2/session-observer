@@ -132,6 +132,7 @@ TRANSLATIONS.fr = (() => {
     eventTypes: 'Types d’événements',
 
     backX: d => `retour · ${d}`,
+    tokensLc: 'tokens',
     ctxTipTitle: 'Contexte à la fin de ce tour', ctxTipNew: 'nouveau', ctxTipChange: 'variation depuis le tour précédent', ctxTipCompacted: 'compacté',
     ctxWhatTip: 'Tout ce que le modèle a lu à ce moment : toute la conversation jusqu’ici, pas un total cumulé des tokens utilisés.', ctxCacheTip: (cached, fresh) => `Dont lu depuis le cache : ${cached} · nouveau : ${fresh}`,
     ctxEndTip: o => `Contexte à la fin de ce tour : ${o}`, ctxChangeTip: (d, comp) => `Variation depuis le tour précédent : ${d}${comp ? ' (compacté)' : ''}`,

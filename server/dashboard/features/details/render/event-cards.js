@@ -184,7 +184,7 @@ function stepTokensHtml(tokens, contextTokens, window) {
   const segments = [['cache_read', TEXT.cacheRead, 'var(--s-context)'], ['cache_write', TEXT.cacheWrite, 'var(--s-model)'], ['input', TEXT.uncached, 'var(--accent)']];
   const bar = segments.map(([field, , color]) => (tokens[field] ? `<i style="width:${(100 * tokens[field] / window).toFixed(2)}%;background:${color}"></i>` : '')).join('');
   const legend = segments.map(([field, label, color]) => `<span><i style="background:${color}"></i>${label} <b>${formatCompactNumber(tokens[field] || 0)}</b></span>`).join('');
-  return `<div><div class="k">${escapeHtml(TEXT.groups.context)} · ${escapeHtml(TEXT.ofPct(formatCompactNumber(contextTokens), formatCompactNumber(window), Math.round(100 * contextTokens / window)))}</div><div class="tokbar">${bar}</div>
+  return `<div><div class="k">${escapeHtml(TEXT.groups.context)} · ${escapeHtml(formatCompactNumber(contextTokens))} ${escapeHtml(TEXT.tokensLc)}</div><div class="tokbar">${bar}</div>
     <div class="toklg">${legend}<span>${escapeHtml(TEXT.outputLc)} <b>${formatCompactNumber(tokens.output || 0)}</b></span></div></div>`;
 }
 

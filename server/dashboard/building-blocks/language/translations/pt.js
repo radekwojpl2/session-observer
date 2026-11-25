@@ -132,6 +132,7 @@ TRANSLATIONS.pt = (() => {
     eventTypes: 'Tipos de evento',
 
     backX: d => `volta · ${d}`,
+    tokensLc: 'tokens',
     ctxTipTitle: 'Contexto no fim deste turno', ctxTipNew: 'novo', ctxTipChange: 'mudança desde o turno anterior', ctxTipCompacted: 'compactado',
     ctxWhatTip: 'Tudo o que o modelo leu neste ponto: a conversa inteira até agora, não um total acumulado de tokens usados.', ctxCacheTip: (cached, fresh) => `Disso, lido do cache: ${cached} · novo: ${fresh}`,
     ctxEndTip: o => `Contexto no fim deste turno: ${o}`, ctxChangeTip: (d, comp) => `Mudança desde o turno anterior: ${d}${comp ? ' (compactado)' : ''}`,

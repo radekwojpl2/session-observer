@@ -130,6 +130,7 @@ TRANSLATIONS.ko = (() => {
     eventTypes: '이벤트 종류',
 
     backX: d => `복귀 · ${d}`,
+    tokensLc: '토큰',
     ctxTipTitle: '이 턴이 끝날 때의 컨텍스트', ctxTipNew: '새로', ctxTipChange: '이전 턴 대비 변화', ctxTipCompacted: '압축됨',
     ctxWhatTip: '이 시점에 모델이 읽은 전체: 지금까지의 대화 전체이며, 사용한 토큰의 누적 합계가 아닙니다.', ctxCacheTip: (cached, fresh) => `그중 캐시에서: ${cached} · 새로: ${fresh}`,
     ctxEndTip: o => `이 턴이 끝날 때의 컨텍스트: ${o}`, ctxChangeTip: (d, comp) => `이전 턴 대비 변화: ${d}${comp ? ' (압축됨)' : ''}`,

@@ -1,8 +1,8 @@
 'use strict';
-// Session Observer dashboard — the context badge: a bar, the size, % of the window and the change, as HTML or SVG.
-const percentOf = size => Math.round(size.fraction * 100);
+// Session Observer dashboard — the context badge: a bar, the size and the change, as HTML or SVG. No "% of the
+// window": the window is a guess (200k until the model's name or the tokens say 1M), so a percentage would jump.
 // what the number is (the whole conversation the model read, not a running total), the cache split, and the change
-const contextBadgeTooltip = size => TEXT.ctxEndTip(TEXT.ofPct(formatCompactNumber(size.tokens), formatCompactNumber(size.window), percentOf(size)))
+const contextBadgeTooltip = size => TEXT.ctxEndTip(formatCompactNumber(size.tokens))
   + '\n' + TEXT.ctxWhatTip
   + (size.cached == null ? '' : '\n' + TEXT.ctxCacheTip(formatCompactNumber(size.cached), formatCompactNumber(Math.max(0, size.tokens - size.cached))))
   + (size.change == null ? '' : '\n' + TEXT.ctxChangeTip(size.changeText, size.change < 0));
@@ -15,7 +15,7 @@ function contextBadgeHtml(size) {
   if (!size) return '';
   const change = size.changeText ? `<span class="cd ${size.tone}">${size.changeText}</span>` : '';
   return `<span class="ctxb" ${contextBadgeData(size)} aria-label="${escapeHtml(contextBadgeTooltip(size))}"><span class="cbar"><i style="width:${(size.fraction * 100).toFixed(1)}%"></i></span>`
-    + `<b>${formatCompactNumber(size.tokens)}</b><span class="muted">${percentOf(size)}%</span>${change}</span>`;
+    + `<b>${formatCompactNumber(size.tokens)}</b>${change}</span>`;
 }
 
 // the context badge in SVG, right-aligned at rightX on a turn divider (baseline y)
@@ -29,7 +29,7 @@ const BADGE = {
 function contextBadgeSvg(size, rightX, y) {
   if (!size) return '';
   const changeWidth = size.changeText ? size.changeText.length * BADGE.charWidth + BADGE.changeRoom : 0;
-  const valueText = `${formatCompactNumber(size.tokens)} · ${percentOf(size)}%`, valueWidth = valueText.length * BADGE.charWidth + BADGE.valueRoom;
+  const valueText = formatCompactNumber(size.tokens), valueWidth = valueText.length * BADGE.charWidth + BADGE.valueRoom;
   const width = BADGE.padding + BADGE.barWidth + BADGE.barGap + valueWidth + changeWidth, left = rightX - width;
   const barX = left + BADGE.padding, barY = y - BADGE.barTop, barRadius = BADGE.barHeight / 2;
   return `<g class="ctxs" ${contextBadgeData(size)} aria-label="${escapeHtml(contextBadgeTooltip(size))}"><rect class="cbg" x="${left}" y="${y - BADGE.top}" width="${width}" height="${BADGE.height}" rx="${BADGE.height / 2}"/>`
