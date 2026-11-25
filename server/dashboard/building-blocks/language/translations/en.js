@@ -142,8 +142,8 @@ TRANSLATIONS.en = (() => {
     // route
     backX: d => `back · ${d}`,
     tokensLc: 'tokens',
-    ctxTipTitle: 'Context at the end of this turn', ctxTipNew: 'new', ctxTipChange: 'change from the previous turn', ctxTipCompacted: 'compacted',
-    ctxWhatTip: 'Everything the model read at this point: the whole conversation so far, not a running total of tokens used.', ctxCacheTip: (cached, fresh) => `Of that, read from cache: ${cached} · new: ${fresh}`,
+    ctxTipTitle: 'Context at the end of this turn', ctxTipNew: 'new', ctxTipCompacted: 'compacted',
+    ctxWhatTip: 'The whole conversation the model read, not a running total.', ctxCacheTip: (cached, fresh) => `Of that, read from cache: ${cached} · new: ${fresh}`,
     ctxEndTip: o => `Context at the end of this turn: ${o}`, ctxChangeTip: (d, comp) => `Change from the previous turn: ${d}${comp ? ' (compacted)' : ''}`,
     noTurnsRoute: 'No turns yet — the next prompt draws its route here.',
     runningX: (what, d) => `running ${what} · ${d}`, subagentsWorking: n => `${n} ${n === 1 ? 'subagent' : 'subagents'} working`,

@@ -135,8 +135,8 @@ TRANSLATIONS.pl = (() => {
 
     backX: d => `powrót · ${d}`,
     tokensLc: 'tokenów',
-    ctxTipTitle: 'Kontekst na końcu tej tury', ctxTipNew: 'nowe', ctxTipChange: 'zmiana od poprzedniej tury', ctxTipCompacted: 'skompaktowano',
-    ctxWhatTip: 'Wszystko, co model przeczytał w tym momencie: cała dotychczasowa rozmowa, nie suma zużytych tokenów.', ctxCacheTip: (cached, fresh) => `W tym z cache: ${cached} · nowe: ${fresh}`,
+    ctxTipTitle: 'Kontekst na końcu tej tury', ctxTipNew: 'nowe', ctxTipCompacted: 'skompaktowano',
+    ctxWhatTip: 'Cała rozmowa, którą model przeczytał, a nie suma narastająca.', ctxCacheTip: (cached, fresh) => `W tym z cache: ${cached} · nowe: ${fresh}`,
     ctxEndTip: o => `Kontekst na końcu tej tury: ${o}`, ctxChangeTip: (d, comp) => `Zmiana od poprzedniej tury: ${d}${comp ? ' (skompaktowano)' : ''}`,
     noTurnsRoute: 'Brak tur — następny prompt narysuje tu swoją trasę.',
     runningX: (what, d) => `w toku: ${what} · ${d}`, subagentsWorking: n => `pracujący subagenci: ${n}`,

@@ -133,8 +133,8 @@ TRANSLATIONS.fr = (() => {
 
     backX: d => `retour · ${d}`,
     tokensLc: 'tokens',
-    ctxTipTitle: 'Contexte à la fin de ce tour', ctxTipNew: 'nouveau', ctxTipChange: 'variation depuis le tour précédent', ctxTipCompacted: 'compacté',
-    ctxWhatTip: 'Tout ce que le modèle a lu à ce moment : toute la conversation jusqu’ici, pas un total cumulé des tokens utilisés.', ctxCacheTip: (cached, fresh) => `Dont lu depuis le cache : ${cached} · nouveau : ${fresh}`,
+    ctxTipTitle: 'Contexte à la fin de ce tour', ctxTipNew: 'nouveau', ctxTipCompacted: 'compacté',
+    ctxWhatTip: 'Toute la conversation lue par le modèle, pas un total cumulé.', ctxCacheTip: (cached, fresh) => `Dont lu depuis le cache : ${cached} · nouveau : ${fresh}`,
     ctxEndTip: o => `Contexte à la fin de ce tour : ${o}`, ctxChangeTip: (d, comp) => `Variation depuis le tour précédent : ${d}${comp ? ' (compacté)' : ''}`,
     noTurnsRoute: 'Pas encore de tour : le prochain prompt tracera son parcours ici.',
     runningX: (what, d) => `exécute ${what} · ${d}`, subagentsWorking: n => `${n} ${n === 1 ? 'sous-agent au travail' : 'sous-agents au travail'}`,

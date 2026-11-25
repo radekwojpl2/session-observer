@@ -1,7 +1,8 @@
 'use strict';
-// Session Observer dashboard — the context badge's hover card: what the number is, how full the window is, how much of
-// it was read from the cache, and the change from before. One floating box for every badge (HTML and SVG); a badge
-// carries its numbers in data-ctx (context-badge.js).
+// Session Observer dashboard — the context badge's hover card: only what the badge beside it doesn't show. What the
+// number is, how much of it was read from the cache, and a compaction when the context shrank (the size and the change
+// are on the badge). One floating box for every badge (HTML and SVG); a badge carries its numbers in data-ctx
+// (context-badge.js).
 function contextTipBox() {
   return elementById('ctxtip') || document.body.appendChild(Object.assign(document.createElement('div'), { id: 'ctxtip', role: 'tooltip' }));
 }
@@ -19,12 +20,10 @@ function contextTipHtml(size) {
     rows.push(row('cached', TEXT.cacheRead, formatCompactNumber(size.cached)));
     rows.push(row('fresh', TEXT.ctxTipNew, formatCompactNumber(Math.max(0, size.tokens - size.cached))));
   }
-  if (size.change != null) {
-    const label = TEXT.ctxTipChange + (size.change < 0 ? ` (${TEXT.ctxTipCompacted})` : '');
-    rows.push(`<div class="ct-row ct-change"><span>${escapeHtml(label)}</span><b class="cd ${size.tone}">${escapeHtml(size.changeText)}</b></div>`);
+  if (size.change != null && size.change < 0) {
+    rows.push(`<div class="ct-row ct-change"><span>${escapeHtml(TEXT.ctxTipCompacted)}</span><b class="cd ${size.tone}">${escapeHtml(size.changeText)}</b></div>`);
   }
   return `<div class="ct-h">${escapeHtml(TEXT.ctxTipTitle)}</div>
-    <div class="ct-size"><b>${formatCompactNumber(size.tokens)}</b> <span>${escapeHtml(TEXT.tokensLc)}</span></div>
     <div class="ct-what">${escapeHtml(TEXT.ctxWhatTip)}</div>
     ${rows.length ? `<div class="ct-rows">${rows.join('')}</div>` : ''}`;
 }

@@ -133,8 +133,8 @@ TRANSLATIONS.es = (() => {
 
     backX: d => `vuelve · ${d}`,
     tokensLc: 'tokens',
-    ctxTipTitle: 'Contexto al final de este turno', ctxTipNew: 'nuevo', ctxTipChange: 'cambio respecto al turno anterior', ctxTipCompacted: 'compactado',
-    ctxWhatTip: 'Todo lo que el modelo leyó en este punto: la conversación completa hasta ahora, no un total acumulado de tokens usados.', ctxCacheTip: (cached, fresh) => `De eso, leído de la caché: ${cached} · nuevo: ${fresh}`,
+    ctxTipTitle: 'Contexto al final de este turno', ctxTipNew: 'nuevo', ctxTipCompacted: 'compactado',
+    ctxWhatTip: 'Toda la conversación que leyó el modelo, no un total acumulado.', ctxCacheTip: (cached, fresh) => `De eso, leído de la caché: ${cached} · nuevo: ${fresh}`,
     ctxEndTip: o => `Contexto al final de este turno: ${o}`, ctxChangeTip: (d, comp) => `Cambio respecto al turno anterior: ${d}${comp ? ' (compactado)' : ''}`,
     noTurnsRoute: 'Aún no hay turnos: el próximo prompt dibujará aquí su ruta.',
     runningX: (what, d) => `ejecutando ${what} · ${d}`, subagentsWorking: n => `${n} ${n === 1 ? 'subagente trabajando' : 'subagentes trabajando'}`,

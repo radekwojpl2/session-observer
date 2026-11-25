@@ -133,8 +133,8 @@ TRANSLATIONS.de = (() => {
 
     backX: d => `zurück · ${d}`,
     tokensLc: 'Tokens',
-    ctxTipTitle: 'Kontext am Ende dieser Runde', ctxTipNew: 'neu', ctxTipChange: 'Änderung zur vorherigen Runde', ctxTipCompacted: 'komprimiert',
-    ctxWhatTip: 'Alles, was das Modell an dieser Stelle gelesen hat: das ganze bisherige Gespräch, keine laufende Summe verbrauchter Tokens.', ctxCacheTip: (cached, fresh) => `Davon aus dem Cache: ${cached} · neu: ${fresh}`,
+    ctxTipTitle: 'Kontext am Ende dieser Runde', ctxTipNew: 'neu', ctxTipCompacted: 'komprimiert',
+    ctxWhatTip: 'Das ganze Gespräch, das das Modell gelesen hat, keine laufende Summe.', ctxCacheTip: (cached, fresh) => `Davon aus dem Cache: ${cached} · neu: ${fresh}`,
     ctxEndTip: o => `Kontext am Ende dieser Runde: ${o}`, ctxChangeTip: (d, comp) => `Änderung zur vorherigen Runde: ${d}${comp ? ' (komprimiert)' : ''}`,
     noTurnsRoute: 'Noch keine Runden — der nächste Prompt zeichnet hier seine Route.',
     runningX: (what, d) => `läuft: ${what} · ${d}`, subagentsWorking: n => `${n} ${n === 1 ? 'Subagent arbeitet' : 'Subagenten arbeiten'}`,

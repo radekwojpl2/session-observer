@@ -131,8 +131,8 @@ TRANSLATIONS.zh = (() => {
 
     backX: d => `返回 · ${d}`,
     tokensLc: 'token',
-    ctxTipTitle: '本轮结束时的上下文', ctxTipNew: '新增', ctxTipChange: '相比上一轮的变化', ctxTipCompacted: '已压缩',
-    ctxWhatTip: '模型此时读取的全部内容：到目前为止的整个对话，而不是已用 token 的累计。', ctxCacheTip: (cached, fresh) => `其中从缓存读取：${cached} · 新增：${fresh}`,
+    ctxTipTitle: '本轮结束时的上下文', ctxTipNew: '新增', ctxTipCompacted: '已压缩',
+    ctxWhatTip: '模型读取的整个对话，而不是累计值。', ctxCacheTip: (cached, fresh) => `其中从缓存读取：${cached} · 新增：${fresh}`,
     ctxEndTip: o => `本轮结束时的上下文：${o}`, ctxChangeTip: (d, comp) => `相比上一轮的变化：${d}${comp ? '（已压缩）' : ''}`,
     noTurnsRoute: '还没有轮次——下一条提示词会在这里画出它的路线。',
     runningX: (what, d) => `正在运行 ${what} · ${d}`, subagentsWorking: n => `${n} 个子代理工作中`,
