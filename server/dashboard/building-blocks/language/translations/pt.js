@@ -72,6 +72,8 @@ TRANSLATIONS.pt = (() => {
     openSession: 'Abrir esta sessão', startedBy: 'iniciada por', startedSessions: n => (n === 1 ? 'Sessão iniciada' : 'Sessões iniciadas'),
     loadOlderSessions: day => `Carregar sessões anteriores a ${day}`,
     loadOlderTitle: 'Dias anteriores estão salvos, mas ainda não foram carregados',
+    sessionOrder: 'Ordem', sessionOrderTitle: 'Como a lista de sessões é ordenada. Só «última atividade» a reordena enquanto as sessões trabalham.',
+    orderStarted: 'iniciadas mais recentes', orderActivity: 'última atividade', orderName: 'nome', orderProject: 'projeto', noProject: '(sem pasta)',
     range: 'Período', range1h: 'última 1 h', range6h: 'últimas 6 h', range24h: 'últimas 24 h', range7d: 'últimos 7 dias', rangeAll: 'tudo',
     search: 'Buscar', searchPh: 'prompts, respostas, comandos, caminhos, erros…',
     group: 'Grupo de ferramentas', groupTitle: 'Qual parte do mapa: Arquivos, Shell, Git, MCP…', allGroups: 'todos os grupos', agent: 'Agente', allAgents: 'todos os agentes', agentTitle: 'Mostrar sessões do Claude Code, do Codex ou de ambos',
@@ -130,6 +132,8 @@ TRANSLATIONS.pt = (() => {
     eventTypes: 'Tipos de evento',
 
     backX: d => `volta · ${d}`,
+    ctxTipTitle: 'Contexto no fim deste turno', ctxTipNew: 'novo', ctxTipChange: 'mudança desde o turno anterior', ctxTipCompacted: 'compactado',
+    ctxWhatTip: 'Tudo o que o modelo leu neste ponto: a conversa inteira até agora, não um total acumulado de tokens usados.', ctxCacheTip: (cached, fresh) => `Disso, lido do cache: ${cached} · novo: ${fresh}`,
     ctxEndTip: o => `Contexto no fim deste turno: ${o}`, ctxChangeTip: (d, comp) => `Mudança desde o turno anterior: ${d}${comp ? ' (compactado)' : ''}`,
     noTurnsRoute: 'Ainda não há turnos: o próximo prompt desenha a rota dele aqui.',
     runningX: (what, d) => `executando ${what} · ${d}`, subagentsWorking: n => `${n} ${n === 1 ? 'subagente trabalhando' : 'subagentes trabalhando'}`,

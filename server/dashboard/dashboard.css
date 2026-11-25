@@ -81,7 +81,7 @@ select, input[type=search] { background: var(--panel); border: 1px solid var(--l
 @keyframes blink { 50% { opacity: .35; } }
 
 /* filter bar */
-.filters { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: end; padding: 10px 14px; margin-bottom: 10px; }
+.filters { display: grid; grid-template-columns: auto auto 1fr auto; gap: 10px; align-items: end; padding: 10px 14px; margin-bottom: 10px; }
 .filters label { display: flex; flex-direction: column; gap: 3px; font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
 .filters label > * { text-transform: none; letter-spacing: 0; font-size: 13px; }
 .filters .check { flex-direction: row; align-items: center; gap: 6px; padding: 2px 0; text-transform: none; font-size: 13px; color: var(--text); letter-spacing: 0; }
@@ -292,6 +292,8 @@ svg.metro { display: block; }
 .sect { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 12px; letter-spacing: .05em; text-transform: uppercase; padding: 12px 4px 8px; }
 .load-older { display: block; width: 100%; margin: 8px 0 12px; padding: 7px 10px; border: 1px dashed var(--line); border-radius: 6px; background: transparent; color: var(--muted); font: inherit; font-size: 12px; cursor: pointer; }
 .load-older:hover { color: inherit; border-color: var(--accent); }
+.sgrp { display: flex; justify-content: space-between; gap: 8px; font-size: 11.5px; font-weight: 600; color: var(--muted); padding: 8px 4px 4px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.sgrp span { font-weight: 500; }
 .sect span { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--muted); }
 .sess-list .card { border-color: transparent; border-bottom: 1px solid var(--line-2); border-radius: 6px; }
 .sess-list .card.sel { border-color: var(--accent); }
@@ -312,6 +314,22 @@ svg.metro { display: block; }
 #sesstip .name { font-weight: 600; word-break: break-word; }
 #sesstip .meta { color: var(--muted); font-size: 12px; margin-top: 3px; }
 #sesstip .chips { margin-top: 6px; }
+/* the context badge's hover card (features/events/controls/context-tip.js) */
+#ctxtip { display: none; position: fixed; z-index: 50; width: 280px; pointer-events: none; padding: 11px 13px; background: var(--panel); color: var(--text);
+  border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 6px 24px rgba(0, 0, 0, .25); font-size: 12.5px; line-height: 1.4; }
+#ctxtip .ct-h { color: var(--muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+#ctxtip .ct-size { margin-top: 4px; font-variant-numeric: tabular-nums; }
+#ctxtip .ct-size b { font-size: 18px; }
+#ctxtip .ct-size span { color: var(--muted); }
+#ctxtip .ct-bar { height: 6px; margin: 6px 0 8px; border-radius: 3px; background: var(--line); overflow: hidden; }
+#ctxtip .ct-bar i { display: block; height: 100%; background: var(--s-context); }
+#ctxtip .ct-what { color: var(--muted); }
+#ctxtip .ct-rows { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); display: grid; gap: 3px; }
+#ctxtip .ct-row { display: flex; justify-content: space-between; gap: 12px; font-variant-numeric: tabular-nums; }
+#ctxtip .ct-row span { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+#ctxtip .ct-row i { width: 8px; height: 8px; border-radius: 2px; background: var(--s-context); }
+#ctxtip .ct-row i.fresh { background: var(--accent); }
+#ctxtip .cd.up { color: var(--accent); } #ctxtip .cd.big { color: var(--warn, #d97706); } #ctxtip .cd.down { color: var(--ok); }
 
 #detail { padding: 16px 18px; }
 #mid h2, #detail h2 { margin: 0 0 4px; font-size: 18px; }

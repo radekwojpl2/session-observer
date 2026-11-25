@@ -14,6 +14,7 @@ function initControls() {
   initViewHover();
   initDetailsControls();
   initSessionsControls();
+  initContextTipControls();
   initOverviewControls();
   initHomeControls();
   initAlertControls();

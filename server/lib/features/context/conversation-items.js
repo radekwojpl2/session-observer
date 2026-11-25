@@ -56,7 +56,7 @@ function conversationItems(rows) {
     const usage = message.usage, stepId = message.id || row.uuid;
     if (usage && stepId && !seenSteps.has(stepId)) {
       seenSteps.add(stepId);
-      items.push({ kind: 'step', ts, model: message.model || null, out: usage.output_tokens || 0, ctx: contextTokensOf(usage) });
+      items.push({ kind: 'step', ts, model: message.model || null, out: usage.output_tokens || 0, ctx: contextTokensOf(usage), cached: usage.cache_read_input_tokens || 0 });
     }
     for (const block of contentBlocks(message)) {
       const item = assistantBlockItem(block, ts);

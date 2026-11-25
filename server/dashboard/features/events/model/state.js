@@ -12,6 +12,7 @@ const state = {
   openEventSeqs: new Set(), // the event rows opened in Details
   // filters
   rangeMs: Number(storage.get(SETTING_KEYS.range, DEFAULT_RANGE_MS)), // 0 = everything
+  sessionOrder: storage.get(SETTING_KEYS.sessionOrder, 'started'), // how the sessions list is ordered (features/sessions)
   searchText: '',           // lower case
   group: '',                // a tool group id, or '' for all
   category: '',

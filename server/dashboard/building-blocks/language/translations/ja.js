@@ -70,6 +70,8 @@ TRANSLATIONS.ja = (() => {
     openSession: 'このセッションを開く', startedBy: '起動元', startedSessions: () => '起動したセッション',
     loadOlderSessions: day => `${day} より前のセッションを読み込む`,
     loadOlderTitle: '以前の日のデータは保存されていますが、まだ読み込まれていません',
+    sessionOrder: '並び順', sessionOrderTitle: 'セッション一覧の並べ方。セッションの作業中に並びが変わるのは「最終アクティビティ」だけです。',
+    orderStarted: '開始が新しい順', orderActivity: '最終アクティビティ', orderName: '名前', orderProject: 'プロジェクト', noProject: '（フォルダーなし）',
     range: '期間', range1h: '直近 1 時間', range6h: '直近 6 時間', range24h: '直近 24 時間', range7d: '直近 7 日', rangeAll: 'すべて',
     search: '検索', searchPh: 'プロンプト、返答、コマンド、パス、エラー…',
     group: 'ツールグループ', groupTitle: 'マップのどの部分か: ファイル、シェル、Git、MCP…', allGroups: 'すべてのグループ', agent: 'エージェント', allAgents: 'すべてのエージェント', agentTitle: 'Claude Code、Codex、または両方のセッションを表示',
@@ -128,6 +130,8 @@ TRANSLATIONS.ja = (() => {
     eventTypes: 'イベントの種類',
 
     backX: d => `戻り · ${d}`,
+    ctxTipTitle: 'このターン終了時のコンテキスト', ctxTipNew: '新規', ctxTipChange: '前のターンからの変化', ctxTipCompacted: '圧縮済み',
+    ctxWhatTip: 'この時点でモデルが読んだすべて：これまでの会話全体であり、使用トークンの累計ではありません。', ctxCacheTip: (cached, fresh) => `うちキャッシュから: ${cached} · 新規: ${fresh}`,
     ctxEndTip: o => `このターン終了時のコンテキスト: ${o}`, ctxChangeTip: (d, comp) => `前のターンからの変化: ${d}${comp ? '（圧縮済み）' : ''}`,
     noTurnsRoute: 'まだターンはありません。次のプロンプトがここにルートを描きます。',
     runningX: (what, d) => `${what} を実行中 · ${d}`, subagentsWorking: n => `作業中のサブエージェント ${n}`,

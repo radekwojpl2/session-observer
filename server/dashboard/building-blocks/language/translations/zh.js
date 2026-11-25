@@ -70,6 +70,8 @@ TRANSLATIONS.zh = (() => {
     openSession: '打开此会话', startedBy: '启动者', startedSessions: () => '启动的会话',
     loadOlderSessions: day => `加载 ${day} 之前的会话`,
     loadOlderTitle: '更早的日期已保存，但尚未加载',
+    sessionOrder: '排序', sessionOrderTitle: '会话列表的排序方式。只有“最近活动”会在会话工作时改变顺序。',
+    orderStarted: '最近开始', orderActivity: '最近活动', orderName: '名称', orderProject: '项目', noProject: '（无文件夹）',
     range: '时间范围', range1h: '最近 1 小时', range6h: '最近 6 小时', range24h: '最近 24 小时', range7d: '最近 7 天', rangeAll: '全部',
     search: '搜索', searchPh: '提示词、回复、命令、路径、错误…',
     group: '工具组', groupTitle: '地图的哪一部分：文件、Shell、Git、MCP…', allGroups: '所有组', agent: '代理', allAgents: '所有代理', agentTitle: '显示来自 Claude Code、Codex 或两者的会话',
@@ -128,6 +130,8 @@ TRANSLATIONS.zh = (() => {
     eventTypes: '事件类型',
 
     backX: d => `返回 · ${d}`,
+    ctxTipTitle: '本轮结束时的上下文', ctxTipNew: '新增', ctxTipChange: '相比上一轮的变化', ctxTipCompacted: '已压缩',
+    ctxWhatTip: '模型此时读取的全部内容：到目前为止的整个对话，而不是已用 token 的累计。', ctxCacheTip: (cached, fresh) => `其中从缓存读取：${cached} · 新增：${fresh}`,
     ctxEndTip: o => `本轮结束时的上下文：${o}`, ctxChangeTip: (d, comp) => `相比上一轮的变化：${d}${comp ? '（已压缩）' : ''}`,
     noTurnsRoute: '还没有轮次——下一条提示词会在这里画出它的路线。',
     runningX: (what, d) => `正在运行 ${what} · ${d}`, subagentsWorking: n => `${n} 个子代理工作中`,

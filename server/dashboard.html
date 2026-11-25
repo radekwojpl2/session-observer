@@ -42,6 +42,15 @@
       <option value="0" data-t="rangeAll">everything</option>
     </select>
   </label>
+  <!-- how the sessions list is ordered: all but "last activity" keep it still while sessions work -->
+  <label data-t-title="sessionOrderTitle" title="How the sessions list is ordered. Only &quot;last activity&quot; reshuffles it while sessions work."><span data-t="sessionOrder">Order</span>
+    <select id="sessionOrder">
+      <option value="started" data-t="orderStarted">newest started</option>
+      <option value="activity" data-t="orderActivity">last activity</option>
+      <option value="name" data-t="orderName">name</option>
+      <option value="project" data-t="orderProject">project</option>
+    </select>
+  </label>
   <label class="search"><span data-t="search">Search</span><input type="search" id="q" data-t-ph="searchPh" placeholder="prompts, replies, commands, paths, errors…"></label>
   <!-- the filters that narrow what the view shows; the button counts the ones set -->
   <details class="hmenu" id="filterMenu">
@@ -103,6 +112,7 @@
 <script src="dashboard/features/events/model/context-window.js"></script>
 <script src="dashboard/features/events/render/tool-io.js"></script>
 <script src="dashboard/features/events/render/context-badge.js"></script>
+<script src="dashboard/features/events/controls/context-tip.js"></script>
 <script src="dashboard/features/sessions/render.js"></script>
 <script src="dashboard/features/sessions/links.js"></script>
 <script src="dashboard/features/sessions/controls.js"></script>

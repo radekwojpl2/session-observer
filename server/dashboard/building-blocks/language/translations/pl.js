@@ -74,6 +74,8 @@ TRANSLATIONS.pl = (() => {
     openSession: 'Otwórz tę sesję', startedBy: 'uruchomiona przez', startedSessions: n => (n === 1 ? 'Uruchomiona sesja' : 'Uruchomione sesje'),
     loadOlderSessions: day => `Wczytaj sesje sprzed ${day}`,
     loadOlderTitle: 'Starsze dni są zapisane, ale jeszcze niewczytane',
+    sessionOrder: 'Kolejność', sessionOrderTitle: 'Jak ułożona jest lista sesji. Tylko „ostatnia aktywność” przestawia ją, gdy sesje pracują.',
+    orderStarted: 'najnowsze rozpoczęte', orderActivity: 'ostatnia aktywność', orderName: 'nazwa', orderProject: 'projekt', noProject: '(bez folderu)',
     range: 'Zakres', range1h: 'ostatnia godzina', range6h: 'ostatnie 6 h', range24h: 'ostatnie 24 h', range7d: 'ostatnie 7 dni', rangeAll: 'wszystko',
     search: 'Szukaj', searchPh: 'prompty, odpowiedzi, polecenia, ścieżki, błędy…',
     group: 'Grupa narzędzi', groupTitle: 'Która część mapy: Pliki, Powłoka, Git, MCP…', allGroups: 'wszystkie grupy', agent: 'Agent', allAgents: 'wszyscy agenci', agentTitle: 'Pokaż sesje z Claude Code, z Codex albo z obu',
@@ -132,6 +134,8 @@ TRANSLATIONS.pl = (() => {
     eventTypes: 'Typy zdarzeń',
 
     backX: d => `powrót · ${d}`,
+    ctxTipTitle: 'Kontekst na końcu tej tury', ctxTipNew: 'nowe', ctxTipChange: 'zmiana od poprzedniej tury', ctxTipCompacted: 'skompaktowano',
+    ctxWhatTip: 'Wszystko, co model przeczytał w tym momencie: cała dotychczasowa rozmowa, nie suma zużytych tokenów.', ctxCacheTip: (cached, fresh) => `W tym z cache: ${cached} · nowe: ${fresh}`,
     ctxEndTip: o => `Kontekst na końcu tej tury: ${o}`, ctxChangeTip: (d, comp) => `Zmiana od poprzedniej tury: ${d}${comp ? ' (skompaktowano)' : ''}`,
     noTurnsRoute: 'Brak tur — następny prompt narysuje tu swoją trasę.',
     runningX: (what, d) => `w toku: ${what} · ${d}`, subagentsWorking: n => `pracujący subagenci: ${n}`,

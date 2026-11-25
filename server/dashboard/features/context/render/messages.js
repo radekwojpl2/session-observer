@@ -108,7 +108,7 @@ function messageHtml(message, number, isSubagent) {
   const label = message.role === 'assistant' ? `${iconSvg('model')} ${escapeHtml(assistantName)}`
     : isSubagent ? `${iconSvg('model')} ${escapeHtml(TEXT.taskAndResults)}` : `${iconSvg('you')} ${escapeHtml(TEXT.groups.you)}`;
   const size = step
-    ? `${contextBadgeHtml(contextSizeInfo(step.ctx, message.change))} <span class="sz muted">${escapeHtml(TEXT.outX(formatCompactNumber(step.out)))}</span>`
+    ? `${contextBadgeHtml(contextSizeInfo(step.ctx, message.change, step.cached ?? null))} <span class="sz muted">${escapeHtml(TEXT.outX(formatCompactNumber(step.out)))}</span>`
     : `<span class="sz muted">${approxTokensLabel(message.size)}</span>`;
   // the hook events this message matches: its header opens their turn in Details, hovering lights their rows there
   const seqs = message.seqs = hookSeqsOfMessage(message);

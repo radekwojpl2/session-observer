@@ -19,6 +19,12 @@ function initFilterControls() {
     + TOOL_GROUPS.map(group => `<option value="${group.id}">${escapeHtml(group.label)}</option>`).join('');
   state.rangeMs = setSelectValue('range', state.rangeMs, DEFAULT_RANGE_MS);
   state.agent = setSelectValue('agent', state.agent, '');
+  state.sessionOrder = setSelectValue('sessionOrder', state.sessionOrder, 'started');
+  elementById('sessionOrder').onchange = event => {
+    state.sessionOrder = event.target.value;
+    storage.set(SETTING_KEYS.sessionOrder, state.sessionOrder);
+    scheduleRender('sessions');
+  };
 
   let searchTimer;
   elementById('q').oninput = event => {

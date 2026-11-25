@@ -59,10 +59,10 @@ const isDeferredToolLoaded = (context, tool) => tool.loaded || !!context.tools?.
 const splitMcpToolName = name => { const match = /^mcp__(.+?)__(.+)$/.exec(name); return match ? [match[1], match[2]] : null; };
 
 // a context size for a badge (see contextSize in features/events/model/context-window.js)
-function contextSizeInfo(tokens, change) {
+function contextSizeInfo(tokens, change, cached = null) {
   const data = contextView.data;
   const window = data?.window || contextWindowFor(data?.agent, data?.context?.window, tokens);
-  return contextSize(tokens, change, window, change ? signedTokens(change) : '');
+  return contextSize(tokens, change, window, change ? signedTokens(change) : '', cached);
 }
 
 // ---- items

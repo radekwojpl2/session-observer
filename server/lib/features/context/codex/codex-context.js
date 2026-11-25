@@ -84,7 +84,7 @@ function codexConversationItems(rows) {
     }
     if (row.type === 'token_usage_record' && payload.usage) {
       const tokens = tokensOf(payload.usage);
-      const step = { kind: 'step', ts, model, out: tokens.output, ctx: tokens.context };
+      const step = { kind: 'step', ts, model, out: tokens.output, ctx: tokens.context, cached: tokens.cache_read };
       items.splice(replyStart ?? items.length, 0, step);
       replyStart = null;
       continue;

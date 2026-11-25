@@ -74,6 +74,8 @@ TRANSLATIONS.en = (() => {
     openSession: 'Open this session', startedBy: 'started by', startedSessions: n => (n === 1 ? 'Started session' : 'Started sessions'),
     loadOlderSessions: day => `Load sessions before ${day}`,
     loadOlderTitle: 'Older days are saved but not loaded yet',
+    sessionOrder: 'Order', sessionOrderTitle: 'How the sessions list is ordered. Only "last activity" reshuffles it while sessions work.',
+    orderStarted: 'newest started', orderActivity: 'last activity', orderName: 'name', orderProject: 'project', noProject: '(no folder)',
     range: 'Range', range1h: 'last 1 h', range6h: 'last 6 h', range24h: 'last 24 h', range7d: 'last 7 d', rangeAll: 'everything',
     search: 'Search', searchPh: 'prompts, replies, commands, paths, errors…',
     group: 'Tool group', groupTitle: 'Which part of the map: Files, Shell, Git, MCP…', allGroups: 'all groups', agent: 'Agent', allAgents: 'all agents', agentTitle: 'Show sessions from Claude Code, Codex or both',
@@ -139,6 +141,8 @@ TRANSLATIONS.en = (() => {
 
     // route
     backX: d => `back · ${d}`,
+    ctxTipTitle: 'Context at the end of this turn', ctxTipNew: 'new', ctxTipChange: 'change from the previous turn', ctxTipCompacted: 'compacted',
+    ctxWhatTip: 'Everything the model read at this point: the whole conversation so far, not a running total of tokens used.', ctxCacheTip: (cached, fresh) => `Of that, read from cache: ${cached} · new: ${fresh}`,
     ctxEndTip: o => `Context at the end of this turn: ${o}`, ctxChangeTip: (d, comp) => `Change from the previous turn: ${d}${comp ? ' (compacted)' : ''}`,
     noTurnsRoute: 'No turns yet — the next prompt draws its route here.',
     runningX: (what, d) => `running ${what} · ${d}`, subagentsWorking: n => `${n} ${n === 1 ? 'subagent' : 'subagents'} working`,

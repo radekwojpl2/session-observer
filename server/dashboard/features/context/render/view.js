@@ -11,7 +11,7 @@ function contextToolbarHtml(data, items, compacted) {
   const prompts = items.filter(item => item.kind === 'user').length;
   // context now: the session's latest model step, and its change from the one before (the subagents' don't count)
   const steps = data.items.filter(item => item.kind === 'step'), lastStep = steps.at(-1);
-  const contextNow = lastStep ? contextSizeInfo(lastStep.ctx, steps.length > 1 ? lastStep.ctx - steps.at(-2).ctx : null) : null;
+  const contextNow = lastStep ? contextSizeInfo(lastStep.ctx, steps.length > 1 ? lastStep.ctx - steps.at(-2).ctx : null, lastStep.cached ?? null) : null;
   return `<div class="cxbar">
     <div class="seg"><button data-cxm="${CONTEXT_RANGE.wholeSession}" class="${contextRange === CONTEXT_RANGE.wholeSession ? 'cur' : ''}">${escapeHtml(TEXT.wholeSession)}</button><button data-cxm="${CONTEXT_RANGE.sinceCompaction}" class="${contextRange === CONTEXT_RANGE.sinceCompaction ? 'cur' : ''}" ${compacted ? '' : `disabled title="${escapeHtml(TEXT.notCompacted)}"`}>${escapeHtml(TEXT.sinceCompaction)}</button></div>
     <div class="seg" title="${escapeHtml(TEXT.msgOrder)}"><button data-cxo="new" class="${contextOrder !== 'old' ? 'cur' : ''}">${escapeHtml(TEXT.newestFirstBtn)}</button><button data-cxo="old" class="${contextOrder === 'old' ? 'cur' : ''}">${escapeHtml(TEXT.oldestFirstBtn)}</button></div>
