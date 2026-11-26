@@ -66,10 +66,9 @@ TRANSLATIONS.de = (() => {
       blocked: 'Der Browser blockiert Benachrichtigungen für diese Seite. Erlaube sie in den Website-Einstellungen.',
       needsYou: n => `Sitzung „${n}“ braucht dich`, done: n => `Sitzung „${n}“ ist fertig`, doneBody: 'Sie wartet auf deinen nächsten Prompt.',
     },
-    // a session's context filled past a threshold (features/context-alerts)
+    // a session's context filled past a threshold (features/alerts)
     contextAlerts: {
-      title: (n, p) => `${n}: Kontext über ${p}%`, body: s => `Kontext: ${s}.`, bodyJump: (s, j) => `Kontext: ${s}, ${j} in einem Schritt.`,
-      open: 'Zur Runde', close: 'Schließen',
+      title: (n, p) => `Kontext über ${p} % · ${n}`, body: s => `Kontext: ${s}.`, bodyJump: (s, j) => `Kontext: ${s}, ${j} in einem Schritt.`,
     },
     deleteSessionTitle: 'Diese Sitzung und ihre gespeicherten Daten löschen',
     deleteSessionConfirm: name => `„${name}“ und die gespeicherten Session-Observer-Daten löschen? Das originale App-Transkript bleibt erhalten. Dies kann nicht rückgängig gemacht werden.`,

@@ -64,10 +64,9 @@ TRANSLATIONS.ja = (() => {
       blocked: 'ブラウザーがこのページの通知をブロックしています。サイトの設定で許可してください。',
       needsYou: n => `セッション「${n}」が対応を待っています`, done: n => `セッション「${n}」が完了しました`, doneBody: '次のプロンプトを待っています。',
     },
-    // a session's context filled past a threshold (features/context-alerts)
+    // a session's context filled past a threshold (features/alerts)
     contextAlerts: {
-      title: (n, p) => `${n}: コンテキストが ${p}% を超えました`, body: s => `コンテキスト: ${s}`, bodyJump: (s, j) => `コンテキスト: ${s}（1 ステップで ${j}）`,
-      open: 'ターンへ移動', close: '閉じる',
+      title: (n, p) => `コンテキストが ${p}% を超過 · ${n}`, body: s => `コンテキスト: ${s}`, bodyJump: (s, j) => `コンテキスト: ${s}（1 ステップで ${j}）`,
     },
     deleteSessionTitle: 'このセッションと保存データを削除',
     deleteSessionConfirm: name => `「${name}」と Session Observer の保存データを削除しますか？元のアプリのトランスクリプトは削除されません。この操作は取り消せません。`,

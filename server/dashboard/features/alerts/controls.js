@@ -1,14 +1,33 @@
 'use strict';
 // Session Observer dashboard — alerts: the Notify menu in the header, and the desktop notifications it turns on.
-// A notification shows only while the dashboard window is not focused; a click on it opens the session.
+// A notification shows only while the dashboard window is not focused; a click on it opens the session (a context alert:
+// the turn whose model step pushed the context over, at that step).
 const ALERT_BODY_MAX = 160;
 // the app icon (docs/brand/icon-eye/icon-eye-256.png) as a PNG file: Windows toasts don't draw SVG or data: icons
 const ALERT_ICON = 'dashboard/icon.png';
 const notificationsSupported = () => typeof Notification === 'function';
 
+// a context alert: "Context past 75% · <session>", and its size and the step's jump
+function contextAlertNotification(session, crossing) {
+  const size = TEXT.ofPct(formatCompactNumber(crossing.tokens), formatCompactNumber(crossing.window), Math.round(crossing.pct * 100));
+  return {
+    title: TEXT.contextAlerts.title(homeSessionName(session), Math.round(crossing.threshold * 100)),
+    body: crossing.change > 0 ? TEXT.contextAlerts.bodyJump(size, signedTokens(crossing.change)) : TEXT.contextAlerts.body(size),
+  };
+}
+
+// opens the session, and in it the turn whose model step pushed the context over, at that step
+async function openContextCrossing(sessionId, seq) {
+  if (state.view === 'home' || state.view === 'overview') setView('route');
+  if (state.scope !== sessionId) await selectScope(sessionId);
+  selectTurnOfSeq(seq);
+  viewNeedsDrawing = true;
+}
+
 function alertNotification(alert) {
   const name = homeSessionName(alert.session);
   if (alert.kind === 'done') return { title: TEXT.alerts.done(name), body: TEXT.alerts.doneBody };
+  if (alert.kind === 'context') return contextAlertNotification(alert.session, alert.crossing);
   const body = alert.waits.map(wait => waitTitle(wait) + (wait.text ? ': ' + shorten(wait.text, ALERT_BODY_MAX) : '')).join('\n');
   return { title: TEXT.alerts.needsYou(name), body };
 }
@@ -16,12 +35,14 @@ function alertNotification(alert) {
 function showAlert(alert) {
   const { title, body } = alertNotification(alert);
   try {
-    // one notification per session: a newer one replaces the older
-    const notification = new Notification(title, { body, icon: ALERT_ICON, tag: 'so-' + alert.session.id, renotify: true, requireInteraction: alert.kind === 'needsYou' });
+    // one notification per session (and one for its context): a newer one replaces the older
+    const tag = (alert.kind === 'context' ? 'so-ctx-' : 'so-') + alert.session.id;
+    const notification = new Notification(title, { body, icon: ALERT_ICON, tag, renotify: true, requireInteraction: alert.kind === 'needsYou' });
     notification.onclick = () => {
       window.focus();
       notification.close();
       if (!state.sessions.has(alert.session.id)) return;
+      if (alert.kind === 'context') return void openContextCrossing(alert.session.id, alert.crossing.seq);
       setView('route');
       void selectScope(alert.session.id);
     };

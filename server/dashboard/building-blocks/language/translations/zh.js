@@ -64,10 +64,9 @@ TRANSLATIONS.zh = (() => {
       blocked: '浏览器已阻止此页面的通知。请在网站设置中允许。',
       needsYou: n => `会话“${n}”需要你处理`, done: n => `会话“${n}”已完成`, doneBody: '正在等待你的下一条提示。',
     },
-    // a session's context filled past a threshold (features/context-alerts)
+    // a session's context filled past a threshold (features/alerts)
     contextAlerts: {
-      title: (n, p) => `${n}：上下文超过 ${p}%`, body: s => `上下文：${s}`, bodyJump: (s, j) => `上下文：${s}，一步增加 ${j}`,
-      open: '转到该轮', close: '关闭',
+      title: (n, p) => `上下文超过 ${p}% · ${n}`, body: s => `上下文：${s}`, bodyJump: (s, j) => `上下文：${s}，单步 ${j}`,
     },
     deleteSessionTitle: '删除此会话及其保存的数据',
     deleteSessionConfirm: name => `删除“${name}”及其保存在 Session Observer 中的数据吗？不会删除应用原始转录记录。此操作无法撤销。`,

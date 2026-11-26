@@ -100,7 +100,6 @@ function connectLiveUpdates() {
     forgetSessionLinks();
     state.lastUpdateAt = Date.now();
     checkAlerts();
-    checkContextAlerts();
     if (state.frozen) return scheduleRender('header');
     scheduleRender('sessions', 'header', 'mid');
     if (previous?.window !== session.observedContext?.window || previous?.model !== session.observedContext?.model) scheduleRender('detail');
@@ -166,7 +165,6 @@ async function loadSessions() {
     state.history = history;
   } catch { /* server down */ }
   checkAlerts(); // the first call only records what already waits
-  checkContextAlerts();
 }
 
 // #session=<id> in the address opens that session

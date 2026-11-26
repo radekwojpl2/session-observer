@@ -702,13 +702,3 @@ details.cx.grp .chip.err { color: var(--err); border-color: color-mix(in srgb, v
 #shortcuts .kkeys { width: 38%; padding-right: 18px; line-height: 1.9; }
 #shortcuts .kalt { white-space: nowrap; }
 #shortcuts kbd { font: 12px var(--mono); background: var(--panel-2); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 1px 6px; }
-
-/* context alerts: toasts in the bottom-right corner, one per threshold a session's context crossed (features/context-alerts) */
-.ctoasts { position: fixed; right: 16px; bottom: 16px; z-index: 80; display: flex; flex-direction: column; gap: 8px; width: min(380px, calc(100vw - 32px)); pointer-events: none; }
-.ctoast { pointer-events: auto; display: flex; align-items: flex-start; gap: 10px; padding: 10px 10px 10px 12px; background: var(--panel); color: var(--text); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 8px; box-shadow: 0 8px 28px rgba(0, 0, 0, .3); }
-.ctoast.mid { border-left-color: var(--warn); }
-.ctoast.high { border-left-color: var(--err); }
-.ctoast-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.ctoast-text b { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow-wrap: anywhere; }
-.ctoast-actions { display: flex; gap: 4px; flex-shrink: 0; }
-.ctoast-close { padding: 4px 8px; }

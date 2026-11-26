@@ -66,10 +66,9 @@ TRANSLATIONS.pt = (() => {
       blocked: 'O navegador bloqueia as notificações desta página. Permita-as nas configurações do site.',
       needsYou: n => `A sessão “${n}” precisa de você`, done: n => `A sessão “${n}” terminou`, doneBody: 'Ela aguarda seu próximo prompt.',
     },
-    // a session's context filled past a threshold (features/context-alerts)
+    // a session's context filled past a threshold (features/alerts)
     contextAlerts: {
-      title: (n, p) => `${n}: contexto acima de ${p}%`, body: s => `Contexto: ${s}.`, bodyJump: (s, j) => `Contexto: ${s}, ${j} em um só passo.`,
-      open: 'Ir para o turno', close: 'Fechar',
+      title: (n, p) => `Contexto acima de ${p}% · ${n}`, body: s => `Contexto: ${s}.`, bodyJump: (s, j) => `Contexto: ${s}, ${j} em um só passo.`,
     },
     deleteSessionTitle: 'Excluir esta sessão e os dados salvos',
     deleteSessionConfirm: name => `Excluir “${name}” e os dados salvos no Session Observer? O transcript original do aplicativo será mantido. Esta ação não pode ser desfeita.`,
