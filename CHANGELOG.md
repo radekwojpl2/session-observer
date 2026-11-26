@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.0](https://github.com/radekwojpl2/session-observer/compare/v0.16.0...v0.17.0) (2026-11-26)
+
+
+### Features
+
+* resize, hide or widen the Details panel ([#93](https://github.com/radekwojpl2/session-observer/issues/93)) ([994619b](https://github.com/radekwojpl2/session-observer/commit/994619b47ea3eb9bf1c2e4caa951d258c5a56828))
+
 ## [0.16.0](https://github.com/radekwojpl2/session-observer/compare/v0.15.0...v0.16.0) (2026-11-26)
 
 
