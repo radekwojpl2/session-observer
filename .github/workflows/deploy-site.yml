@@ -1,16 +1,9 @@
 name: Deploy site
 
-# Uploads the static landing page in public_html/ to the web host over FTP. Only the contents of public_html/
-# are sent: index.html and assets/ land in the host's web root, and nothing else from the repository goes online.
-#
-# Settings (repository → Settings → Secrets and variables → Actions):
-#   secrets   FTP_SERVER, FTP_USERNAME, FTP_PASSWORD   from the host's FTP accounts page
-#   variables FTP_SERVER_DIR   folder on the server that is the web root, with a trailing slash
-#                              (default "public_html/"; use "./" if the FTP account opens inside the web root)
-#             FTP_PROTOCOL     "ftps" (default, encrypted) or "ftp" if the host doesn't offer FTPS
-#
-# The action keeps a .ftp-deploy-sync-state.json on the server and uploads only files that changed since the
-# last run. It never deletes files it didn't upload, so remove old files from the server by hand once.
+# Publishes the static landing page in public_html/ to GitHub Pages. Only the contents of public_html/ are
+# published (index.html and assets/), so nothing else from the repository goes online.
+# Pages must use "GitHub Actions" as its source (Settings → Pages → Build and deployment).
+# For a custom domain, set it in Settings → Pages; GitHub then serves the site there with HTTPS.
 on:
   push:
     branches: [main]
@@ -23,21 +16,24 @@ permissions:
   contents: read
 
 concurrency:
-  group: deploy-site
+  group: pages
   cancel-in-progress: false
 
 jobs:
   deploy:
-    name: Upload public_html over FTP
+    name: Publish public_html to GitHub Pages
     runs-on: ubuntu-latest
+    permissions:
+      pages: write      # publish the site
+      id-token: write   # prove the deploy comes from this workflow
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
-
-      - uses: SamKirkland/FTP-Deploy-Action@110f9186c050f71550953127052e77650219c287 # v4.4.0
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ${{ vars.FTP_PROTOCOL || 'ftps' }}
-          local-dir: ./public_html/
-          server-dir: ${{ vars.FTP_SERVER_DIR || 'public_html/' }}
+          path: public_html
+      - id: deployment
+        uses: actions/deploy-pages@v5
