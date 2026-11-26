@@ -8,6 +8,6 @@ const contextTokensOf = usage =>
   (usage.input_tokens || 0) + (usage.cache_read_input_tokens || 0) + (usage.cache_creation_input_tokens || 0);
 
 // a model id like "claude-opus-5-5[1m]" or "…-1m" has the 1M context window
-const hasOneMillionWindow = modelId => /\[1m\]|-1m/i.test(modelId || '');
+const hasOneMillionWindow = modelId => /\[1m]|-1m/i.test(modelId || '');
 
 module.exports = { ONE_MILLION_WINDOW, contextTokensOf, hasOneMillionWindow };

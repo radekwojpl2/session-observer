@@ -13,7 +13,7 @@ const ALL_SESSIONS = 'all'; // the session id in /api/events?session= that asks 
 const ASSET_CONTENT_TYPES = { '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.png': 'image/png' };
 // a file in the dashboard folder or its subfolders: every part of the path is a plain name (letters, digits, - and _,
 // never a dot), and the file has a known extension, so a request can't leave the folder
-const ASSET_PATH = /^[/]dashboard[/]((?:[A-Za-z0-9_-]+[/])*[A-Za-z0-9_-]+)([.]css|[.]js|[.]png)$/;
+const ASSET_PATH = /^\/dashboard\/((?:[A-Za-z0-9_-]+\/)*[A-Za-z0-9_-]+)([.]css|[.]js|[.]png)$/;
 
 function sendJson(response, status, body) {
   response.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });

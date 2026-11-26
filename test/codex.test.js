@@ -9,7 +9,7 @@ const { spawn, spawnSync } = require('node:child_process');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const net = require('node:net');
+const { freePort, waitFor: waitUntil, stopProcess } = require('./helpers');
 
 const ROOT = path.join(__dirname, '..');
 const HOOK = path.join(ROOT, 'scripts', 'hook.js');
@@ -20,32 +20,13 @@ const CODEX_HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'so-codex-home-'));
 const SESSION = 'codex-sess-1';
 let port, server;
 
-function freePort() {
-  return new Promise((resolve, reject) => {
-    const probe = net.createServer().listen(0, '127.0.0.1', () => {
-      const { port: free } = probe.address();
-      probe.close(() => resolve(free));
-    });
-    probe.on('error', reject);
-  });
-}
-
 const env = () => ({ ...process.env, OBSERVER_DATA_DIR: DATA_DIR, OBSERVER_PORT: String(port), OBSERVER_AUTOSTART: '0' });
 const runHook = (eventName, payload, ...extraArgs) =>
   spawnSync(process.execPath, [HOOK, eventName, ...extraArgs], { input: JSON.stringify(payload), env: env(), timeout: 10000 });
 const codexHook = (eventName, fields) =>
   runHook(eventName, { hook_event_name: eventName, session_id: SESSION, cwd: '/work/app', model: 'gpt-5-codex', ...fields }, '--agent', 'codex');
 
-async function waitFor(check, ms = 8000) {
-  const end = Date.now() + ms;
-  let lastError;
-  while (Date.now() < end) {
-    if (server.exitCode != null) throw new Error(`the server exited (${server.exitCode})`);
-    try { const value = await check(); if (value) return value; } catch (error) { lastError = error; }
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
-  throw lastError || new Error('timed out');
-}
+const waitFor = (check, ms = 8000) => waitUntil(check, ms, server);
 const getJson = async apiPath => (await fetch(`http://127.0.0.1:${port}${apiPath}`)).json();
 
 const PATCH = '*** Begin Patch\n*** Update File: src/app.ts\n@@\n-old\n+new\n*** Add File: src/new.ts\n+export {};\n*** End Patch';
@@ -68,11 +49,7 @@ before(async () => {
 });
 
 after(async () => {
-  if (server) {
-    const stopped = server.exitCode == null ? new Promise(resolve => server.once('exit', resolve)) : Promise.resolve();
-    server.kill();
-    await stopped;
-  }
+  await stopProcess(server);
   fs.rmSync(DATA_DIR, { recursive: true, force: true });
   fs.rmSync(CODEX_HOME, { recursive: true, force: true });
 });
@@ -132,7 +109,7 @@ test('a Codex permission waits for its own call, not for a call run beside it', 
   const id = 'codex-wait';
   const hook = (eventName, fields) =>
     runHook(eventName, { hook_event_name: eventName, session_id: id, cwd: '/work/app', turn_id: 'turn-w', ...fields }, '--agent', 'codex');
-  const waits = async expected => waitFor(async () => {
+  const waits = expected => waitFor(async () => {
     const session = (await getJson('/api/sessions')).find(s => s.id === id);
     return session && JSON.stringify(session.needsYou.map(wait => wait.tool)) === JSON.stringify(expected) && session;
   });

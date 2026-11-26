@@ -8,41 +8,21 @@ const { spawn, spawnSync } = require('node:child_process');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const net = require('node:net');
+const { freePort, waitFor, stopProcess } = require('./helpers');
 
 const ROOT = path.join(__dirname, '..');
 const HOOK = path.join(ROOT, 'scripts', 'hook.js');
 const STATUSLINE = path.join(ROOT, 'scripts', 'claude-statusline.js');
 const SERVER = path.join(ROOT, 'server', 'server.js');
 const DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'so-test-'));
-const LOG = path.join(DATA_DIR, 'events.jsonl');
 const SESSION_LOGS = path.join(DATA_DIR, 'sessions');
 let PORT, server, base;
-
-function freePort() {
-  return new Promise((resolve, reject) => {
-    const srv = net.createServer().listen(0, '127.0.0.1', () => {
-      const { port } = srv.address(); srv.close(() => resolve(port));
-    });
-    srv.on('error', reject);
-  });
-}
 
 const env = () => ({ ...process.env, OBSERVER_DATA_DIR: DATA_DIR, OBSERVER_PORT: String(PORT), OBSERVER_AUTOSTART: '0' });
 
 function runHook(eventName, payload, extraEnv = {}) {
   const input = typeof payload === 'string' ? payload : JSON.stringify(payload);
   return spawnSync(process.execPath, [HOOK, eventName], { input, env: { ...env(), ...extraEnv }, timeout: 10000 });
-}
-
-async function waitFor(fn, ms = 8000) {
-  const end = Date.now() + ms;
-  let last;
-  while (Date.now() < end) {
-    try { const v = await fn(); if (v) return v; } catch (e) { last = e; }
-    await new Promise(r => setTimeout(r, 100));
-  }
-  throw last || new Error('timed out');
 }
 
 const get = async p => { const r = await fetch(base + p); return { status: r.status, body: await r.text(), type: r.headers.get('content-type') }; };
@@ -59,13 +39,7 @@ async function startServer() {
   await waitFor(async () => (await getJson('/api/health')).ok);
 }
 
-async function stopServer() {
-  if (server) {
-    const stopped = server.exitCode == null && server.signalCode == null ? new Promise(resolve => server.once('exit', resolve)) : Promise.resolve();
-    server.kill();
-    await stopped;
-  }
-}
+const stopServer = () => stopProcess(server);
 
 before(async () => {
   PORT = await freePort();
@@ -101,7 +75,7 @@ test('hook truncates long strings', () => {
   runHook('PostToolUse', { hook_event_name: 'PostToolUse', session_id: 'sess-1', tool_name: 'Read', tool_response: 'x'.repeat(500) }, { OBSERVER_MAX_FIELD: '50' });
   const last = readLog().at(-1);
   assert.ok(last.data.tool_response.length < 100, 'long field should be cut');
-  assert.match(last.data.tool_response, /\[\+450 chars\]$/);
+  assert.match(last.data.tool_response, /\[\+450 chars]$/);
 });
 
 test('server ingests hook events and serves the API', async () => {
@@ -146,12 +120,12 @@ test('dashboard HTML is served', async () => {
 
 test('every stylesheet and script the dashboard asks for is served', async () => {
   const html = (await get('/')).body;
-  const refs = [...html.matchAll(/<(?:script[^>]*[ ]src|link[^>]*[ ]href)="([^"]+)"/g)].map(m => m[1]).filter(r => !r.startsWith('data:'));
+  const refs = [...html.matchAll(/<(?:script[^>]* src|link[^>]* href)="([^"]+)"/g)].map(m => m[1]).filter(r => !r.startsWith('data:'));
   assert.ok(refs.length > 1, 'the dashboard should load its files from dashboard/');
   for (const ref of refs) {
     const r = await get('/' + ref);
     assert.equal(r.status, 200, ref);
-    assert.match(r.type, ref.endsWith('.css') ? /text[/]css/ : /javascript/, ref);
+    assert.match(r.type, ref.endsWith('.css') ? /text\/css/ : /javascript/, ref);
     assert.ok(r.body.length > 0, ref);
   }
 });
@@ -290,7 +264,7 @@ test('context: the whole transcript, in full, with subagents and the request sha
 const WAIT_SESSION = 'sess-wait';
 const waitHook = (eventName, fields) => runHook(eventName, { hook_event_name: eventName, session_id: WAIT_SESSION, cwd: '/tmp/waits', ...fields });
 const waitingSession = () => getJson('/api/sessions').then(list => list.find(session => session.id === WAIT_SESSION));
-const waitsAre = async expected => waitFor(async () => {
+const waitsAre = expected => waitFor(async () => {
   const session = await waitingSession();
   return session && JSON.stringify(session.needsYou.map(wait => wait.kind)) === JSON.stringify(expected) && session;
 });
@@ -327,7 +301,7 @@ test('a session tracks what it waits on you for, until it is answered', async ()
 test('a call refused at its prompt, or an interrupt, ends its wait though no hook comes', async () => {
   const id = 'sess-refused', tp = path.join(DATA_DIR, 'refused.jsonl');
   const hook = (eventName, fields) => runHook(eventName, { hook_event_name: eventName, session_id: id, cwd: '/tmp/waits', transcript_path: tp, ...fields });
-  const waits = async expected => waitFor(async () => {
+  const waits = expected => waitFor(async () => {
     const session = (await getJson('/api/sessions')).find(s => s.id === id);
     return session && JSON.stringify(session.needsYou.map(wait => wait.kind)) === JSON.stringify(expected);
   });
@@ -375,7 +349,7 @@ test("a session lists its subagents: each one's type, task and whether it still 
 test('a permission asked without a call id waits for its own call, not for a call run beside it', async () => {
   const id = 'sess-parallel';
   const hook = (eventName, fields) => runHook(eventName, { hook_event_name: eventName, session_id: id, cwd: '/tmp/waits', ...fields });
-  const waits = async expected => waitFor(async () => {
+  const waits = expected => waitFor(async () => {
     const session = (await getJson('/api/sessions')).find(s => s.id === id);
     return session && JSON.stringify(session.needsYou.map(wait => wait.tool)) === JSON.stringify(expected) && session;
   });
@@ -511,7 +485,7 @@ test('a subagent takes the description of its own call: by type, and never from 
 test("a background subagent's wait outlasts its turn's Stop", async () => {
   const id = 'sess-bgwait';
   const hook = (eventName, fields) => runHook(eventName, { hook_event_name: eventName, session_id: id, cwd: '/tmp/waits', ...fields });
-  const waits = async expected => waitFor(async () => {
+  const waits = expected => waitFor(async () => {
     const session = (await getJson('/api/sessions')).find(s => s.id === id);
     return session && JSON.stringify(session.needsYou.map(wait => wait.agentId)) === JSON.stringify(expected) && session;
   });

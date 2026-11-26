@@ -17,8 +17,8 @@ const TOOLTIP_PREVIEW_MAX = 400; // the longer text a hover tooltip shows
 // mention, which Codex writes as "[@Session Observer](plugin://…)", goes; any other markdown link keeps its label.
 const stripTags = text => String(text ?? '')
   .replace(/<\/?[a-z][\w-]*(?:\s[^>]*)?>/gi, ' ')
-  .replace(/\[[^\]\n]*\]\(plugin:\/\/[^)\s]*\)/g, ' ')
-  .replace(/\[([^\]\n]*)\]\([^)\s]*\)/g, '$1')
+  .replace(/\[[^\]\n]*]\(plugin:\/\/[^)\s]*\)/g, ' ')
+  .replace(/\[([^\]\n]*)]\([^)\s]*\)/g, '$1')
   .replace(/\s+/g, ' ').trim();
 // the last part of a path ("src/app.ts" → "app.ts"), for both / and \ paths
 const baseName = filePath => String(filePath || '').split(/[\\/]/).filter(Boolean).pop() || filePath || '';

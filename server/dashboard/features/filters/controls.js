@@ -11,7 +11,7 @@ function setAgentFilter(agent) {
   elementById('agent').value = agent;
   storage.set(SETTING_KEYS.agent, agent);
   scheduleRender('sessions', 'cats');
-  loadScope();
+  void loadScope();
 }
 
 function initFilterControls() {
@@ -46,7 +46,7 @@ function initFilterControls() {
   elementById('range').onchange = event => {
     state.rangeMs = Number(event.target.value);
     storage.set(SETTING_KEYS.range, state.rangeMs);
-    loadScope();
+    void loadScope();
   };
   elementById('cats').onclick = event => {
     const chip = event.target.closest('[data-cat]');

@@ -41,7 +41,7 @@ function selectScope(id) {
     history.replaceState(null, '', address.pathname + address.search + address.hash);
   } catch { /* ignore */ }
   scheduleRender('sessions', 'header');
-  loadScope();
+  void loadScope();
 }
 
 const isInScope = event => (state.scope === ALL_SESSIONS ? isAgentShown(agentOfEvent(event)) : event.session_id === state.scope);
