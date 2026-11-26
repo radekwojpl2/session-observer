@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.0](https://github.com/radekwojpl2/session-observer/compare/v0.17.0...v0.18.0) (2026-11-26)
+
+
+### Features
+
+* sticky top bar with a GitHub icon on the landing page ([#95](https://github.com/radekwojpl2/session-observer/issues/95)) ([fa8cec8](https://github.com/radekwojpl2/session-observer/commit/fa8cec844c5f8f2e06ef85367ae17cd0ed10a387))
+
 ## [0.17.0](https://github.com/radekwojpl2/session-observer/compare/v0.16.0...v0.17.0) (2026-11-26)
 
 
