@@ -131,7 +131,9 @@ if (title && !/^(feat|fix|perf|refactor|revert|docs|test|ci|chore|build|style)(\
 const author = process.env.PR_AUTHOR || '';
 const headRef = process.env.PR_HEAD_REF || '';
 if (process.env.GITHUB_EVENT_NAME === 'pull_request' && !author.endsWith('[bot]') && !headRef.startsWith('release-please--')) {
-  const body = (process.env.PR_BODY || '').replace(/<!--[\s\S]*?-->/g, '');
+  // Drop template comments; repeat until stable so a nested "<!<!---->--" can't leave one behind.
+  let body = process.env.PR_BODY || '';
+  for (let prev; prev !== body;) { prev = body; body = body.replace(/<!--[\s\S]*?(-->|$)/g, ''); }
   if (!/\b(close[sd]?|fix(e[sd])?|resolve[sd]?)\s+(([\w.-]+\/[\w.-]+)?#\d+|https:\/\/github\.com\/\S+\/issues\/\d+)/i.test(body)) {
     fail('PR description links no issue: add "Closes #123" (CONTRIBUTING.md, "Opening the pull request")');
   }
