@@ -140,6 +140,8 @@ TRANSLATIONS.zh = (() => {
     backToLatest: '回到最新 ⟳', showingLatest: '显示最新一轮 · 实时更新',
 
     details: '详情',
+
+    detailResize: '调整详情大小', detailResizeTitle: '拖动以调整详情宽度。双击：默认宽度。按键：← / →', detailShowTitle: '显示详情', detailHideTitle: '隐藏详情', detailWideTitle: '将详情扩展到整个视图', detailNarrowTitle: '将详情放回侧边',
     pickTurn: '选择一轮：概览中轮次图表的一根柱子、路线上的一个站点，或对话中的一条消息。按键：<b>[</b> / <b>]</b> 上一轮 / 下一轮，<b>Esc</b> 关闭。',
     prevTitle: '上一轮（[）', prev: '‹ 上一轮', nextTitle: '下一轮（]）', next: '下一轮 ›', closeTitle: '关闭（Esc）', close: '关闭',
     reply: '回复', events: '事件', newestFirst: '最新在前', noPrompt: '会话开始（无提示词）',

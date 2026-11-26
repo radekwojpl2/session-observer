@@ -74,7 +74,11 @@
     <div class="map-wrap"><div id="mid"></div><div id="alt"></div></div>
     <div class="cats" id="cats"></div>
   </main>
-  <aside class="panel" id="detail"></aside>
+  <div class="dwrap" id="detailWrap">
+    <div class="dsplit" id="detailSplit" role="separator" aria-orientation="vertical" tabindex="0" data-t-title="detailResizeTitle" data-t-aria="detailResize"></div>
+    <button class="drail" id="detailShow" data-t-title="detailShowTitle"><span>«</span> <span data-t="details">Details</span></button>
+    <aside class="panel" id="detail"></aside>
+  </div>
 </section>
 
 <dialog id="shortcuts" class="panel"></dialog>
@@ -129,6 +133,7 @@
 <script src="dashboard/features/details/render/event-rows.js"></script>
 <script src="dashboard/features/details/render/event-cards.js"></script>
 <script src="dashboard/features/details/render/panel.js"></script>
+<script src="dashboard/features/details/size.js"></script>
 <script src="dashboard/features/details/controls.js"></script>
 <script src="dashboard/features/context/model.js"></script>
 <script src="dashboard/features/context/render/cards.js"></script>

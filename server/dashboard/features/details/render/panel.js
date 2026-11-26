@@ -58,7 +58,7 @@ function detailsHeaderHtml(turn) {
   const session = state.sessions.get(turn.sessionId);
   const duration = Date.parse(turn.end) - Date.parse(turn.start);
   const problems = turn.problemCount ? ` · <span class="err">${escapeHtml(countOf(turn.problemCount, 'problem'))}</span>` : '';
-  return `<div class="dh"><h2>${escapeHtml(TEXT.turn)} · ${formatTime(turn.start)}</h2><span><button id="prevTurn" title="${escapeHtml(TEXT.prevTitle)}">${escapeHtml(TEXT.prev)}</button> <button id="nextTurn" title="${escapeHtml(TEXT.nextTitle)}">${escapeHtml(TEXT.next)}</button> <button id="closeTurn" title="${escapeHtml(TEXT.closeTitle)}">${escapeHtml(TEXT.close)}</button></span></div>
+  return `<div class="dh"><h2>${escapeHtml(TEXT.turn)} · ${formatTime(turn.start)}</h2><span class="dbtns"><button id="prevTurn" title="${escapeHtml(TEXT.prevTitle)}">${escapeHtml(TEXT.prev)}</button> <button id="nextTurn" title="${escapeHtml(TEXT.nextTitle)}">${escapeHtml(TEXT.next)}</button> <button id="closeTurn" title="${escapeHtml(TEXT.closeTitle)}">${escapeHtml(TEXT.close)}</button> ${detailSizeButtonsHtml()}</span></div>
     <p class="lead">${escapeHtml(baseName(session?.cwd))} · ${escapeHtml(turnStateWord(turn))} · ${formatDuration(duration)} · ${escapeHtml(countOf(turn.stepCount, 'modelStep'))} · ${escapeHtml(countOf(turn.toolCount, 'toolCall'))} (${formatDuration(turn.toolMs)}) · ${escapeHtml(TEXT.outTokens(formatCompactNumber(turn.outputTokens)))}${problems}</p>`;
 }
 
@@ -79,7 +79,7 @@ function renderDetails() {
   const panel = elementById('detail'), scrollTop = panel.scrollTop, openBoxes = openCardBoxes(panel);
   const turn = selectedTurn();
   if (!turn) {
-    panel.innerHTML = `<div class="dh"><h2>${escapeHtml(TEXT.details)}</h2></div><p class="muted">${TEXT.pickTurn}</p>${colourKeyHtml(turn)}`;
+    panel.innerHTML = `<div class="dh"><h2>${escapeHtml(TEXT.details)}</h2>${detailSizeButtonsHtml()}</div><p class="muted">${TEXT.pickTurn}</p>${colourKeyHtml(turn)}`;
     return;
   }
   const rows = eventRowsOfTurn(turn);

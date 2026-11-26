@@ -144,6 +144,8 @@ TRANSLATIONS.pl = (() => {
     backToLatest: 'Wróć do najnowszej ⟳', showingLatest: 'najnowsza tura · aktualizuje się na żywo',
 
     details: 'Szczegóły',
+
+    detailResize: 'Zmień rozmiar Szczegółów', detailResizeTitle: 'Przeciągnij, by zmienić szerokość Szczegółów. Dwuklik: domyślna szerokość. Klawisze: ← / →', detailShowTitle: 'Pokaż Szczegóły', detailHideTitle: 'Ukryj Szczegóły', detailWideTitle: 'Rozszerz Szczegóły na cały widok', detailNarrowTitle: 'Przywróć Szczegóły z boku',
     pickTurn: 'Wybierz turę: słupek na wykresie Tur w Przeglądzie, przystanek na Trasie lub wiadomość w Czacie. Klawisze: <b>[</b> / <b>]</b> poprzednia / następna tura, <b>Esc</b> zamknij.',
     prevTitle: 'Poprzednia tura ([)', prev: '‹ Poprz.', nextTitle: 'Następna tura (])', next: 'Nast. ›', closeTitle: 'Zamknij (Esc)', close: 'Zamknij',
     reply: 'Odpowiedź', events: 'Zdarzenia', newestFirst: 'najnowsze najpierw', noPrompt: 'Początek sesji (bez promptu)',

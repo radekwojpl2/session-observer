@@ -142,6 +142,8 @@ TRANSLATIONS.it = (() => {
     backToLatest: 'Torna all\'ultimo ⟳', showingLatest: 'mostra l\'ultimo turno · si aggiorna in diretta',
 
     details: 'Dettagli',
+
+    detailResize: 'Ridimensiona Dettagli', detailResizeTitle: 'Trascina per cambiare la larghezza dei Dettagli. Doppio clic: larghezza predefinita. Tasti: ← / →', detailShowTitle: 'Mostra Dettagli', detailHideTitle: 'Nascondi Dettagli', detailWideTitle: 'Allarga i Dettagli sulla vista', detailNarrowTitle: 'Riporta i Dettagli di lato',
     pickTurn: 'Scegli un turno: una barra nel grafico dei Turni della Panoramica, una fermata sul Percorso o un messaggio nella Chat. Tasti: <b>[</b> / <b>]</b> turno precedente / successivo, <b>Esc</b> chiudi.',
     prevTitle: 'Turno precedente ([)', prev: '‹ Prec.', nextTitle: 'Turno successivo (])', next: 'Succ. ›', closeTitle: 'Chiudi (Esc)', close: 'Chiudi',
     reply: 'Risposta', events: 'Eventi', newestFirst: 'più recenti prima', noPrompt: 'Inizio sessione (nessun prompt)',

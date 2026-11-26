@@ -142,6 +142,8 @@ TRANSLATIONS.de = (() => {
     backToLatest: 'Zur neuesten ⟳', showingLatest: 'zeigt die neueste Runde · aktualisiert live',
 
     details: 'Details',
+
+    detailResize: 'Größe der Details ändern', detailResizeTitle: 'Ziehen, um die Breite der Details zu ändern. Doppelklick: Standardbreite. Tasten: ← / →', detailShowTitle: 'Details anzeigen', detailHideTitle: 'Details ausblenden', detailWideTitle: 'Details über die Ansicht verbreitern', detailNarrowTitle: 'Details wieder an die Seite',
     pickTurn: 'Wähle eine Runde: einen Balken im Runden-Diagramm der Übersicht, einen Halt auf der Route oder eine Nachricht im Chat. Tasten: <b>[</b> / <b>]</b> vorherige / nächste Runde, <b>Esc</b> schließen.',
     prevTitle: 'Vorherige Runde ([)', prev: '‹ Zurück', nextTitle: 'Nächste Runde (])', next: 'Weiter ›', closeTitle: 'Schließen (Esc)', close: 'Schließen',
     reply: 'Antwort', events: 'Ereignisse', newestFirst: 'neueste zuerst', noPrompt: 'Sitzungsbeginn (kein Prompt)',
