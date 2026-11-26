@@ -140,6 +140,8 @@ TRANSLATIONS.ja = (() => {
     backToLatest: '最新に戻る ⟳', showingLatest: '最新のターンを表示中 · ライブ更新',
 
     details: '詳細',
+
+    detailResize: '詳細のサイズ変更', detailResizeTitle: 'ドラッグで詳細の幅を変更。ダブルクリック: 既定の幅。キー: ← / →', detailShowTitle: '詳細を表示', detailHideTitle: '詳細を隠す', detailWideTitle: '詳細をビュー全体に広げる', detailNarrowTitle: '詳細を横に戻す',
     pickTurn: 'ターンを選んでください: 概要のターングラフの棒、ルートの停留所、またはチャットのメッセージ。キー: <b>[</b> / <b>]</b> 前 / 次のターン、<b>Esc</b> 閉じる。',
     prevTitle: '前のターン ([)', prev: '‹ 前へ', nextTitle: '次のターン (])', next: '次へ ›', closeTitle: '閉じる (Esc)', close: '閉じる',
     reply: '返答', events: 'イベント', newestFirst: '新しい順', noPrompt: 'セッション開始（プロンプトなし）',

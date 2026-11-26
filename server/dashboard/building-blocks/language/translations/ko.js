@@ -140,6 +140,8 @@ TRANSLATIONS.ko = (() => {
     backToLatest: '최신으로 ⟳', showingLatest: '최신 턴 표시 중 · 실시간 업데이트',
 
     details: '세부 정보',
+
+    detailResize: '세부 정보 크기 조절', detailResizeTitle: '드래그해 세부 정보 너비 조절. 더블클릭: 기본 너비. 키: ← / →', detailShowTitle: '세부 정보 표시', detailHideTitle: '세부 정보 숨기기', detailWideTitle: '세부 정보를 보기 전체로 넓히기', detailNarrowTitle: '세부 정보를 옆으로 되돌리기',
     pickTurn: '턴을 고르세요: 개요의 턴 차트 막대, 경로의 정류장, 또는 채팅의 메시지. 키: <b>[</b> / <b>]</b> 이전 / 다음 턴, <b>Esc</b> 닫기.',
     prevTitle: '이전 턴 ([)', prev: '‹ 이전', nextTitle: '다음 턴 (])', next: '다음 ›', closeTitle: '닫기 (Esc)', close: '닫기',
     reply: '응답', events: '이벤트', newestFirst: '최신순', noPrompt: '세션 시작 (프롬프트 없음)',

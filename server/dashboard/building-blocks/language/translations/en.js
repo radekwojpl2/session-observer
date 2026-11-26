@@ -152,6 +152,7 @@ TRANSLATIONS.en = (() => {
 
     // details panel
     details: 'Details',
+    detailResize: 'Resize Details', detailResizeTitle: 'Drag to resize Details. Double-click: default width. Keys: ← / →', detailShowTitle: 'Show Details', detailHideTitle: 'Hide Details', detailWideTitle: 'Widen Details over the view', detailNarrowTitle: 'Put Details back at the side',
     pickTurn: 'Pick a turn: a bar on the Overview\'s Turns chart, a stop on the Route, or a message in the Chat. Keys: <b>[</b> / <b>]</b> previous / next turn, <b>Esc</b> close.',
     prevTitle: 'Previous turn ([)', prev: '‹ Prev', nextTitle: 'Next turn (])', next: 'Next ›', closeTitle: 'Close (Esc)', close: 'Close',
     reply: 'Reply', events: 'Events', newestFirst: 'newest first', noPrompt: 'Session start (no prompt)',
