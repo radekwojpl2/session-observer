@@ -7,12 +7,12 @@
 // agent's name as a command word (`codex exec`, `npx @openai/codex`, `& "C:\…\claude.exe" -p`), not inside a path or a
 // word (`~/.codex/config.toml`, `codex-rollout.js`)
 const agentCommand = name => new RegExp(`(?:^|[\\s;&|(\`"'/\\\\])${name}(?:\\.(?:exe|cmd|ps1))?(?=$|[\\s;&|)"'])`, 'i');
-const STARTS_AGENT = { claude: agentCommand('claude'), codex: agentCommand('codex') };
+const STARTS_AGENT = { claude: agentCommand('claude'), codex: agentCommand('codex'), pi: agentCommand('pi'), omp: agentCommand('omp') };
 // a call is over at its answer (a refused one gets only PermissionDenied), or when its turn ends: an interrupted call
 // gets no hook at all (as in needs-you.js)
 const ANSWERS_A_CALL = new Set(['PostToolUse', 'PostToolUseFailure', 'PermissionDenied']);
 const ENDS_THE_TURN = new Set(['UserPromptSubmit', 'Stop', 'StopFailure', 'SessionEnd']);
-const SHELL_TOOLS = new Set(['Bash', 'PowerShell', 'shell', 'exec_command', 'local_shell']);
+const SHELL_TOOLS = new Set(['Bash', 'PowerShell', 'shell', 'exec_command', 'local_shell', 'bash']); // bash: pi's and omp's
 
 // takes the parent sessions an event names (once: they are the same on every event of a session)
 function trackParents(session, event) {

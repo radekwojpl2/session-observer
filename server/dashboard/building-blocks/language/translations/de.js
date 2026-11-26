@@ -80,7 +80,7 @@ TRANSLATIONS.de = (() => {
     orderStarted: 'zuletzt gestartet', orderActivity: 'letzte Aktivität', orderName: 'Name', orderProject: 'Projekt', noProject: '(kein Ordner)',
     range: 'Zeitraum', range1h: 'letzte 1 h', range6h: 'letzte 6 h', range24h: 'letzte 24 h', range7d: 'letzte 7 Tage', rangeAll: 'alles',
     search: 'Suche', searchPh: 'Prompts, Antworten, Befehle, Pfade, Fehler…',
-    group: 'Tool-Gruppe', groupTitle: 'Welcher Teil der Karte: Dateien, Shell, Git, MCP…', allGroups: 'alle Gruppen', agent: 'Agent', allAgents: 'alle Agenten', agentTitle: 'Sitzungen von Claude Code, von Codex oder von beiden anzeigen',
+    group: 'Tool-Gruppe', groupTitle: 'Welcher Teil der Karte: Dateien, Shell, Git, MCP…', allGroups: 'alle Gruppen', agent: 'Agent', allAgents: 'alle Agenten', agentTitle: 'Sitzungen eines Agenten oder aller Agenten anzeigen',
     onlyProblems: 'nur Probleme', filters: 'Filter', resetFilters: 'Filter zurücksetzen', view: 'Ansicht',
 
     subagent: 'Subagent', subagentLc: 'Subagent', mainAgent: 'Hauptagent', mainAgentLc: 'Hauptagent',
@@ -194,6 +194,7 @@ TRANSLATIONS.de = (() => {
     measuredNote: (first, cpt) => `Gemessen: Die erste Anfrage hatte ${first} Tokens (System-Prompt, Tools, Anweisungen, Listen und der erste Prompt). ${cpt
       ? `Größen auf den Karten nutzen den Durchschnitt dieser Sitzung von ${cpt} Zeichen pro Token.` : 'Größen auf den Karten sind Schätzungen mit etwa 4 Zeichen pro Token.'}`,
     systemPrompt: 'System-Prompt', charsN: x => `${x} Zeichen`, toolDefs: 'Tool-Definitionen', builtIn: 'Eingebaut',
+    harnessContextNote: n => `Aus der eigenen Sitzungsdatei von ${n} gelesen. Ihr Format kann sich ändern, daher können Teile fehlen. ${n} nimmt Anweisungsdateien wie AGENTS.md in den System-Prompt auf, deshalb stehen sie nicht gesondert da.`, harnessNoSystem: n => `${n} speichert vom System-Prompt dieser Sitzung nur einen Fingerabdruck, daher kann er nicht angezeigt werden. Die Tool-Namen stammen aus den Antworten.`,
     noSystem: 'System-Prompt und Tool-Definitionen sind nicht in diesem Transkript: Claude Code speichert sie nur in manchen Versionen. Alles darunter ist enthalten.',
     instructions: 'Anweisungen',
     noInstructions: 'Keine Anweisungsdateien in diesem Transkript: Es wurden keine CLAUDE.md (global, Projekt oder lokal), AGENTS.md, Regeln oder Auto-Speicher geladen.',

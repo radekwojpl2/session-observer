@@ -2,7 +2,7 @@
 
 # Session Observer
 
-**One local dashboard for Claude Code and Codex.** Follow prompts, tool calls, model steps, subagents, context use and failures as they happen.
+**One local dashboard for Claude Code, Codex, pi and omp.** Follow prompts, tool calls, model steps, subagents, context use and failures as they happen.
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/radekwojpl2/session-observer/ci.yml?branch=main&label=Tests&logo=github)](https://github.com/radekwojpl2/session-observer/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/radekwojpl2/session-observer?label=release)](https://github.com/radekwojpl2/session-observer/releases)
@@ -43,6 +43,7 @@ The Home and Overview screenshots use example sessions. The remaining screenshot
 flowchart LR
   C[Claude Code] -->|plugin hooks| H[scripts/hook.js]
   X[Codex] -->|plugin hooks or CLI config| H
+  P[pi / omp] -->|extension, in process| H
   H -->|append by day and session| L[(~/.claude/session-observer/sessions/DAY/*.jsonl)]
   L -->|recent days at start, older on request| S[Local Node server]
   S -->|HTTP and live updates| D[Dashboard in your browser]
@@ -166,23 +167,40 @@ node scripts/setup-codex.js --remove
 
 On first use, open /hooks in Codex and trust the Session Observer hooks. The dashboard starts on the first session if it is not already running.
 
-## Claude Code and Codex: what differs
+### pi and omp
 
-| | Claude Code | Codex |
-|---|---|---|
-| Hook setup | Installed with the Claude Code plugin | Desktop plugin or CLI setup script |
-| Event source | Claude Code hook events | Codex hook events, including model request and usage events |
-| Message and context source | Claude session transcript | Codex rollout file in ~/.codex/sessions |
-| Context detail | Transcript, instructions, tools, skills and attachments when recorded | Rollout parser reads prompts, replies, tool activity and context metadata |
-| Reasoning | Shown when the transcript provides it | Codex stores reasoning encrypted; only available summaries are readable |
-| Dashboard | Same local dashboard and event log | Same local dashboard and event log |
+[pi](https://github.com/earendil-works/pi) and [omp (oh-my-pi)](https://github.com/can1357/oh-my-pi) have no hook commands. They load extensions instead, so Session Observer ships one. From this repository, install it:
+
+~~~sh
+node scripts/setup-pi.js
+~~~
+
+It installs for each of pi (`~/.pi`) and omp (`~/.omp`) that is set up on this machine, or for the ones you name (`node scripts/setup-pi.js omp`). It writes a one-line `extensions/session-observer.js` that loads `pi-extension/session-observer.js` from this clone. Run it again if you move this repository. Restart pi or omp, or run `/reload`, to load it. To remove it, run:
+
+~~~sh
+node scripts/setup-pi.js --remove
+~~~
+
+To log somewhere other than `~/.claude/session-observer`, add `--data-dir <folder>` (for example when a sandbox hides `~/.claude`, or for scheduled runs that don't get your shell's variables), and start the dashboard server with the same folder in `OBSERVER_DATA_DIR`. pi's folder follows `PI_CODING_AGENT_DIR`. For an omp profile, the script uses `OMP_PROFILE`; set `OMP_AGENT_DIR` to choose another folder. The dashboard server runs on Node, so omp (which runs on Bun) needs `node` on your PATH to start it.
+
+## Claude Code, Codex, pi and omp: what differs
+
+| | Claude Code | Codex | pi and omp |
+|---|---|---|---|
+| Hook setup | Installed with the Claude Code plugin | Desktop plugin or CLI setup script | Extension, installed by `scripts/setup-pi.js` |
+| Event source | Claude Code hook events | Codex hook events, including model request and usage events | Extension events, turned into the same hook events in the agent's own process |
+| Message and context source | Claude session transcript | Codex rollout file in ~/.codex/sessions | Live: each finished reply, as the extension reports it. Context view: the agent's own session file (~/.pi/agent/sessions or ~/.omp/agent/sessions) |
+| Context detail | Transcript, instructions, tools, skills and attachments when recorded | Rollout parser reads prompts, replies, tool activity and context metadata | The active branch: prompts, replies, thinking, tool calls and results, compactions, prompt changes; pi's system prompt and tool definitions; omp subagents nested under their task call. omp keeps only a digest of the main session's system prompt, so the view shows its tool names |
+| Reasoning | Shown when the transcript provides it | Codex stores reasoning encrypted; only available summaries are readable | Shown when the model returns thinking text |
+| Subagents | Nested in the session | Nested in the session | An omp subagent (its task tool) is a session of its own, nested under the one that ran it; pi has none |
+| Dashboard | Same local dashboard and event log | Same local dashboard and event log | Same local dashboard and event log |
 
 ## Tricky details
 
 - **Hooks stay out of the way.** The hook writes events quickly, swallows errors and exits successfully so it does not block the coding session.
 - **Remove one session's Observer data.** Use its × button on Home or in the session list to delete its JSONL file. If the agent is still running, later events can create a new entry. Its original Claude Code or Codex transcript is not deleted.
 - **The sessions are not merged.** Claude Code and Codex sessions share a dashboard, but each keeps its own transcript and session identity.
-- **Agents started by agents are linked.** When Claude Code runs `codex exec`, or Codex runs `claude -p`, the new session nests under the one that started it on Home, Overview says "started by", and the call that started it links to it. The hook reads the parent from the environment: `CLAUDE_CODE_SESSION_ID`, or `CODEX_SESSION_ID` with `CODEX_TOOL_CALL_ID`. Claude Code started by Claude Code is not linked: Claude Code replaces that variable with its own id.
+- **Agents started by agents are linked.** When Claude Code runs `codex exec`, or Codex runs `claude -p`, the new session nests under the one that started it on Home, Overview says "started by", and the call that started it links to it. The hook reads the parent from the environment: `CLAUDE_CODE_SESSION_ID`, or `CODEX_SESSION_ID` with `CODEX_TOOL_CALL_ID`. pi and omp sessions set `OBSERVER_PARENT_AGENT` and `OBSERVER_PARENT_SESSION` for what they run, and a pi or omp session started from Claude Code or Codex nests under it too. Claude Code started by Claude Code is not linked: Claude Code replaces that variable with its own id.
 - **Codex hooks need trust.** Trust them once in Codex with /hooks. The CLI script preserves your other hooks, but its paths point to this clone.
 - **Context sizes are estimates.** Transcript formats and token counts differ by agent. Codex's rollout format is undocumented and may change; encrypted reasoning text cannot be recovered by the dashboard.
 
@@ -194,7 +212,7 @@ To clear Observer's event history, stop the server and delete the `sessions` dir
 
 ## Troubleshooting
 
-- **No sessions appear:** start a new Claude Code or Codex session after installing. For Codex, open `/hooks` and trust Session Observer; for Codex CLI, rerun `node scripts/setup-codex.js` if you moved the repository.
+- **No sessions appear:** start a new Claude Code, Codex, pi or omp session after installing. For Codex, open `/hooks` and trust Session Observer; for Codex CLI, rerun `node scripts/setup-codex.js` if you moved the repository. For pi or omp, check that `extensions/session-observer.js` is in its folder (`~/.pi/agent` or `~/.omp/agent`) and that it reported no extension error at start, and rerun `node scripts/setup-pi.js` if you moved the repository.
 - **The dashboard does not open:** start it with `node server/server.js`. If port 4777 is already in use, start it on another port:
 
   ~~~powershell
@@ -209,6 +227,7 @@ To clear Observer's event history, stop the server and delete the `sessions` dir
 - **Claude Code:** open `/plugin` and uninstall Session Observer from the installed plugins.
 - **Codex desktop:** remove Session Observer from the app's plugin manager.
 - **Codex CLI:** from the repository, run `node scripts/setup-codex.js --remove` before deleting or moving the clone. This removes only Session Observer hooks and keeps your other hooks.
+- **pi and omp:** from the repository, run `node scripts/setup-pi.js --remove`. It removes only the file it wrote.
 
 To remove saved Observer events as well, stop the server and delete the event files described above.
 

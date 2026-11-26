@@ -78,7 +78,7 @@ TRANSLATIONS.ja = (() => {
     orderStarted: '開始が新しい順', orderActivity: '最終アクティビティ', orderName: '名前', orderProject: 'プロジェクト', noProject: '（フォルダーなし）',
     range: '期間', range1h: '直近 1 時間', range6h: '直近 6 時間', range24h: '直近 24 時間', range7d: '直近 7 日', rangeAll: 'すべて',
     search: '検索', searchPh: 'プロンプト、返答、コマンド、パス、エラー…',
-    group: 'ツールグループ', groupTitle: 'マップのどの部分か: ファイル、シェル、Git、MCP…', allGroups: 'すべてのグループ', agent: 'エージェント', allAgents: 'すべてのエージェント', agentTitle: 'Claude Code、Codex、または両方のセッションを表示',
+    group: 'ツールグループ', groupTitle: 'マップのどの部分か: ファイル、シェル、Git、MCP…', allGroups: 'すべてのグループ', agent: 'エージェント', allAgents: 'すべてのエージェント', agentTitle: '1 つのエージェント、またはすべてのエージェントのセッションを表示',
     onlyProblems: '問題のみ', filters: 'フィルター', resetFilters: 'フィルターをリセット', view: '表示',
 
     subagent: 'サブエージェント', subagentLc: 'サブエージェント', mainAgent: 'メインエージェント', mainAgentLc: 'メインエージェント',
@@ -192,6 +192,7 @@ TRANSLATIONS.ja = (() => {
     measuredNote: (first, cpt) => `実測: 最初のリクエストは ${first} トークンでした（システムプロンプト、ツール、指示、一覧、最初のプロンプト）。${cpt
       ? `カードのサイズはこのセッションの平均 ${cpt} 文字/トークンで計算しています。` : 'カードのサイズは約 4 文字/トークンでの推定です。'}`,
     systemPrompt: 'システムプロンプト', charsN: x => `${x} 文字`, toolDefs: 'ツール定義', builtIn: '組み込み',
+    harnessContextNote: n => `${n} 自身のセッションファイルから読み込んでいます。形式は変わる可能性があるため、一部が欠けることがあります。${n} は AGENTS.md などの指示ファイルをシステムプロンプトに含めるため、個別には表示されません。`, harnessNoSystem: n => `${n} はこのセッションのシステムプロンプトの指紋だけを保存するため、表示できません。ツール名は応答から取得しています。`,
     noSystem: 'このトランスクリプトにはシステムプロンプトとツール定義がありません。Claude Code が記録するのは一部のバージョンだけです。下の内容はすべて含まれています。',
     instructions: '指示',
     noInstructions: 'このトランスクリプトに指示ファイルはありません。CLAUDE.md（グローバル、プロジェクト、ローカル）、AGENTS.md、ルール、自動メモリのいずれも読み込まれていません。',

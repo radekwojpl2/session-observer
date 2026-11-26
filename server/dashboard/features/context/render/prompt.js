@@ -107,14 +107,19 @@ const contextNoteHtml = text => `<div class="cxnote muted">${escapeHtml(text)}</
 // everything above the conversation; `isMainAgent`: the session itself (notes on what is missing), not a subagent
 function contextPreludeHtml(prompt, idPrefix, isMainAgent) {
   let html = '';
+  const harness = EXTENSION_AGENTS.has(prompt.agent); // pi or omp: their own session file
   if (isMainAgent && prompt.agent === CODEX) html += contextNoteHtml(TEXT.codexContextNote);
+  if (isMainAgent && harness) html += contextNoteHtml(TEXT.harnessContextNote(agentName(prompt.agent)));
   const measured = isMainAgent && prompt.measured;
   if (measured) html += contextNoteHtml(TEXT.measuredNote(formatCompactNumber(measured.firstCtx), measured.cpt ? localizeDecimal(measured.cpt.toFixed(1)) : null));
   if (prompt.system != null) html += systemPromptCardHtml(prompt, idPrefix) + toolDefinitionsCardHtml(prompt, idPrefix);
-  else if (isMainAgent) html += contextNoteHtml(TEXT.noSystem);
+  else if (isMainAgent && harness) {
+    html += contextNoteHtml(TEXT.harnessNoSystem(agentName(prompt.agent)));
+    if (prompt.tools?.length) html += toolDefinitionsCardHtml(prompt, idPrefix);
+  } else if (isMainAgent) html += contextNoteHtml(TEXT.noSystem);
   const instructions = prompt.instructions || [];
   if (instructions.length) html += instructionsCardHtml(instructions, idPrefix);
-  else if (isMainAgent) html += contextNoteHtml(TEXT.noInstructions);
+  else if (isMainAgent && !harness) html += contextNoteHtml(TEXT.noInstructions);
   if (prompt.skills?.length) html += skillsCardHtml(prompt.skills, idPrefix);
   if (prompt.agents?.length) html += subagentTypesCardHtml(prompt.agents, idPrefix);
   if (prompt.mcp?.length) html += mcpInstructionsCardHtml(prompt.mcp, idPrefix);

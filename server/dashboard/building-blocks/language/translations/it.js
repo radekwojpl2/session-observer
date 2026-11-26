@@ -80,7 +80,7 @@ TRANSLATIONS.it = (() => {
     orderStarted: 'avviate di recente', orderActivity: 'ultima attività', orderName: 'nome', orderProject: 'progetto', noProject: '(nessuna cartella)',
     range: 'Periodo', range1h: 'ultima 1 h', range6h: 'ultime 6 h', range24h: 'ultime 24 h', range7d: 'ultimi 7 giorni', rangeAll: 'tutto',
     search: 'Cerca', searchPh: 'prompt, risposte, comandi, percorsi, errori…',
-    group: 'Gruppo di strumenti', groupTitle: 'Quale parte della mappa: File, Shell, Git, MCP…', allGroups: 'tutti i gruppi', agent: 'Agente', allAgents: 'tutti gli agenti', agentTitle: 'Mostra le sessioni di Claude Code, di Codex o di entrambi',
+    group: 'Gruppo di strumenti', groupTitle: 'Quale parte della mappa: File, Shell, Git, MCP…', allGroups: 'tutti i gruppi', agent: 'Agente', allAgents: 'tutti gli agenti', agentTitle: 'Mostra le sessioni di un agente o di tutti',
     onlyProblems: 'solo problemi', filters: 'Filtri', resetFilters: 'Azzera filtri', view: 'Vista',
 
     subagent: 'Subagente', subagentLc: 'subagente', mainAgent: 'Agente principale', mainAgentLc: 'agente principale',
@@ -194,6 +194,7 @@ TRANSLATIONS.it = (() => {
     measuredNote: (first, cpt) => `Misurato: la prima richiesta era di ${first} token (prompt di sistema, strumenti, istruzioni, elenchi e il primo prompt). ${cpt
       ? `Le dimensioni sulle schede usano la media di questa sessione: ${cpt} caratteri per token.` : 'Le dimensioni sulle schede sono stime a circa 4 caratteri per token.'}`,
     systemPrompt: 'Prompt di sistema', charsN: x => `${x} caratteri`, toolDefs: 'Definizioni degli strumenti', builtIn: 'Integrati',
+    harnessContextNote: n => `Letto dal file di sessione di ${n}, il cui formato può cambiare, quindi alcune parti possono mancare. ${n} inserisce i file di istruzioni come AGENTS.md nel prompt di sistema, quindi non sono elencati a parte.`, harnessNoSystem: n => `${n} conserva solo un'impronta del prompt di sistema di questa sessione, quindi non può essere mostrato. I nomi degli strumenti vengono dalle sue risposte.`,
     noSystem: 'Il prompt di sistema e le definizioni degli strumenti non sono in questa trascrizione: Claude Code li salva solo in alcune versioni. Tutto quello che segue invece c\'è.',
     instructions: 'Istruzioni',
     noInstructions: 'Nessun file di istruzioni in questa trascrizione: non è stato caricato nessun CLAUDE.md (globale, di progetto o locale), AGENTS.md, regola o memoria automatica.',

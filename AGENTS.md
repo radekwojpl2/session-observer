@@ -1,8 +1,8 @@
 # session-observer: notes for agents working on this repo
 
 ## What this is
-A Claude Code and Codex plugin. `scripts/hook.js` receives every hook event (Codex's hook commands add
-`--agent codex`; Claude Code's add nothing) and appends it to
+A Claude Code and Codex plugin, with an extension for pi and omp. `scripts/hook.js` receives every hook event (Codex's hook
+commands add `--agent codex`; Claude Code's add nothing; `pi-extension/` calls its `recordEvent` in the pi / omp process) and appends it to
 `~/.claude/session-observer/sessions/<UTC day>/<session hash>.jsonl`; `server/server.js` (with its modules in `server/lib/`) tails that log, reads session transcripts,
 and serves a live dashboard on http://127.0.0.1:4777.
 

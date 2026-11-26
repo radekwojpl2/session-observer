@@ -15,7 +15,8 @@ const PORT = Number(process.env.OBSERVER_PORT || 4777);
 const MAX_STRING = Number(process.env.OBSERVER_MAX_FIELD || 8000); // chars kept per string field
 const MAX_ARRAY_ITEMS = 200;
 const MAX_DEPTH = 8;
-const AGENTS = new Set(['claude', 'codex']);
+// pi and omp (oh-my-pi) have no hook commands: their extension (pi-extension/) records events in its own process
+const AGENTS = new Set(['claude', 'codex', 'pi', 'omp']);
 const DEFAULT_AGENT = 'claude';
 // which agent sent the event: Codex's hook commands pass --agent codex, Claude Code's pass nothing
 function agentFromArguments(args) {
@@ -41,8 +42,9 @@ function truncate(value, depth = 0) {
 }
 
 // the agent sessions this one was started from, as its environment shows: Claude Code puts its session id into every
-// command it runs, Codex its session id and the id of the tool call. Both carry on down a chain of agents, so a session
-// can see several; the server takes the one that started last, its direct parent.
+// command it runs, Codex its session id and the id of the tool call, and the pi / omp extension its main session's id
+// (OBSERVER_PARENT_*). They carry on down a chain of agents, so a session can see several; the server takes the one
+// that started last, its direct parent.
 function parentSessions(ownId, env = process.env) {
   const parents = [];
   const add = (agent, sessionId, toolCallId) => {
@@ -51,6 +53,7 @@ function parentSessions(ownId, env = process.env) {
   };
   add('codex', env.CODEX_SESSION_ID || env.CODEX_THREAD_ID, env.CODEX_TOOL_CALL_ID);
   add('claude', env.CLAUDE_CODE_SESSION_ID);
+  if (AGENTS.has(env.OBSERVER_PARENT_AGENT)) add(env.OBSERVER_PARENT_AGENT, env.OBSERVER_PARENT_SESSION);
   return parents;
 }
 
@@ -64,16 +67,19 @@ function isPortInUse(port) {
   });
 }
 
-// starts the dashboard server in the background unless it already runs (or autostart is off)
-async function ensureServer() {
+// starts the dashboard server in the background unless it already runs (or autostart is off). `node`: the Node to run
+// it with, this process's own unless it is another runtime (omp runs on Bun)
+async function ensureServer(node = process.execPath) {
   if (process.env.OBSERVER_AUTOSTART === '0') return;
   if (await isPortInUse(PORT)) return;
   const serverScript = path.join(__dirname, '..', 'server', 'server.js');
-  const child = spawn(process.execPath, [serverScript], {
+  const child = spawn(node, [serverScript], {
     detached: true,
     stdio: 'ignore',
+    windowsHide: true,
     env: { ...process.env, OBSERVER_PORT: String(PORT), OBSERVER_DATA_DIR: DATA_DIR },
   });
+  child.on('error', () => {}); // no Node on PATH: no dashboard, but never a crash
   child.unref();
 }
 
@@ -89,25 +95,34 @@ async function main() {
   try { payload = JSON.parse(input); } catch { payload = { raw: input }; }
 
   const eventName = payload.hook_event_name || process.argv[2] || 'Unknown';
+  const event = recordEvent(payload, eventName, agentFromArguments(process.argv.slice(2)));
+  if (event.event === 'SessionStart') await ensureServer();
+}
+
+// Appends one event to its session's log file and returns it. Also called by the pi / omp extension, in the agent's
+// own process; `extraParents` are sessions it knows started this one (an omp subagent's orchestrator).
+function recordEvent(payload, eventName, agent, extraParents = []) {
   const event = {
     ts: new Date().toISOString(),
     event: eventName,
     session_id: payload.session_id || 'unknown',
-    agent: agentFromArguments(process.argv.slice(2)),
+    agent: AGENTS.has(agent) ? agent : DEFAULT_AGENT,
     data: truncate(payload),
   };
   const parents = parentSessions(event.session_id);
+  for (const parent of extraParents) {
+    if (parent?.session_id && parent.session_id !== event.session_id && !parents.some(known => known.session_id === parent.session_id)) parents.push(parent);
+  }
   if (parents.length) event.parents = parents;
 
   // owner-only: the log holds prompts, file contents and command output (mode applies when created; no-op on Windows)
   // one file per session, in the folder of the UTC day it was last active (moved there by its first event of the day)
-  // loaded here, inside main(): a missing or broken module must not make the hook fail
+  // loaded here, not at the top: a missing or broken module must not make the hook fail
   const { appendSessionEvent } = require('../server/lib/building-blocks/session-logs');
   appendSessionEvent(SESSION_LOG_DIR, event.session_id, event.ts, JSON.stringify(event) + '\n');
-
-  if (event.event === 'SessionStart') await ensureServer();
+  return event;
 }
 
 if (require.main === module) main().catch(() => {}).finally(() => process.exit(0));
 
-module.exports = { parentSessions };
+module.exports = { parentSessions, recordEvent, ensureServer };

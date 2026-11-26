@@ -78,7 +78,7 @@ TRANSLATIONS.zh = (() => {
     orderStarted: '最近开始', orderActivity: '最近活动', orderName: '名称', orderProject: '项目', noProject: '（无文件夹）',
     range: '时间范围', range1h: '最近 1 小时', range6h: '最近 6 小时', range24h: '最近 24 小时', range7d: '最近 7 天', rangeAll: '全部',
     search: '搜索', searchPh: '提示词、回复、命令、路径、错误…',
-    group: '工具组', groupTitle: '地图的哪一部分：文件、Shell、Git、MCP…', allGroups: '所有组', agent: '代理', allAgents: '所有代理', agentTitle: '显示来自 Claude Code、Codex 或两者的会话',
+    group: '工具组', groupTitle: '地图的哪一部分：文件、Shell、Git、MCP…', allGroups: '所有组', agent: '代理', allAgents: '所有代理', agentTitle: '显示某一个智能体或全部智能体的会话',
     onlyProblems: '只看问题', filters: '筛选', resetFilters: '重置筛选', view: '视图',
 
     subagent: '子代理', subagentLc: '子代理', mainAgent: '主代理', mainAgentLc: '主代理',
@@ -192,6 +192,7 @@ TRANSLATIONS.zh = (() => {
     measuredNote: (first, cpt) => `实测：第一次请求为 ${first} 个 token（系统提示词、工具、指令、列表和第一条提示词）。${cpt
       ? `卡片上的大小按本会话平均每 token ${cpt} 个字符计算。` : '卡片上的大小按每 token 约 4 个字符估算。'}`,
     systemPrompt: '系统提示词', charsN: x => `${x} 个字符`, toolDefs: '工具定义', builtIn: '内置',
+    harnessContextNote: n => `读取自 ${n} 自己的会话文件，其格式可能变化，因此部分内容可能缺失。${n} 会把 AGENTS.md 等指令文件放进系统提示词，因此不单独列出。`, harnessNoSystem: n => `${n} 只保存本会话系统提示词的指纹，因此无法显示。工具名称来自它的回复。`,
     noSystem: '本记录中没有系统提示词和工具定义：Claude Code 只在部分版本中记录它们。下方内容都在。',
     instructions: '指令',
     noInstructions: '本记录中没有指令文件：没有加载任何 CLAUDE.md（全局、项目或本地）、AGENTS.md、规则或自动记忆。',

@@ -82,7 +82,7 @@ TRANSLATIONS.en = (() => {
     orderStarted: 'newest started', orderActivity: 'last activity', orderName: 'name', orderProject: 'project', noProject: '(no folder)',
     range: 'Range', range1h: 'last 1 h', range6h: 'last 6 h', range24h: 'last 24 h', range7d: 'last 7 d', rangeAll: 'everything',
     search: 'Search', searchPh: 'prompts, replies, commands, paths, errors…',
-    group: 'Tool group', groupTitle: 'Which part of the map: Files, Shell, Git, MCP…', allGroups: 'all groups', agent: 'Agent', allAgents: 'all agents', agentTitle: 'Show sessions from Claude Code, Codex or both',
+    group: 'Tool group', groupTitle: 'Which part of the map: Files, Shell, Git, MCP…', allGroups: 'all groups', agent: 'Agent', allAgents: 'all agents', agentTitle: 'Show sessions from one agent, or from all of them',
     onlyProblems: 'only problems', filters: 'Filters', resetFilters: 'Reset filters', view: 'View',
 
     // shared words
@@ -204,6 +204,7 @@ TRANSLATIONS.en = (() => {
     measuredNote: (first, cpt) => `Measured: the first request was ${first} tokens (system prompt, tools, instructions, listings and the first prompt). ${cpt
       ? `Sizes on cards use this session's average of ${cpt} characters per token.` : 'Sizes on cards are estimates at about 4 characters per token.'}`,
     systemPrompt: 'System prompt', charsN: x => `${x} chars`, toolDefs: 'Tool definitions', builtIn: 'Built-in',
+    harnessContextNote: n => `Read from ${n}'s own session file, whose format can change, so some parts may be missing. ${n} puts instruction files such as AGENTS.md into its system prompt, so they are not listed apart.`, harnessNoSystem: n => `${n} keeps only a fingerprint of this session's system prompt, so it can't be shown. The tool names come from its replies.`,
     noSystem: 'The system prompt and tool definitions are not in this transcript: Claude Code records them only in some versions. Everything below is.',
     instructions: 'Instructions',
     noInstructions: 'No instruction files in this transcript: no CLAUDE.md (global, project or local), AGENTS.md, rules or auto-memory were loaded.',

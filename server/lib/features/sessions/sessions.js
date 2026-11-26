@@ -16,7 +16,7 @@ const DEFAULT_AGENT = 'claude'; // events logged before the hook named its agent
 function newSession(id) {
   return {
     id, agent: DEFAULT_AGENT, cwd: null, started: null, last: null, ended: false, endReason: null,
-    model: null, permission_mode: null, transcript_path: null, source: null,
+    model: null, permission_mode: null, transcript_path: null, session_file: null, source: null,
     title: null, turns: 0, busy: false, subagents: 0, lastTool: null, promptAt: null,
     counts: {}, tools: {}, skills: {}, mcp: {}, agents: {},
     toolMs: 0, toolCalls: 0, failures: 0, modelSteps: 0,
@@ -63,6 +63,7 @@ function updateSessionFields(session, event, data) {
   // a subagent's events carry the main transcript too: it is taken only while the session has none
   if (data.transcript_path && (!data.agent_transcript_path || !session.transcript_path)) session.transcript_path = data.transcript_path;
   if (data.permission_mode) session.permission_mode = data.permission_mode;
+  if (data.session_file && typeof data.session_file === 'string') session.session_file = data.session_file; // pi / omp's own file
   // a subagent's model request names the subagent's model, not the session's
   if (data.model && data.agent_id == null) session.model = typeof data.model === 'string' ? data.model : (data.model.id || data.model.display_name || session.model);
   if (data.to_model) session.model = data.to_model;

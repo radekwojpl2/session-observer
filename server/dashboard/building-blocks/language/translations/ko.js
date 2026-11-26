@@ -78,7 +78,7 @@ TRANSLATIONS.ko = (() => {
     orderStarted: '최근 시작순', orderActivity: '최근 활동', orderName: '이름', orderProject: '프로젝트', noProject: '(폴더 없음)',
     range: '기간', range1h: '최근 1시간', range6h: '최근 6시간', range24h: '최근 24시간', range7d: '최근 7일', rangeAll: '전체',
     search: '검색', searchPh: '프롬프트, 응답, 명령, 경로, 오류…',
-    group: '도구 그룹', groupTitle: '지도의 어느 부분인지: 파일, 셸, Git, MCP…', allGroups: '모든 그룹', agent: '에이전트', allAgents: '모든 에이전트', agentTitle: 'Claude Code, Codex 또는 둘 다의 세션 표시',
+    group: '도구 그룹', groupTitle: '지도의 어느 부분인지: 파일, 셸, Git, MCP…', allGroups: '모든 그룹', agent: '에이전트', allAgents: '모든 에이전트', agentTitle: '한 에이전트 또는 모든 에이전트의 세션 표시',
     onlyProblems: '문제만', filters: '필터', resetFilters: '필터 초기화', view: '보기',
 
     subagent: '서브에이전트', subagentLc: '서브에이전트', mainAgent: '메인 에이전트', mainAgentLc: '메인 에이전트',
@@ -192,6 +192,7 @@ TRANSLATIONS.ko = (() => {
     measuredNote: (first, cpt) => `실측: 첫 요청은 ${first} 토큰이었습니다(시스템 프롬프트, 도구, 지침, 목록, 첫 프롬프트). ${cpt
       ? `카드의 크기는 이 세션의 평균인 토큰당 ${cpt}자로 계산합니다.` : '카드의 크기는 토큰당 약 4자로 추정한 값입니다.'}`,
     systemPrompt: '시스템 프롬프트', charsN: x => `${x}자`, toolDefs: '도구 정의', builtIn: '기본 제공',
+    harnessContextNote: n => `${n} 자체 세션 파일에서 읽었습니다. 형식이 바뀔 수 있어 일부가 빠질 수 있습니다. ${n}은(는) AGENTS.md 같은 지시 파일을 시스템 프롬프트에 넣으므로 따로 표시되지 않습니다.`, harnessNoSystem: n => `${n}은(는) 이 세션의 시스템 프롬프트를 지문으로만 저장하므로 표시할 수 없습니다. 도구 이름은 응답에서 가져왔습니다.`,
     noSystem: '이 트랜스크립트에는 시스템 프롬프트와 도구 정의가 없습니다. Claude Code는 일부 버전에서만 이를 기록합니다. 아래 내용은 모두 포함되어 있습니다.',
     instructions: '지침',
     noInstructions: '이 트랜스크립트에는 지침 파일이 없습니다. CLAUDE.md(전역, 프로젝트, 로컬), AGENTS.md, 규칙, 자동 메모리 중 어느 것도 로드되지 않았습니다.',

@@ -82,7 +82,7 @@ TRANSLATIONS.pl = (() => {
     orderStarted: 'najnowsze rozpoczęte', orderActivity: 'ostatnia aktywność', orderName: 'nazwa', orderProject: 'projekt', noProject: '(bez folderu)',
     range: 'Zakres', range1h: 'ostatnia godzina', range6h: 'ostatnie 6 h', range24h: 'ostatnie 24 h', range7d: 'ostatnie 7 dni', rangeAll: 'wszystko',
     search: 'Szukaj', searchPh: 'prompty, odpowiedzi, polecenia, ścieżki, błędy…',
-    group: 'Grupa narzędzi', groupTitle: 'Która część mapy: Pliki, Powłoka, Git, MCP…', allGroups: 'wszystkie grupy', agent: 'Agent', allAgents: 'wszyscy agenci', agentTitle: 'Pokaż sesje z Claude Code, z Codex albo z obu',
+    group: 'Grupa narzędzi', groupTitle: 'Która część mapy: Pliki, Powłoka, Git, MCP…', allGroups: 'wszystkie grupy', agent: 'Agent', allAgents: 'wszyscy agenci', agentTitle: 'Pokaż sesje jednego agenta albo wszystkich',
     onlyProblems: 'tylko problemy', filters: 'Filtry', resetFilters: 'Wyczyść filtry', view: 'Widok',
 
     subagent: 'Subagent', subagentLc: 'subagent', mainAgent: 'Główny agent', mainAgentLc: 'główny agent',
@@ -196,6 +196,7 @@ TRANSLATIONS.pl = (() => {
     measuredNote: (first, cpt) => `Zmierzone: pierwsze zapytanie miało ${first} tokenów (prompt systemowy, narzędzia, instrukcje, listy i pierwszy prompt). ${cpt
       ? `Rozmiary na kartach używają średniej tej sesji: ${cpt} znaków na token.` : 'Rozmiary na kartach są szacunkowe, ok. 4 znaki na token.'}`,
     systemPrompt: 'Prompt systemowy', charsN: x => `${x} znaków`, toolDefs: 'Definicje narzędzi', builtIn: 'Wbudowane',
+    harnessContextNote: n => `Odczytane z własnego pliku sesji ${n}. Jego format może się zmienić, więc części mogą brakować. ${n} wkłada pliki instrukcji, takie jak AGENTS.md, do promptu systemowego, więc nie są wymienione osobno.`, harnessNoSystem: n => `${n} zapisuje tylko odcisk promptu systemowego tej sesji, więc nie da się go pokazać. Nazwy narzędzi pochodzą z odpowiedzi.`,
     noSystem: 'Promptu systemowego i definicji narzędzi nie ma w tym transkrypcie: Claude Code zapisuje je tylko w niektórych wersjach. Wszystko poniżej jest.',
     instructions: 'Instrukcje',
     noInstructions: 'Brak plików instrukcji w tym transkrypcie: nie wczytano CLAUDE.md (globalnego, projektu ani lokalnego), AGENTS.md, reguł ani auto-pamięci.',
