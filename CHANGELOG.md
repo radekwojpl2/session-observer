@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.0](https://github.com/radekwojpl2/session-observer/compare/v0.15.0...v0.16.0) (2026-11-26)
+
+
+### Features
+
+* add public landing page ([#86](https://github.com/radekwojpl2/session-observer/issues/86)) ([aba201f](https://github.com/radekwojpl2/session-observer/commit/aba201fa3842a1ed3e44daecc96faa2127daaa1c))
+
 ## [0.15.0](https://github.com/radekwojpl2/session-observer/compare/v0.14.2...v0.15.0) (2026-11-26)
 
 
