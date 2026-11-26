@@ -41,7 +41,7 @@ function selectScope(id) {
     history.replaceState(null, '', address.pathname + address.search + address.hash);
   } catch { /* ignore */ }
   scheduleRender('sessions', 'header');
-  void loadScope();
+  return loadScope();
 }
 
 const isInScope = event => (state.scope === ALL_SESSIONS ? isAgentShown(agentOfEvent(event)) : event.session_id === state.scope);
@@ -100,6 +100,7 @@ function connectLiveUpdates() {
     forgetSessionLinks();
     state.lastUpdateAt = Date.now();
     checkAlerts();
+    checkContextAlerts();
     if (state.frozen) return scheduleRender('header');
     scheduleRender('sessions', 'header', 'mid');
     if (previous?.window !== session.observedContext?.window || previous?.model !== session.observedContext?.model) scheduleRender('detail');
@@ -165,6 +166,7 @@ async function loadSessions() {
     state.history = history;
   } catch { /* server down */ }
   checkAlerts(); // the first call only records what already waits
+  checkContextAlerts();
 }
 
 // #session=<id> in the address opens that session

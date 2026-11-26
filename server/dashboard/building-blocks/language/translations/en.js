@@ -68,6 +68,11 @@ TRANSLATIONS.en = (() => {
       blocked: 'The browser blocks notifications for this page. Allow them in the site settings.',
       needsYou: n => `${n} needs you`, done: n => `${n} is done`, doneBody: 'It waits for your next prompt.',
     },
+    // a session's context filled past a threshold (features/context-alerts)
+    contextAlerts: {
+      title: (n, p) => `${n}: context past ${p}%`, body: s => `Context is at ${s}.`, bodyJump: (s, j) => `Context is at ${s}, ${j} in one step.`,
+      open: 'Go to turn', close: 'Close',
+    },
     deleteSessionTitle: 'Delete this session and its stored data',
     deleteSessionConfirm: name => `Delete “${name}” and its stored Session Observer data? The original app transcript will stay. This cannot be undone.`,
     deleteSessionFailed: reason => `Could not delete the session: ${reason}`,

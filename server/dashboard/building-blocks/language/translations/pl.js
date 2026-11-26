@@ -68,6 +68,11 @@ TRANSLATIONS.pl = (() => {
       blocked: 'Przeglądarka blokuje powiadomienia tej strony. Zezwól na nie w ustawieniach witryny.',
       needsYou: n => `Sesja „${n}” czeka na Ciebie`, done: n => `Sesja „${n}” skończyła turę`, doneBody: 'Czeka na Twój następny prompt.',
     },
+    // a session's context filled past a threshold (features/context-alerts)
+    contextAlerts: {
+      title: (n, p) => `${n}: kontekst ponad ${p}%`, body: s => `Kontekst: ${s}.`, bodyJump: (s, j) => `Kontekst: ${s}, ${j} w jednym kroku.`,
+      open: 'Przejdź do tury', close: 'Zamknij',
+    },
     deleteSessionTitle: 'Usuń tę sesję i zapisane dane',
     deleteSessionConfirm: name => `Usunąć sesję „${name}” i zapisane dane Session Observer? Oryginalny transkrypt aplikacji pozostanie. Tej operacji nie można cofnąć.`,
     deleteSessionFailed: reason => `Nie udało się usunąć sesji: ${reason}`,

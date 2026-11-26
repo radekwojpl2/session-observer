@@ -23,7 +23,7 @@ function showAlert(alert) {
       notification.close();
       if (!state.sessions.has(alert.session.id)) return;
       setView('route');
-      selectScope(alert.session.id);
+      void selectScope(alert.session.id);
     };
   } catch { /* the browser refused */ }
 }

@@ -22,6 +22,7 @@ function newSession(id) {
     toolMs: 0, toolCalls: 0, failures: 0, modelSteps: 0,
     usage: { input: 0, output: 0, cache_read: 0, cache_write: 0, turns: 0, models: {} },
     context: null, observedContext: null,
+    contextCrossings: [], // each time the context filled past a threshold: [{ threshold, tokens, window, pct, change, seq, ts }]
     needsYou: [],     // what it waits on you for: [{ kind: permission | question | mcp, tool, text, since, agentId }]
     subagentList: [], // [{ id, type, callId, description, background, started, ended }]
     parentCandidates: null, // the agent sessions it may have been started from: [{ agent, id, callId }] (session-links.js)

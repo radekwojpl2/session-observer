@@ -66,6 +66,11 @@ TRANSLATIONS.es = (() => {
       blocked: 'El navegador bloquea las notificaciones de esta página. Permítelas en la configuración del sitio.',
       needsYou: n => `La sesión «${n}» te necesita`, done: n => `La sesión «${n}» ha terminado`, doneBody: 'Espera tu próximo prompt.',
     },
+    // a session's context filled past a threshold (features/context-alerts)
+    contextAlerts: {
+      title: (n, p) => `${n}: contexto por encima del ${p}%`, body: s => `Contexto: ${s}.`, bodyJump: (s, j) => `Contexto: ${s}, ${j} en un solo paso.`,
+      open: 'Ir al turno', close: 'Cerrar',
+    },
     deleteSessionTitle: 'Eliminar esta sesión y sus datos guardados',
     deleteSessionConfirm: name => `¿Eliminar “${name}” y sus datos guardados de Session Observer? El transcript original de la aplicación se conservará. Esta acción no se puede deshacer.`,
     deleteSessionFailed: reason => `No se pudo eliminar la sesión: ${reason}`,

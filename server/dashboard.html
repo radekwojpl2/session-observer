@@ -82,6 +82,8 @@
 </section>
 
 <dialog id="shortcuts" class="panel"></dialog>
+<!-- the context alerts' toasts (features/context-alerts) -->
+<div class="ctoasts" id="ctxToasts" aria-live="polite"></div>
 
 <!-- Plain scripts sharing one global scope (no modules, no build). Order matters: a file uses names from the ones above it.
      building-blocks/ know nothing about the features; features/<feature>/ are grouped by function (model, render, controls);
@@ -148,6 +150,9 @@
 <script src="dashboard/features/home/controls.js"></script>
 <script src="dashboard/features/alerts/model.js"></script>
 <script src="dashboard/features/alerts/controls.js"></script>
+<script src="dashboard/features/context-alerts/model.js"></script>
+<script src="dashboard/features/context-alerts/render.js"></script>
+<script src="dashboard/features/context-alerts/controls.js"></script>
 <script src="dashboard/features/shortcuts/model.js"></script>
 <script src="dashboard/features/shortcuts/render.js"></script>
 <script src="dashboard/features/shortcuts/controls.js"></script>
