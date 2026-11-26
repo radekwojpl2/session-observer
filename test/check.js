@@ -119,7 +119,7 @@ if (codexPlugin.name !== plugin.name) fail('.codex-plugin/plugin.json: name diff
   }
 }
 
-// 7. In CI on a pull request: the title is a Conventional Commit. The merge commit takes it onto main, where
+// 7. In CI on a pull request: the title is a Conventional Commit. A squash merge puts it on main, where
 //    release-please reads it to pick the next version and write the changelog.
 const title = process.env.PR_TITLE;
 if (title && !/^(feat|fix|perf|refactor|revert|docs|test|ci|chore|build|style)(\([^)]+\))?!?: \S/.test(title)) {

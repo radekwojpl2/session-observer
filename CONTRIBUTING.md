@@ -61,13 +61,13 @@ OBSERVER_PORT=4778 node server/server.js
 
 ## Commits and titles
 
-Pull requests are merged with a merge commit, so every commit on your branch lands on `main`, and
-release-please reads them all to pick the next version and write the changelog. That means:
+Pull requests are squash-merged: your branch becomes one commit on `main`, titled with the pull request title.
+release-please reads that title to pick the next version and write the changelog. That means:
 
-- The pull request title **and** each commit message are [Conventional Commits](https://www.conventionalcommits.org/):
-  `feat:`, `fix:`, `perf:`, `refactor:`, `docs:`, `test:`, `ci:`, `chore:`. Add `!` for a breaking change.
-- Squash "wip" and "fix typo" commits into real ones before you ask for review.
-- To catch up with `main`, rebase on `upstream/main` rather than merging it in.
+- The pull request title is a [Conventional Commit](https://www.conventionalcommits.org/): `feat:`, `fix:`,
+  `perf:`, `refactor:`, `docs:`, `test:`, `ci:`, `chore:`. Add `!` for a breaking change. CI checks it.
+- Commit messages on your branch are up to you; they end up in the body of the squashed commit.
+- To catch up with `main`, merge or rebase `upstream/main`, whichever you prefer.
 
 ## Opening the pull request
 
