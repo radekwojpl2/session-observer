@@ -1,0 +1,53 @@
+name: Bug report
+description: Something in Session Observer doesn't work as it should.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Start a Claude Code session and …
+        2. Open the dashboard on …
+        3. …
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Screenshots, logs or errors
+      description: >
+        Annotated screenshots, the server log, or browser console errors. Remove email addresses, tokens and
+        private paths first.
+  - type: input
+    id: version
+    attributes:
+      label: Session Observer version
+      description: Shown in the dashboard header.
+      placeholder: e.g. 0.15.0
+    validations:
+      required: true
+  - type: dropdown
+    id: agent
+    attributes:
+      label: Agent
+      options:
+        - Claude Code
+        - Codex
+        - Both
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: OS, Node and browser
+      placeholder: e.g. Windows 11, Node 22, Chrome 140
+    validations:
+      required: true
