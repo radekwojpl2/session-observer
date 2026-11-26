@@ -142,6 +142,8 @@ TRANSLATIONS.fr = (() => {
     backToLatest: 'Revenir au dernier ⟳', showingLatest: 'affiche le dernier tour · mis à jour en direct',
 
     details: 'Détails',
+
+    detailResize: 'Redimensionner les Détails', detailResizeTitle: 'Faites glisser pour changer la largeur des Détails. Double-clic : largeur par défaut. Touches : ← / →', detailShowTitle: 'Afficher les Détails', detailHideTitle: 'Masquer les Détails', detailWideTitle: 'Élargir les Détails sur la vue', detailNarrowTitle: 'Remettre les Détails sur le côté',
     pickTurn: 'Choisissez un tour : une barre du graphique des Tours dans la Vue d’ensemble, un arrêt sur le Parcours ou un message dans le Chat. Touches : <b>[</b> / <b>]</b> tour précédent / suivant, <b>Échap</b> fermer.',
     prevTitle: 'Tour précédent ([)', prev: '‹ Préc.', nextTitle: 'Tour suivant (])', next: 'Suiv. ›', closeTitle: 'Fermer (Échap)', close: 'Fermer',
     reply: 'Réponse', events: 'Événements', newestFirst: 'les plus récents d’abord', noPrompt: 'Début de session (sans prompt)',

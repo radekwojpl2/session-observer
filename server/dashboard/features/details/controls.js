@@ -61,5 +61,6 @@ function initKeyboard() {
 
 function initDetailsControls() {
   initDetailsPanel();
+  initDetailSizeControls();
   initKeyboard();
 }
