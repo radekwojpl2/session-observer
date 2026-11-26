@@ -275,6 +275,8 @@ node test/check.js
 node --test test/*.test.js
 ~~~
 
+To contribute, read [CONTRIBUTING.md](CONTRIBUTING.md): changes come from forks, and each pull request links an issue and includes annotated proofs.
+
 ## License
 
 [MIT](LICENSE)

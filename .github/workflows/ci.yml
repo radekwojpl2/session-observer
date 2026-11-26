@@ -24,9 +24,12 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 22
-      - name: JSON, JS syntax, hook wiring, version, PR title
+      - name: JSON, JS syntax, hook wiring, version, PR title and description
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}   # empty on a push
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: node test/check.js
 
   validate:

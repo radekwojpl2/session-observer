@@ -119,11 +119,28 @@ if (codexPlugin.name !== plugin.name) fail('.codex-plugin/plugin.json: name diff
   }
 }
 
-// 7. In CI on a pull request: the title is a Conventional Commit. A squash merge puts it on main, where
+// 7. In CI on a pull request: the title is a Conventional Commit. The merge commit takes it onto main, where
 //    release-please reads it to pick the next version and write the changelog.
 const title = process.env.PR_TITLE;
 if (title && !/^(feat|fix|perf|refactor|revert|docs|test|ci|chore|build|style)(\([^)]+\))?!?: \S/.test(title)) {
   fail(`PR title "${title}" is not a Conventional Commit, e.g. "feat: …", "fix: …", "refactor: …", "docs: …" (add "!" for a breaking change)`);
+}
+
+// 8. In CI on a pull request: the description links an issue and has proofs (CONTRIBUTING.md). Bots and
+//    release-please's release PRs don't use the template, so they are skipped.
+const author = process.env.PR_AUTHOR || '';
+const headRef = process.env.PR_HEAD_REF || '';
+if (process.env.GITHUB_EVENT_NAME === 'pull_request' && !author.endsWith('[bot]') && !headRef.startsWith('release-please--')) {
+  const body = (process.env.PR_BODY || '').replace(/<!--[\s\S]*?-->/g, '');
+  if (!/\b(close[sd]?|fix(e[sd])?|resolve[sd]?)\s+(([\w.-]+\/[\w.-]+)?#\d+|https:\/\/github\.com\/\S+\/issues\/\d+)/i.test(body)) {
+    fail('PR description links no issue: add "Closes #123" (CONTRIBUTING.md, "Opening the pull request")');
+  }
+  const proofs = (body.split(/^##\s+Proofs\s*$/m)[1] || '').split(/^##\s/m)[0];
+  const hasMedia = /!\[[^\]]*\]\([^)]+\)|<img\s|<video\s|https:\/\/github\.com\/user-attachments\/\S+/i.test(proofs);
+  const notApplicable = /^\s*N\/A\s*[:\-–—]\s*\S.{5,}/im.test(proofs);
+  if (!hasMedia && !notApplicable) {
+    fail('PR description has no proofs: add annotated screenshots under "## Proofs", or "N/A: <reason>" when nothing changes for users (CONTRIBUTING.md, "Proofs")');
+  }
 }
 
 if (errors.length) {
