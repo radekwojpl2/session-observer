@@ -66,6 +66,10 @@ TRANSLATIONS.it = (() => {
       blocked: 'Il browser blocca le notifiche per questa pagina. Consentile nelle impostazioni del sito.',
       needsYou: n => `La sessione «${n}» richiede il tuo intervento`, done: n => `La sessione «${n}» ha finito`, doneBody: 'Attende il tuo prossimo prompt.',
     },
+    // a session's context filled past a threshold (features/alerts)
+    contextAlerts: {
+      title: (n, p) => `Contesto oltre il ${p}% · ${n}`, body: s => `Contesto: ${s}.`, bodyJump: (s, j) => `Contesto: ${s}, ${j} in un solo passo.`,
+    },
     deleteSessionTitle: 'Elimina questa sessione e i dati salvati',
     deleteSessionConfirm: name => `Eliminare “${name}” e i relativi dati salvati in Session Observer? Il transcript originale dell’app non verrà eliminato. L’azione non si può annullare.`,
     deleteSessionFailed: reason => `Impossibile eliminare la sessione: ${reason}`,

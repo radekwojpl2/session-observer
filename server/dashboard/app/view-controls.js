@@ -31,7 +31,7 @@ function initViewClicks() {
   addEventListener('popstate', () => {
     const sessionId = sessionFromAddress();
     const scope = sessionId || ALL_SESSIONS;
-    if (scope !== state.scope) selectScope(scope);
+    if (scope !== state.scope) void selectScope(scope);
     setView(new URLSearchParams(location.search).get('layout') || storage.get(SETTING_KEYS.layout, 'home'), 'none');
   });
   viewBox().addEventListener('click', event => {

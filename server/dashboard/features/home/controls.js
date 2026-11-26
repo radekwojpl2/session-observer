@@ -21,6 +21,6 @@ function initHomeControls() {
     if (!row) return;
     // the Route gets a history entry of its own first, so Back returns to Home as it was, without the session
     setView('route');
-    selectScope(row.dataset.homeSession);
+    void selectScope(row.dataset.homeSession);
   });
 }

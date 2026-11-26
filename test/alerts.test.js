@@ -1,4 +1,5 @@
-// Alerts (server/dashboard/features/alerts/model.js): which sessions newly need you or newly finished a turn.
+// Alerts (server/dashboard/features/alerts/model.js): which sessions newly need you, newly finished a turn, or newly
+// filled their context past a threshold.
 // Runs session-activity.js and the alerts model in a vm. Zero dependencies — run with `node --test test/alerts.test.js`.
 'use strict';
 const { test } = require('node:test');
@@ -16,7 +17,7 @@ function loadAlerts(mode) {
     SETTING_KEYS: { alerts: 'so.notify' },
   });
   for (const file of FILES) vm.runInContext(fs.readFileSync(file, 'utf8'), context, { filename: file });
-  return sessions => Array.from(vm.runInContext('newAlerts', context)(sessions), alert => `${alert.session.id}:${alert.kind}`);
+  return (sessions, now) => Array.from(vm.runInContext('newAlerts', context)(sessions, now), alert => `${alert.session.id}:${alert.kind}`);
 }
 
 const now = () => new Date().toISOString();
@@ -62,4 +63,24 @@ test('stale and ended sessions do not alert', () => {
     session('a', { last: old, needsYou: [permission('t1')] }),
     session('b', { ended: now() }),
   ]), []);
+});
+
+const crossing = (threshold, ts) => ({ threshold, ts, seq: 1, tokens: 1, window: 2, pct: 0.5 });
+const atOne = Date.parse('2026-01-01T01:00:00Z');
+
+test('a context crossing alerts once, in both modes, and not at the first look', () => {
+  for (const mode of ['needsYou', 'alsoDone']) {
+    const alerts = loadAlerts(mode);
+    assert.deepEqual(alerts([session('a', { contextCrossings: [crossing(0.5, '2026-01-01T00:59:00Z')] })], atOne), [], mode);
+    const crossed = session('a', { contextCrossings: [crossing(0.5, '2026-01-01T00:59:00Z'), crossing(0.75, '2026-01-01T00:59:30Z')] });
+    assert.deepEqual(alerts([crossed], atOne), ['a:context'], mode);
+    assert.deepEqual(alerts([crossed], atOne), [], mode);
+  }
+  assert.deepEqual(loadAlerts('off')([session('a')], atOne), []);
+});
+
+test('an old context crossing (from a load of older days) does not alert', () => {
+  const alerts = loadAlerts('needsYou');
+  alerts([], atOne);
+  assert.deepEqual(alerts([session('old', { contextCrossings: [crossing(0.9, '2026-01-01T00:10:00Z')] })], atOne), []);
 });

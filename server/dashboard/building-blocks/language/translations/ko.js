@@ -64,6 +64,10 @@ TRANSLATIONS.ko = (() => {
       blocked: '브라우저가 이 페이지의 알림을 차단하고 있습니다. 사이트 설정에서 허용하세요.',
       needsYou: n => `"${n}" 세션이 응답을 기다립니다`, done: n => `"${n}" 세션이 완료되었습니다`, doneBody: '다음 프롬프트를 기다립니다.',
     },
+    // a session's context filled past a threshold (features/alerts)
+    contextAlerts: {
+      title: (n, p) => `컨텍스트 ${p}% 초과 · ${n}`, body: s => `컨텍스트: ${s}`, bodyJump: (s, j) => `컨텍스트: ${s}, 한 단계에서 ${j} 증가`,
+    },
     deleteSessionTitle: '이 세션과 저장된 데이터 삭제',
     deleteSessionConfirm: name => `“${name}” 세션과 Session Observer에 저장된 데이터를 삭제할까요? 원본 앱 트랜스크립트는 삭제되지 않습니다. 이 작업은 취소할 수 없습니다.`,
     deleteSessionFailed: reason => `세션을 삭제할 수 없습니다: ${reason}`,

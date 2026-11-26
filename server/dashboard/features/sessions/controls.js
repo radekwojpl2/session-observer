@@ -70,7 +70,7 @@ function revealSelectedSession() {
 
 function selectSessionFromKeyboard(id) {
   if (id === state.scope) return;
-  selectScope(id);
+  void selectScope(id);
   revealSelectedSession();
 }
 
@@ -102,7 +102,7 @@ function initSessionsControls() {
     const olderButton = event.target.closest('[data-load-older]');
     if (olderButton) return loadOlderSessions(olderButton);
     const card = event.target.closest('.card');
-    if (card) selectScope(card.dataset.id);
+    if (card) void selectScope(card.dataset.id);
   };
   elementById('sessions').addEventListener('mouseover', event => hoverSession(event.target.closest('.sess-list .card')?.dataset.id ?? null));
   elementById('sessions').addEventListener('mouseleave', () => hoverSession(null));
@@ -114,6 +114,6 @@ function initSessionsControls() {
     event.preventDefault();
     event.stopPropagation();
     setView('route');
-    selectScope(link.dataset.openSession);
+    void selectScope(link.dataset.openSession);
   }, true);
 }

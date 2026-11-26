@@ -12,6 +12,7 @@ const { sessions, ingest, sessionSummary } = require('./sessions');
 const { endWaitsFromTranscript } = require('./needs-you');
 const { dropSubagentCall } = require('./subagent-list');
 const { broadcast, isBroadcasting } = require('../../building-blocks/live-updates');
+const { noteContextThresholds } = require('./context-thresholds');
 const { ONE_MILLION_WINDOW, contextTokensOf, hasOneMillionWindow } = require('../../building-blocks/token-usage');
 const { CODEX, isCodexModelRequest, noteCodexEvent, toCodexModelStep, addCodexUsage, resetCodexSteps, clearCodexSession } = require('./codex-model-steps');
 const { codexRolloutTexts, resetCodexRolloutTexts, clearCodexSession: clearCodexRolloutSession } = require('./codex-rollout-texts');
@@ -42,6 +43,7 @@ function ingestEvent(event) {
   const session = ingest(event);
   if (isCodexStep) {
     addCodexUsage(session, event);
+    if (!event.data.subagent && event.data.tokens.context) noteContextThresholds(session, event);
     if (event.data.msg_id) rememberStep(event.data.msg_id, event);
   }
   if (!event.synthetic && readsTranscript(session)) scheduleTranscriptRead(session);
@@ -257,10 +259,12 @@ function readTranscriptRow(session, row, isSubagentFile, seen, fresh) {
   if (messageId) seen.add(messageId);
 
   addUsage(session, message);
-  if (!isSubagentRow(row, isSubagentFile)) session.context = contextWindowUse(session, row, message);
+  const isMainStep = !isSubagentRow(row, isSubagentFile);
+  if (isMainStep) session.context = contextWindowUse(session, row, message);
   const step = modelStepEvent(session, row, message, toolCalls, isSubagentFile);
   const sessionModel = session.model; // a subagent's step must not change the session's model
   ingestEvent(step);
+  if (isMainStep) noteContextThresholds(session, step);
   if (messageId) rememberStep(messageId, step);
   if (isSubagentFile) session.model = sessionModel;
   fresh.push(step);
