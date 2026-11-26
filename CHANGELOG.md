@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.0](https://github.com/radekwojpl2/session-observer/compare/v0.18.1...v0.19.0) (2026-11-26)
+
+
+### Features
+
+* alert when a session's context crosses 50/75/90% ([#91](https://github.com/radekwojpl2/session-observer/issues/91)) ([9748345](https://github.com/radekwojpl2/session-observer/commit/97483453f00215af383c550552d8f749ec6297ad))
+
 ## [0.18.1](https://github.com/radekwojpl2/session-observer/compare/v0.18.0...v0.18.1) (2026-11-26)
 
 
