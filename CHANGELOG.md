@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.1](https://github.com/radekwojpl2/session-observer/compare/v0.18.0...v0.18.1) (2026-11-26)
+
+
+### Code Changes
+
+* fix Qodana baseline findings ([#99](https://github.com/radekwojpl2/session-observer/issues/99)) ([d8a06b1](https://github.com/radekwojpl2/session-observer/commit/d8a06b144dd760430ed452186aeaf6410ac29684))
+
 ## [0.18.0](https://github.com/radekwojpl2/session-observer/compare/v0.17.0...v0.18.0) (2026-11-26)
 
 
