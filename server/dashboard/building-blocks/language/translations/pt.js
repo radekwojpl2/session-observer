@@ -102,6 +102,8 @@ TRANSLATIONS.pt = (() => {
     sessionState: { needsYou: 'espera por você', yourTurn: 'sua vez', ended: 'encerrada', working: 'trabalhando', live: 'ativa', inactive: 'inativa' },
     needYouN: n => `Esperando por você: ${n}`,
     home: {
+      pinned: 'Sessões fixadas', pinSession: 'Fixar sessão', unpinSession: 'Desafixar sessão',
+      pinFailed: reason => `Não foi possível atualizar a fixação da sessão: ${reason}`,
       needsYou: 'Esperando por você', allClear: 'Nada está esperando por você agora.',
       permission: t => (t ? `Permissão para usar ${t}` : 'Permissão necessária'), question: 'Pergunta para você', mcp: s => `${s || 'Um servidor MCP'} pede dados`,
       inSubagent: t => `no subagente ${t}`, noSessions: 'Nenhuma sessão neste intervalo.', done: 'concluído', more: n => `+${n} outros`, open: 'Abrir esta sessão',

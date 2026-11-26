@@ -100,6 +100,8 @@ TRANSLATIONS.zh = (() => {
     sessionState: { needsYou: '等你处理', yourTurn: '轮到你', ended: '已结束', working: '工作中', live: '活跃', inactive: '不活跃' },
     needYouN: n => `${n} 个等你处理`,
     home: {
+      pinned: '已固定的会话', pinSession: '固定会话', unpinSession: '取消固定会话',
+      pinFailed: reason => `无法更新会话的固定状态: ${reason}`,
       needsYou: '等你处理', allClear: '目前没有需要你处理的事项。',
       permission: t => (t ? `请求使用 ${t} 的权限` : '需要权限'), question: '给你的问题', mcp: s => `${s || 'MCP 服务器'} 请求输入`,
       inSubagent: t => `在子代理 ${t} 中`, noSessions: '此时间范围内没有会话。', done: '已完成', more: n => `另有 ${n} 个`, open: '打开此会话',

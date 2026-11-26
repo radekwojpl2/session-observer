@@ -1,5 +1,6 @@
 // The sessions held in memory: each one's events and running totals, updated as events arrive.
 'use strict';
+const { isPinned } = require('./pins');
 const { MAX_EVENTS_PER_SESSION, MAX_ALL_EVENTS } = require('../../building-blocks/config');
 const { categoryOf, SUBAGENT_TOOLS } = require('./event-categories');
 const { trackNeedsYou } = require('./needs-you');
@@ -150,7 +151,7 @@ function ingest(event) {
 // what the API sends for a session: everything but its events and the calls in flight, with the session that started it
 function sessionSummary(session) {
   const { events, pendingToolStarts, subagentDescriptionsWaiting, parentCandidates, ...fields } = session;
-  return { ...fields, context: contextUsage(session), parent: parentOf(session, sessions), eventCount: events.length, running: pendingToolStarts.size };
+  return { ...fields, pinned: isPinned(session.id), context: contextUsage(session), parent: parentOf(session, sessions), eventCount: events.length, running: pendingToolStarts.size };
 }
 
 const byTimeThenSeq = (a, b) => (a.ts < b.ts ? -1 : a.ts > b.ts ? 1 : a.seq - b.seq);

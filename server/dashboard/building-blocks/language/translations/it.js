@@ -102,6 +102,8 @@ TRANSLATIONS.it = (() => {
     sessionState: { needsYou: 'ti aspetta', yourTurn: 'tocca a te', ended: 'terminata', working: 'al lavoro', live: 'attiva', inactive: 'inattiva' },
     needYouN: n => `Ti aspettano: ${n}`,
     home: {
+      pinned: 'Sessioni fissate', pinSession: 'Fissa sessione', unpinSession: 'Rimuovi la sessione dalle fissate',
+      pinFailed: reason => `Impossibile aggiornare il contrassegno della sessione: ${reason}`,
       needsYou: 'Ti aspetta', allClear: 'Al momento niente ti aspetta.',
       permission: t => (t ? `Permesso di usare ${t}` : 'Serve un permesso'), question: 'Domanda per te', mcp: s => `${s || 'Un server MCP'} chiede un input`,
       inSubagent: t => `nel subagente ${t}`, noSessions: 'Nessuna sessione in questo intervallo.', done: 'finito', more: n => `+${n} altri`, open: 'Apri questa sessione',

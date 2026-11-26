@@ -102,6 +102,8 @@ TRANSLATIONS.fr = (() => {
     sessionState: { needsYou: 'vous attend', yourTurn: 'à vous', ended: 'terminée', working: 'au travail', live: 'active', inactive: 'inactive' },
     needYouN: n => `Vous attendent : ${n}`,
     home: {
+      pinned: 'Sessions épinglées', pinSession: 'Épingler la session', unpinSession: 'Désépingler la session',
+      pinFailed: reason => `Impossible de modifier l’épinglage de la session: ${reason}`,
       needsYou: 'Vous attend', allClear: 'Rien ne vous attend pour l’instant.',
       permission: t => (t ? `Autorisation d’utiliser ${t}` : 'Autorisation requise'), question: 'Question pour vous', mcp: s => `${s || 'Un serveur MCP'} demande une saisie`,
       inSubagent: t => `dans le sous-agent ${t}`, noSessions: 'Aucune session sur cette période.', done: 'terminé', more: n => `+${n} autres`, open: 'Ouvrir cette session',

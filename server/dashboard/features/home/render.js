@@ -50,18 +50,25 @@ function subagentRowHtml(subagent) {
 
 // a session's row, with the agent sessions it started that nest under it (homeStartedTree) and its subagents
 function sessionRowHtml(session, startedUnder) {
+  const compact = !startedUnder;
   const activity = sessionActivity(session);
-  const { subagents, folded } = shownSubagents(session);
   const lastTool = activity === 'working' && session.lastTool
     ? `<span class="muted mono hlast">${escapeHtml(toolDisplayName(session.lastTool.name))} ${escapeHtml(shorten(session.lastTool.arg, 60))}</span>` : '';
-  const startedSessions = (startedUnder.get(session.id) || []).map(child => sessionRowHtml(child, startedUnder)).join('');
-  const children = startedSessions + subagents.map(subagentRowHtml).join('') + (folded ? `<li class="hsub muted">${escapeHtml(TEXT.home.more(folded))}</li>` : '');
+  let children = '';
+  if (startedUnder) {
+    const { subagents, folded } = shownSubagents(session);
+    children = (startedUnder.get(session.id) || []).map(child => sessionRowHtml(child, startedUnder)).join('')
+      + subagents.map(subagentRowHtml).join('')
+      + (folded ? `<li class="hsub muted">${escapeHtml(TEXT.home.more(folded))}</li>` : '');
+  }
   const name = homeSessionName(session);
+  const project = compact && session.cwd ? `<span class="hpath" title="${escapeHtml(session.cwd)}">· ${escapeHtml(baseName(session.cwd) || session.cwd)}</span>` : '';
   return `<li class="hsess act-${activity} ${session.id === state.scope ? 'sel' : ''}">
       <button class="hsess-main" type="button" ${openAttributes(session)}><span class="${HOME_DOT[activity]}"></span>
         <span class="hsess-content"><span class="hsess-title"><span class="hname" title="${escapeHtml(name)}">${escapeHtml(name)}</span>${homeAgentTag(session)}<span class="hstate">${escapeHtml(TEXT.sessionState[activity])}</span></span>
-        <span class="hsess-meta">${escapeHtml(countOf(session.turns || 0, 'turn'))}${session.last ? ` · ${escapeHtml(formatAgo(session.last))}` : ''}${lastTool}</span></span></button>
-      <button class="home-session-delete" type="button" data-delete-session="${escapeHtml(session.id)}" title="${escapeHtml(TEXT.deleteSessionTitle)}" aria-label="${escapeHtml(TEXT.deleteSessionTitle)}">×</button>
+        <span class="hsess-meta">${escapeHtml(countOf(session.turns || 0, 'turn'))}${session.last ? ` · ${escapeHtml(formatAgo(session.last))}` : ''}${project}${lastTool}</span></span></button>
+      ${sessionPinHtml(session, 'home-session-pin')}
+      ${compact ? '' : `<button class="home-session-delete" type="button" data-delete-session="${escapeHtml(session.id)}" title="${escapeHtml(TEXT.deleteSessionTitle)}" aria-label="${escapeHtml(TEXT.deleteSessionTitle)}">×</button>`}
       ${children ? `<ul>${children}</ul>` : ''}</li>`;
 }
 
@@ -81,11 +88,16 @@ function projectHtml(project, startedUnder) {
 }
 
 function homeViewHtml() {
-  const shown = homeSessions();
+  const matching = homeMatchingSessions();
+  const cutoff = rangeCutoffIso();
+  const shown = matching.filter(session => !cutoff || (session.last || '') >= cutoff);
+  const pinned = matching.filter(session => session.pinned).sort(byActivityThenRecent);
+  const pins = pinned.length
+    ? `<section class="hsec hpins"><div class="home-heading"><h2>${escapeHtml(TEXT.home.pinned)}</h2><span class="muted">${pinned.length}</span></div><ul class="htree">${pinned.map(session => sessionRowHtml(session)).join('')}</ul></section>` : '';
   // a session started by another one Home shows sits under it, not at the top of its project
   const { top, startedUnder } = homeStartedTree(shown);
   const tree = top.length
     ? `<ul class="htree">${projectTree(top).map(project => projectHtml(project, startedUnder)).join('')}</ul>`
     : `<div class="cempty">${escapeHtml(TEXT.home.noSessions)}</div>`;
-  return `<div class="home">${needsYouHtml([...state.sessions.values()])}<section class="hsec hsessions"><div class="home-heading"><h2>${escapeHtml(TEXT.sessions)}</h2><span class="muted">${shown.length}</span></div>${tree}</section></div>`;
+  return `<div class="home">${needsYouHtml([...state.sessions.values()])}${pins}<section class="hsec hsessions"><div class="home-heading"><h2>${escapeHtml(TEXT.sessions)}</h2><span class="muted">${shown.length}</span></div>${tree}</section></div>`;
 }

@@ -136,9 +136,16 @@ function drawView(now) {
 
   const box = viewBox();
   const routeScroll = rememberRouteScroll(box), homeScroll = rememberHomeScroll(box);
+  const focusedPin = document.activeElement?.dataset.pinSession;
+  const wasInPins = focusedPin && document.activeElement.closest('.hpins');
   rememberContextScroll(box);
   box.innerHTML = withAnimationPhase(html, now);
   restoreHomeScroll(box, homeScroll);
+  if (focusedPin && state.view === 'home') {
+    const selector = `[data-pin-session="${CSS.escape(focusedPin)}"]`;
+    const pin = box.querySelector(`${wasInPins ? '.hpins' : '.hsessions'} ${selector}`) || box.querySelector(selector);
+    pin?.focus({ preventScroll: true });
+  }
   restoreContextScroll(box);
   applyHoverHighlights();
   restoreChatScroll(box);

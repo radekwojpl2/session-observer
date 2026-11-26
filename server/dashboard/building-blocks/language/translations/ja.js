@@ -100,6 +100,8 @@ TRANSLATIONS.ja = (() => {
     sessionState: { needsYou: '対応待ち', yourTurn: 'あなたの番', ended: '終了', working: '作業中', live: 'アクティブ', inactive: '非アクティブ' },
     needYouN: n => `対応待ち ${n}`,
     home: {
+      pinned: 'ピン留めしたセッション', pinSession: 'セッションをピン留め', unpinSession: 'ピン留めを解除',
+      pinFailed: reason => `セッションのピン留めを更新できませんでした: ${reason}`,
       needsYou: '対応待ち', allClear: '今は対応待ちのものはありません。',
       permission: t => (t ? `${t} の使用許可` : '許可が必要'), question: 'あなたへの質問', mcp: s => `${s || 'MCP サーバー'} が入力を求めています`,
       inSubagent: t => `サブエージェント ${t} 内`, noSessions: 'この期間のセッションはありません。', done: '完了', more: n => `ほか ${n} 件`, open: 'このセッションを開く',

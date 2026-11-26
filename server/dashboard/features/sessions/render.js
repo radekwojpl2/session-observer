@@ -15,26 +15,28 @@ const sessionName = session => stripTags(session.title) || baseName(session.cwd)
 // The orders of the sessions list. Only "activity" moves a session while it works; the others change only when a
 // session starts or is renamed. "project" groups by folder (A–Z), newest started first inside each.
 const byStarted = (a, b) => (b.started || b.last || '').localeCompare(a.started || a.last || '');
+const byPinned = (a, b) => Number(!!b.pinned) - Number(!!a.pinned);
 const projectOf = session => session.cwd || '';
 const SESSION_ORDERS = {
   started: byStarted,
   activity: (a, b) => (b.last || '').localeCompare(a.last || ''),
   name: (a, b) => sessionName(a).localeCompare(sessionName(b), undefined, { sensitivity: 'base' }) || byStarted(a, b),
   project: (a, b) => (baseName(projectOf(a)) || '\uffff').localeCompare(baseName(projectOf(b)) || '\uffff', undefined, { sensitivity: 'base' })
-    || projectOf(a).localeCompare(projectOf(b)) || byStarted(a, b),
+    || projectOf(a).localeCompare(projectOf(b)) || byPinned(a, b) || byStarted(a, b),
 };
 
-// the sessions in the range that match the search (the selected one always), in the chosen order
+// Pins bypass the date range and sort first within the chosen order or project group.
 function visibleSessions() {
   const cutoff = rangeCutoffIso();
   const matchesSearch = session => !state.searchText
     || ((session.title || '') + ' ' + (session.cwd || '') + ' ' + session.id).toLowerCase().includes(state.searchText)
     || state.scope === session.id;
+  const order = SESSION_ORDERS[state.sessionOrder] || byStarted;
   return [...state.sessions.values()]
-    .filter(session => !cutoff || (session.last || '') >= cutoff)
+    .filter(session => session.pinned || !cutoff || (session.last || '') >= cutoff)
     .filter(session => isAgentShown(session.agent || DEFAULT_AGENT) || state.scope === session.id)
     .filter(matchesSearch)
-    .sort(SESSION_ORDERS[state.sessionOrder] || byStarted);
+    .sort(state.sessionOrder === 'project' ? order : (a, b) => byPinned(a, b) || order(a, b));
 }
 
 function selectedRangeLabel() {
@@ -55,6 +57,11 @@ function sessionChipsHtml(session) {
     + (session.context ? `<span class="chip" title="${escapeHtml(TEXT.ctxWindow)}">${escapeHtml(TEXT.ctxShort)} ${Math.round(session.context.pct * 100)}%</span>` : '');
 }
 
+function sessionPinHtml(session, className) {
+  const pinTitle = session.pinned ? TEXT.home.unpinSession : TEXT.home.pinSession;
+  return `<button class="session-pin ${className}" type="button" data-pin-session="${escapeHtml(session.id)}" title="${escapeHtml(pinTitle)}" aria-label="${escapeHtml(TEXT.home.pinSession)}" aria-pressed="${!!session.pinned}">${iconSvg('star')}</button>`;
+}
+
 // The list shows the state dot, the title, and under it when and where; the rest is in a card that floats beside it on hover.
 // The agent badge shows only when the list has sessions of more than one agent.
 function sessionCardHtml(session, showAgent) {
@@ -68,7 +75,7 @@ function sessionCardHtml(session, showAgent) {
   const meta = `${session.last ? escapeHtml(formatAgo(session.last)) : ''} · ${escapeHtml(countOf(session.turns || 0, 'turn'))} · ${escapeHtml(countOf(session.toolCalls || 0, 'tool'))}`
     + (outputTokens ? ` · ${escapeHtml(TEXT.outX(formatCompactNumber(outputTokens)))}` : '');
   return `<div class="card ${session.id === state.scope ? 'sel' : ''}" data-id="${escapeHtml(session.id)}">
-        <div class="row1"><span class="${dotClass}" title="${status}"></span><span class="name">${name}</span>${agentTag}<button class="session-delete" type="button" data-delete-session="${escapeHtml(session.id)}" title="${escapeHtml(TEXT.deleteSessionTitle)}" aria-label="${escapeHtml(TEXT.deleteSessionTitle)}">×</button></div>
+        <div class="row1">${sessionPinHtml(session, 'sidebar-session-pin')}<span class="${dotClass}" title="${status}"></span><span class="name">${name}</span>${agentTag}<button class="session-delete" type="button" data-delete-session="${escapeHtml(session.id)}" title="${escapeHtml(TEXT.deleteSessionTitle)}" aria-label="${escapeHtml(TEXT.deleteSessionTitle)}">×</button></div>
         ${where ? `<div class="sline">${escapeHtml(where)}</div>` : ''}
         <template class="sdet"><div class="row1"><span class="name">${name}</span><span class="state"><span class="${dotClass}"></span>${status}</span></div>
         <div class="meta">${meta}</div>${lastTool}
@@ -102,6 +109,7 @@ function renderSessions() {
   const sessions = visibleSessions();
   const showAgent = new Set(sessions.map(session => session.agent || DEFAULT_AGENT)).size > 1;
   const panel = elementById('sessions'), scrollTop = panel.scrollTop;
+  const focusedPin = panel.contains(document.activeElement) && document.activeElement.dataset.pinSession;
   panel.innerHTML = `
     <div class="card ${state.scope === ALL_SESSIONS ? 'sel' : ''}" data-id="all">
       <div class="row1"><span class="name">${escapeHtml(TEXT.allActivity)}</span></div>
@@ -110,6 +118,7 @@ function renderSessions() {
     <div class="sect">${escapeHtml(TEXT.sessions)} <span>${sessions.length}</span></div>
     <div class="sess-list">${sessionListHtml(sessions, showAgent) || `<div class="empty">${escapeHtml(TEXT.noSessions)}</div>`}</div>${olderSessionsHtml()}`;
   panel.scrollTop = scrollTop;
+  if (focusedPin) panel.querySelector(`[data-pin-session="${CSS.escape(focusedPin)}"]`)?.focus({ preventScroll: true });
   renderSessionHoverCard(); // the list was rebuilt: refresh (or hide) the hover card
 }
 

@@ -54,19 +54,27 @@ const readLog = () => sessionLogFiles()
   .flatMap(file => fs.readFileSync(file, 'utf8').trim().split('\n').filter(Boolean).map(line => JSON.parse(line)))
   .sort((a, b) => a.ts.localeCompare(b.ts));
 
-before(async () => {
-  PORT = await freePort();
-  base = `http://127.0.0.1:${PORT}`;
+async function startServer() {
   server = spawn(process.execPath, [SERVER], { env: env(), stdio: 'ignore' });
   await waitFor(async () => (await getJson('/api/health')).ok);
-});
+}
 
-after(async () => {
+async function stopServer() {
   if (server) {
-    const stopped = server.exitCode == null ? new Promise(resolve => server.once('exit', resolve)) : Promise.resolve();
+    const stopped = server.exitCode == null && server.signalCode == null ? new Promise(resolve => server.once('exit', resolve)) : Promise.resolve();
     server.kill();
     await stopped;
   }
+}
+
+before(async () => {
+  PORT = await freePort();
+  base = `http://127.0.0.1:${PORT}`;
+  await startServer();
+});
+
+after(async () => {
+  await stopServer();
   fs.rmSync(DATA_DIR, { recursive: true, force: true });
 });
 
@@ -623,9 +631,47 @@ test('deleting a session removes its log and indexed events, and keeps other ses
   assert.ok((await getJson('/api/events?session=all')).every(event => event.session_id !== 'delete-me'));
 });
 
-test('clear wipes the log and sessions', async () => {
+test('pins persist across restarts, load older sessions directly and can be removed', async () => {
+  const mutate = (route, method) => fetch(base + '/api/sessions/' + route, { method, headers: { Origin: base } });
+  const pinsFile = path.join(DATA_DIR, 'pins.json');
+  const readPins = () => JSON.parse(fs.readFileSync(pinsFile, 'utf8'));
+  const { today, addDays, sessionLogPath } = require('../server/lib/building-blocks/session-logs');
+  const ids = ['old-pin', 'old-unpinned'];
+  for (const session_id of ids) runHook('SessionStart', { hook_event_name: 'SessionStart', session_id, cwd: '/tmp/proj' });
+  await waitFor(async () => {
+    const sessionIds = new Set((await getJson('/api/sessions')).map(session => session.id));
+    return ids.every(id => sessionIds.has(id));
+  });
+  assert.equal((await fetch(base + '/api/sessions/old-pin/pin', { method: 'PUT' })).status, 403);
+  assert.equal((await mutate('missing/pin', 'PUT')).status, 404);
+  for (const id of ids) assert.deepEqual(await (await mutate(`${id}/pin`, 'PUT')).json(), { pinned: true });
+  assert.deepEqual(await (await mutate('old-unpinned/pin', 'DELETE')).json(), { pinned: false });
+  assert.deepEqual(readPins(), ['old-pin']);
+
+  await stopServer();
+  const oldTime = addDays(today(), -30) + 'T00:00:00.000Z';
+  for (const id of ids) {
+    const current = sessionLogPath(SESSION_LOGS, id, new Date().toISOString());
+    const older = sessionLogPath(SESSION_LOGS, id, oldTime);
+    const event = JSON.parse(fs.readFileSync(current, 'utf8'));
+    fs.mkdirSync(path.dirname(older), { recursive: true });
+    fs.writeFileSync(older, JSON.stringify({ ...event, ts: oldTime }) + '\n');
+    fs.unlinkSync(current);
+  }
+  await startServer();
+  const sessions = await getJson('/api/sessions');
+  assert.equal(sessions.find(session => session.id === 'old-pin').pinned, true);
+  assert.equal(sessions.some(session => session.id === 'old-unpinned'), false);
+  assert.equal((await getJson('/api/events?session=old-pin'))[0].ts, oldTime);
+  assert.equal((await mutate('old-pin', 'DELETE')).status, 200);
+  assert.deepEqual(readPins(), []);
+});
+
+test('clear wipes the log, sessions and pins', async () => {
+  assert.equal((await fetch(base + '/api/sessions/keep-me/pin', { method: 'PUT', headers: { Origin: base } })).status, 200);
   const r = await fetch(base + '/api/clear', { method: 'POST', headers: { Origin: base } });
   assert.equal(r.status, 200);
   assert.equal(sessionLogFiles().length, 0);
   assert.deepEqual(await getJson('/api/sessions'), []);
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'pins.json'), 'utf8')), []);
 });
