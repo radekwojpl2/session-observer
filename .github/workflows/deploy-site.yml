@@ -1,0 +1,43 @@
+name: Deploy site
+
+# Uploads the static landing page in public_html/ to the web host over FTP. Only the contents of public_html/
+# are sent: index.html and assets/ land in the host's web root, and nothing else from the repository goes online.
+#
+# Settings (repository → Settings → Secrets and variables → Actions):
+#   secrets   FTP_SERVER, FTP_USERNAME, FTP_PASSWORD   from the host's FTP accounts page
+#   variables FTP_SERVER_DIR   folder on the server that is the web root, with a trailing slash
+#                              (default "public_html/"; use "./" if the FTP account opens inside the web root)
+#             FTP_PROTOCOL     "ftps" (default, encrypted) or "ftp" if the host doesn't offer FTPS
+#
+# The action keeps a .ftp-deploy-sync-state.json on the server and uploads only files that changed since the
+# last run. It never deletes files it didn't upload, so remove old files from the server by hand once.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'public_html/**'
+      - '.github/workflows/deploy-site.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-site
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Upload public_html over FTP
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: SamKirkland/FTP-Deploy-Action@110f9186c050f71550953127052e77650219c287 # v4.4.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ${{ vars.FTP_PROTOCOL || 'ftps' }}
+          local-dir: ./public_html/
+          server-dir: ${{ vars.FTP_SERVER_DIR || 'public_html/' }}
