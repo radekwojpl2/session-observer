@@ -41,7 +41,7 @@ const html = fs.readFileSync(path.join(ROOT, 'server', 'dashboard.html'), 'utf8'
 });
 
 // data: URIs (the inline tab icon) are not files
-const refs = [...html.matchAll(/<(?:script[^>]*[ ]src|link[^>]*[ ]href)="([^"]+)"/g)].map(m => m[1]).filter(r => !r.startsWith('data:'));
+const refs = [...html.matchAll(/<(?:script[^>]* src|link[^>]* href)="([^"]+)"/g)].map(m => m[1]).filter(r => !r.startsWith('data:'));
 for (const r of refs) if (!fs.existsSync(path.join(ROOT, 'server', r))) fail(`server/dashboard.html: ${r} does not exist`);
 // scripts and styles only: images (the notification icon) are loaded by code, not by the page
 for (const f of walk(path.join(ROOT, 'server', 'dashboard')).map(p => rel(p).slice('server/'.length)).filter(f => /[.](js|css)$/.test(f))) {
@@ -138,7 +138,7 @@ if (process.env.GITHUB_EVENT_NAME === 'pull_request' && !author.endsWith('[bot]'
     fail('PR description links no issue: add "Closes #123" (CONTRIBUTING.md, "Opening the pull request")');
   }
   const proofs = (body.split(/^##\s+Proofs\s*$/m)[1] || '').split(/^##\s/m)[0];
-  const hasMedia = /!\[[^\]]*\]\([^)]+\)|<img\s|<video\s|https:\/\/github\.com\/user-attachments\/\S+/i.test(proofs);
+  const hasMedia = /!\[[^\]]*]\([^)]+\)|<img\s|<video\s|https:\/\/github\.com\/user-attachments\/\S+/i.test(proofs);
   const notApplicable = /^\s*N\/A\s*[:\-–—]\s*\S.{5,}/im.test(proofs);
   if (!hasMedia && !notApplicable) {
     fail('PR description has no proofs: add annotated screenshots under "## Proofs", or "N/A: <reason>" when nothing changes for users (CONTRIBUTING.md, "Proofs")');

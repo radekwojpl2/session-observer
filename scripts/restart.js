@@ -78,4 +78,7 @@ async function main() {
   execFileSync(process.execPath, [path.join(root, 'scripts', 'start.js')], { stdio: 'inherit', env: process.env });
 }
 
-main();
+main().catch(error => {
+  console.error(error.message);
+  process.exitCode = 1;
+});

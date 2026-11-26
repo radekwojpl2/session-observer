@@ -18,7 +18,7 @@ const ALLOWED_HOST_NAMES = new Set([
 ]);
 
 // "name", "name:port" or "[ipv6]:port"
-const HOST_HEADER_PATTERN = /^(?:\[([0-9a-f:.]+)\]|([^:[\]]+))(?::(\d+))?$/i;
+const HOST_HEADER_PATTERN = /^(?:\[([0-9a-f:.]+)]|([^:[\]]+))(?::(\d+))?$/i;
 
 function isAllowedHost(hostHeader) {
   const match = HOST_HEADER_PATTERN.exec(String(hostHeader || ''));

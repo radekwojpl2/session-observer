@@ -250,7 +250,7 @@
   var itabs = document.querySelectorAll('.install [role="tab"]');
   function showCmd(i) {
     cmd.textContent = cmds[i][0]; note.textContent = cmds[i][1];
-    itabs.forEach(function (t) { t.setAttribute('aria-selected', t.dataset.cmd == i ? 'true' : 'false'); });
+    itabs.forEach(function (t) { t.setAttribute('aria-selected', t.dataset.cmd === String(i) ? 'true' : 'false'); });
   }
   itabs.forEach(function (t) { t.addEventListener('click', function () { showCmd(+t.dataset.cmd); }); });
   showCmd(0);

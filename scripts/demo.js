@@ -178,6 +178,7 @@ const LIVE_PROMPTS = ['Add rate limiting to the public API', 'Store the limiter 
 (async () => {
   await sleep(1500);
   console.log(`Demo running → http://localhost:${PORT}  (Ctrl+C to stop)`);
+  // noinspection InfiniteLoopJS: the demo runs until Ctrl+C
   for (let turn = 0; ; turn++) {
     const plan = planTurn(liveSession, LIVE_PROMPTS[turn % LIVE_PROMPTS.length], 5 + Math.floor(Math.random() * 6), turn % 2 ? 0 : 2);
     for (const [delay, write] of plan) {

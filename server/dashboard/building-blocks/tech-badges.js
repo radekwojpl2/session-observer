@@ -96,7 +96,7 @@ const TECH_BY_FILE_NAME = [
 function techOfFile(filePath) {
   filePath = String(filePath || '');
   // a brace list keeps its first entry: *.{ts,tsx} → *.ts
-  const fileName = baseName(filePath).toLowerCase().replace(/\{([^,}]*)[^}]*\}/g, '$1');
+  const fileName = baseName(filePath).toLowerCase().replace(/\{([^,}]*)[^}]*}/g, '$1');
   if (!fileName) return null;
   for (const [pattern, tech] of TECH_BY_FILE_NAME) if (pattern.test(fileName)) return tech;
   if (/(^|[\\/])\.github[\\/]/.test(filePath)) return 'github';

@@ -43,6 +43,5 @@ function eventMatchesFilters(event) {
   if (state.group && toolGroupOfEvent(event) !== state.group) return false;
   if (state.category && event.category !== state.category) return false;
   if (state.onlyProblems && !isProblemEvent(event)) return false;
-  if (state.searchText && !searchTextOfEvent(event).includes(state.searchText)) return false;
-  return true;
+  return !state.searchText || searchTextOfEvent(event).includes(state.searchText);
 }

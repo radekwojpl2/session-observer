@@ -7,13 +7,15 @@ const file = path.join(DATA_DIR, 'pins.json');
 let pins = new Set();
 
 function loadPins() {
+  let saved;
   try {
-    const saved = JSON.parse(fs.readFileSync(file, 'utf8'));
-    if (!Array.isArray(saved) || !saved.every(id => typeof id === 'string' && id)) throw new Error('expected session IDs');
-    pins = new Set(saved);
+    saved = JSON.parse(fs.readFileSync(file, 'utf8'));
   } catch (error) {
     if (error.code !== 'ENOENT') console.error('session-observer: could not load pins:', error.message);
+    return;
   }
+  if (Array.isArray(saved) && saved.every(id => typeof id === 'string' && id)) pins = new Set(saved);
+  else console.error('session-observer: could not load pins:', 'expected session IDs');
 }
 
 function savePins(next) {

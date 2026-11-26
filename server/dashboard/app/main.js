@@ -47,4 +47,4 @@ async function boot() {
   connectLiveUpdates();
   requestAnimationFrame(animationLoop);
 }
-boot();
+void boot();

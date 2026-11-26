@@ -2,6 +2,9 @@
 // Session Observer dashboard — Sessions panel, the controls: a click picks the scope, hovering shows the hover card.
 const pendingSessionPins = new Set();
 
+// why a request failed: the server's error message, or the HTTP status when the reply is not JSON
+const failureOfResponse = async response => (await response.json().catch(() => ({}))).error || `HTTP ${response.status}`;
+
 async function toggleSessionPin(button) {
   const id = button.dataset.pinSession;
   if (pendingSessionPins.has(id)) return;
@@ -11,8 +14,8 @@ async function toggleSessionPin(button) {
   try {
     const response = await fetch(`/api/sessions/${encodeURIComponent(id)}/pin`, { method });
     if (!response.ok) {
-      const body = await response.json().catch(() => ({}));
-      throw new Error(body.error || `HTTP ${response.status}`);
+      alert(TEXT.home.pinFailed(await failureOfResponse(response)));
+      return;
     }
     if (!state.connected || state.frozen) {
       await loadSessions();
@@ -31,16 +34,16 @@ async function deleteSessionFromDashboard(button) {
   const session = state.sessions.get(id);
   if (!confirm(TEXT.deleteSessionConfirm(session ? sessionName(session) : id))) return;
   button.disabled = true;
+  let failure;
   try {
     const response = await fetch(`/api/sessions/${encodeURIComponent(id)}`, { method: 'DELETE' });
-    if (!response.ok) {
-      const body = await response.json().catch(() => ({})); // an error page need not be JSON
-      throw new Error(body.error || `HTTP ${response.status}`);
-    }
+    if (response.ok) return;
+    failure = await failureOfResponse(response);
   } catch (error) {
-    button.disabled = false;
-    alert(TEXT.deleteSessionFailed(error.message)); // the session stays: say so, or the click looks ignored
+    failure = error.message;
   }
+  button.disabled = false;
+  alert(TEXT.deleteSessionFailed(failure)); // the session stays: say so, or the click looks ignored
 }
 
 async function loadOlderSessions(button) {
