@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Session Observer</title>
+<meta name="description" content="One local dashboard for Claude Code and Codex sessions.">
+<link rel="icon" type="image/svg+xml" href="assets/icon-eye.svg">
+<link rel="apple-touch-icon" href="assets/icon-eye-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fbfaf8; --fg: #1d1c1a; --muted: #57534e; --faint: #78736c; --line: #e4e0da; --ok: #15803d; --err: #b91c1c;
+    --box: #f2efea; --accent: #0e7490; --accent-2: #c2410c; --sel: #1d1c1a; --sel-fg: #fbfaf8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f0f0e; --fg: #ece9e4; --muted: #b3aea6; --faint: #8f8a83; --line: #2e2d2a; --ok: #4ade80; --err: #f87171;
+      --box: #181816; --accent: #22d3ee; --accent-2: #fb923c; --sel: #e9e6e1; --sel-fg: #0f0f0e;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f0f0e; --fg: #ece9e4; --muted: #b3aea6; --faint: #8f8a83; --line: #2e2d2a; --ok: #4ade80; --err: #f87171;
+    --box: #181816; --accent: #22d3ee; --accent-2: #fb923c; --sel: #e9e6e1; --sel-fg: #0f0f0e;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.7 "IBM Plex Mono", ui-monospace, Consolas, monospace; }
+  ::selection { background: var(--sel); color: var(--sel-fg); }
+  a { color: var(--fg); text-decoration: underline; text-decoration-color: var(--faint); text-underline-offset: 3px; }
+  a:hover { text-decoration-color: var(--fg); }
+  img { max-width: 100%; display: block; }
+  .page { max-width: 1000px; margin: 0 auto; background: var(--bg); border-left: 1px solid var(--line); border-right: 1px solid var(--line); min-height: 100vh; }
+  .sec { padding: 56px 48px; border-bottom: 1px solid var(--line); }
+  header.top { display: flex; align-items: center; gap: 24px; padding: 18px 48px; border-bottom: 1px solid var(--line); }
+  .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; }
+  .logo img { width: 26px; height: 26px; border-radius: 6px; }
+  header nav { margin-left: auto; display: flex; gap: 22px; }
+  header nav a { text-decoration: none; color: var(--muted); }
+  header nav a:hover { color: var(--fg); }
+  .theme { background: none; border: 1px solid var(--line); color: var(--muted); font: inherit; padding: 2px 10px; cursor: pointer; }
+  h1 { font-size: clamp(28px, 4.6vw, 44px); line-height: 1.2; margin: 0; font-weight: 700; letter-spacing: -.02em; }
+  h2 { font-size: 15px; font-weight: 700; margin: 0 0 24px; }
+  h2::before { content: "## "; color: var(--faint); }
+  p { margin: 0 0 14px; }
+  .muted { color: var(--muted); }
+  .badge { display: inline-block; border: 1px solid var(--line); padding: 2px 10px; color: var(--muted); font-size: 14px; margin-bottom: 22px; }
+  .badge b { color: var(--accent); font-weight: 600; }
+  .hero p.lead { font-size: 17px; color: var(--muted); max-width: 640px; margin: 20px 0 32px; }
+
+  /* install tabs */
+  .install { border: 1px solid var(--line); max-width: 720px; }
+  .install .tabs { display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+  .install .tabs button { font: inherit; font-size: 14px; background: none; border: 0; border-right: 1px solid var(--line); color: var(--muted); padding: 8px 16px; cursor: pointer; }
+  .install .tabs button[aria-selected="true"] { background: var(--sel); color: var(--sel-fg); }
+  .install .cmd { display: flex; align-items: flex-start; gap: 12px; padding: 16px; background: var(--box); }
+  .install .cmd pre { margin: 0; flex: 1; white-space: pre-wrap; word-break: break-all; font: inherit; }
+  .install .cmd pre::before { content: "$ "; color: var(--faint); }
+  .install .cmd pre.multi::before { content: none; }
+  .copy { font: inherit; font-size: 13px; background: none; border: 1px solid var(--line); color: var(--muted); padding: 2px 10px; cursor: pointer; }
+  .copy:hover { color: var(--fg); border-color: var(--fg); }
+  .install .note { padding: 10px 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
+
+  .frame { border: 1px solid var(--line); padding: 6px; background: var(--box); }
+  .frame + .cap { color: var(--muted); font-size: 14px; margin-top: 10px; }
+
+  ul.feat { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+  ul.feat li { display: grid; grid-template-columns: 36px 1fr; }
+  ul.feat li::before { content: "[*]"; color: var(--accent); }
+  ul.feat b { font-weight: 600; }
+  ul.feat span { color: var(--muted); }
+
+  .views { display: grid; grid-template-columns: 180px 1fr; gap: 0; border: 1px solid var(--line); }
+  .views [role="tablist"] { border-right: 1px solid var(--line); display: flex; flex-direction: column; }
+  .views [role="tab"] { font: inherit; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); color: var(--muted); padding: 12px 16px; cursor: pointer; }
+  .views [role="tab"][aria-selected="true"] { background: var(--sel); color: var(--sel-fg); }
+  .views [role="tab"] kbd { font: inherit; color: var(--faint); margin-right: 8px; }
+  .views [role="tab"][aria-selected="true"] kbd { color: inherit; opacity: .6; }
+  .views .pane { display: none; padding: 16px; }
+  .views .pane.on { display: block; }
+  .views .pane p { color: var(--muted); font-size: 14px; margin: 12px 0 0; }
+
+  .uc { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+  .uc > div { padding: 24px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .uc h3 { font-size: 15px; margin: 0 0 10px; }
+  .uc h3 em { font-style: normal; color: var(--accent-2); margin-right: 8px; }
+  .uc p { color: var(--muted); font-size: 14px; }
+  .uc code { color: var(--fg); }
+
+  pre.log { margin: 0; padding: 18px; background: var(--box); border: 1px solid var(--line); overflow-x: auto; font: 14px/1.7 "IBM Plex Mono", monospace; color: var(--muted); }
+  pre.log b { color: var(--fg); font-weight: 600; }
+  pre.log .ok { color: var(--ok); } pre.log .err { color: var(--err); } pre.log .ac { color: var(--accent); }
+
+  .quotes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .quotes figure { margin: 0; border: 1px dashed var(--faint); padding: 18px; color: var(--muted); font-size: 14px; }
+  .quotes figcaption { margin-top: 14px; }
+
+  dl.faq { margin: 0; }
+  dl.faq dt { font-weight: 600; margin-top: 22px; }
+  dl.faq dt::before { content: "> "; color: var(--accent); }
+  dl.faq dd { margin: 6px 0 0 18px; color: var(--muted); }
+
+  footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding: 24px 48px; color: var(--muted); font-size: 14px; }
+
+  @media (max-width: 760px) {
+    .sec, header.top, footer { padding-left: 16px; padding-right: 16px; }
+    header nav { display: none; }
+    .theme { margin-left: auto; }
+    .views { grid-template-columns: 1fr; }
+    .views [role="tablist"] { flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+    .views [role="tab"] { border-bottom: 0; border-right: 1px solid var(--line); white-space: nowrap; }
+    .uc, .quotes { grid-template-columns: 1fr; }
+  }
+</style>
+<script src="assets/aurora.js" defer></script>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <a class="logo" href="#"><img src="assets/icon-eye-64.png" alt="">session-observer</a>
+    <nav><a href="#features">features</a><a href="#use-cases">use cases</a><a href="#faq">faq</a><a href="https://github.com/radekwojpl2/session-observer">github</a></nav>
+    <button class="theme" type="button" id="theme">theme</button>
+  </header>
+
+  <section class="sec hero">
+    <div class="badge"><b>●</b> live · local · zero deps · MIT</div>
+    <h1>The dashboard for what your coding agent actually did.</h1>
+    <p class="lead">Prompts, tool calls, model steps, subagents, context use and failures from Claude Code and Codex, streamed live to one page on localhost.</p>
+
+    <div class="install" data-group="hero">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-cmd="0">claude code</button>
+        <button role="tab" aria-selected="false" data-cmd="1">codex</button>
+        <button role="tab" aria-selected="false" data-cmd="2">codex cli</button>
+        <button role="tab" aria-selected="false" data-cmd="3">demo</button>
+      </div>
+      <div class="cmd"><pre class="multi" id="cmd"></pre><button class="copy" type="button" data-copy="#cmd">copy</button></div>
+      <div class="note" id="cmd-note"></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="frame"><img src="assets/screenshots/overview.jpg" alt="Overview with session totals, a chart with one bar per turn, context over time and the open turn"></div>
+    <p class="cap">fig. 1: Overview of a real Claude Code session, 35 turns, 310 tool calls. Numbered labels added for this page.</p>
+  </section>
+
+  <section class="sec" id="features">
+    <h2>What is Session Observer?</h2>
+    <p class="muted" style="max-width:680px;margin-bottom:28px">A Claude Code and Codex plugin. A hook writes every event to a local JSONL file; a small Node server tails those files and serves a live dashboard.</p>
+    <ul class="feat">
+      <li><div><b>Live sessions</b> <span>see which agents are working, idle or waiting on you, across every project</span></div></li>
+      <li><div><b>Context breakdown</b> <span>a /context-style grid with estimated tokens for system prompt, tools, MCP, memory, skills and messages</span></div></li>
+      <li><div><b>Route view</b> <span>each turn drawn as a map of tool calls and parallel subagents; click any stop for input and output</span></div></li>
+      <li><div><b>Chat view</b> <span>prompts, thinking, tool chips and replies in order</span></div></li>
+      <li><div><b>Totals and charts</b> <span>turns, tools, model steps, problems, duration, context, tokens in and out</span></div></li>
+      <li><div><b>Problems filter</b> <span>failed tools, errors and denied permissions, one checkbox away</span></div></li>
+      <li><div><b>Notifications</b> <span>a desktop ping when a session needs a permission or an answer</span></div></li>
+      <li><div><b>Linked agents</b> <span>Claude Code running Codex (and back) nests under its parent</span></div></li>
+      <li><div><b>10 languages</b> <span>en de es fr it ja ko pl pt zh</span></div></li>
+    </ul>
+  </section>
+
+  <section class="sec" id="screens">
+    <h2>Views</h2>
+    <div class="views">
+      <div role="tablist" aria-label="Dashboard views">
+        <button role="tab" aria-selected="true" data-pane="0"><kbd>1</kbd>home</button>
+        <button role="tab" aria-selected="false" data-pane="1"><kbd>2</kbd>overview</button>
+        <button role="tab" aria-selected="false" data-pane="2"><kbd>3</kbd>route</button>
+        <button role="tab" aria-selected="false" data-pane="3"><kbd>4</kbd>chat</button>
+        <button role="tab" aria-selected="false" data-pane="4"><kbd>5</kbd>context</button>
+      </div>
+      <div>
+        <div class="pane on"><img src="assets/screenshots/home.jpg" alt="Home with sessions grouped by project" loading="lazy"><p>Every session by project, with its agent, status and subagents.</p></div>
+        <div class="pane"><img src="assets/screenshots/overview.jpg" alt="Overview with totals and charts" loading="lazy"><p>Totals, one bar per turn, context use and activity. Click a bar to open the turn.</p></div>
+        <div class="pane"><img src="assets/screenshots/route.jpg" alt="Route with parallel subagents" loading="lazy"><p>Follow a turn through tool calls and parallel subagents.</p></div>
+        <div class="pane"><img src="assets/screenshots/chat.jpg" alt="Chat with thinking and tool calls" loading="lazy"><p>Prompts, thinking, tool chips and replies in order.</p></div>
+        <div class="pane"><img src="assets/screenshots/context.jpg" alt="Context window grid by category" loading="lazy"><p>What fills the context window, down to each record.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="use-cases">
+    <h2>Use cases</h2>
+    <div class="uc">
+      <div><h3><em>01</em>Token optimization</h3><p>See the fixed cost of tools, MCP servers, skills and memory before your first prompt. Spot the turn that read a 40k-token file. Compare before and after trimming <code>CLAUDE.md</code>.</p></div>
+      <div><h3><em>02</em>Context management</h3><p>Watch context grow against the window and the 80% line. Scope to <code>since last compaction</code> to see what the model holds right now.</p></div>
+      <div><h3><em>03</em>Debugging runs</h3><p>Filter to <code>only problems</code>, open the turn marked ×, read the exact command and output that failed.</p></div>
+      <div><h3><em>04</em>Subagent fan-out</h3><p>Each parallel subagent gets its own line in Route, nested under the turn that started it.</p></div>
+      <div><h3><em>05</em>Many sessions at once</h3><p>Desktop notifications and <code>u</code> jump to the next session waiting on a permission or a question.</p></div>
+      <div><h3><em>06</em>Learning and review</h3><p>Read how the model reasons, which skills fire, and how Claude Code and Codex solve the same task.</p></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>How it works</h2>
+<pre class="log"><b>claude code</b> / <b>codex</b>          <span class="ok"># both agents, one log</span>
+  └─ hook event ─▶ <span class="ac">scripts/hook.js</span>          <span class="ok"># exits 0, never blocks</span>
+       └─ append ─▶ sessions/<b>2026-11-26</b>/<b>3fa9…c1</b>.jsonl
+            └─ tail every 400 ms ─▶ <span class="ac">server/server.js</span>
+                 └─ live updates ─▶ <b>http://127.0.0.1:4777</b>
+
+<span class="ok">✓</span> node built-ins only       <span class="ok">✓</span> one file per session       <span class="ok">✓</span> nothing leaves your machine</pre>
+  </section>
+
+  <section class="sec">
+    <h2>Testimonials</h2>
+    <!-- PLACEHOLDERS: replace with real quotes, used with permission. -->
+    <div class="quotes">
+      <figure>"your quote here"<figcaption>— name, role</figcaption></figure>
+      <figure>"your quote here"<figcaption>— name, role</figcaption></figure>
+      <figure>"your quote here"<figcaption>— name, role</figcaption></figure>
+    </div>
+    <p class="muted" style="margin-top:18px">Using it? <a href="https://github.com/radekwojpl2/session-observer/issues/new?title=Testimonial">Tell us how →</a></p>
+  </section>
+
+  <section class="sec" id="faq">
+    <h2>FAQ</h2>
+    <dl class="faq">
+      <dt>Does it slow my agent down?</dt><dd>No. The hook appends one line and exits 0; errors are swallowed.</dd>
+      <dt>Is the token split exact?</dt><dd>The total is measured at the latest model step; categories are estimates from their text.</dd>
+      <dt>Where is my data?</dt><dd>Events from Claude Code and Codex: plain JSONL in ~/.claude/session-observer (OBSERVER_DATA_DIR to move it). Codex rollouts are read in place from ~/.codex/sessions. The server binds to 127.0.0.1.</dd>
+      <dt>What do I need?</dt><dd>Node.js 18+. No npm install, no build step.</dd>
+      <dt>Port 4777 is busy?</dt><dd>Set OBSERVER_PORT=4778.</dd>
+    </dl>
+  </section>
+
+  <footer>
+    <span>session-observer · MIT</span>
+    <span><a href="https://github.com/radekwojpl2/session-observer">github</a> · <a href="https://github.com/radekwojpl2/session-observer/releases">releases</a> · <a href="https://github.com/radekwojpl2/session-observer/issues">issues</a></span>
+  </footer>
+</div>
+
+<script>
+'use strict';
+(function () {
+  var cmds = [
+    ['/plugin marketplace add radekwojpl2/session-observer\n/plugin install session-observer@session-observer-marketplace', 'inside Claude Code · restart afterwards · dashboard on localhost:4777'],
+    ['codex plugin marketplace add radekwojpl2/session-observer', 'then install Session Observer in the Codex desktop app · trust hooks in /hooks'],
+    ['git clone https://github.com/radekwojpl2/session-observer\nnode session-observer/scripts/setup-codex.js', 'keeps your existing hooks · --remove to undo'],
+    ['git clone https://github.com/radekwojpl2/session-observer\nnode session-observer/scripts/demo.js', 'synthetic demo on localhost:4800 · your real log is untouched']
+  ];
+  var cmd = document.getElementById('cmd'), note = document.getElementById('cmd-note');
+  var itabs = document.querySelectorAll('.install [role="tab"]');
+  function showCmd(i) {
+    cmd.textContent = cmds[i][0]; note.textContent = cmds[i][1];
+    itabs.forEach(function (t) { t.setAttribute('aria-selected', t.dataset.cmd == i ? 'true' : 'false'); });
+  }
+  itabs.forEach(function (t) { t.addEventListener('click', function () { showCmd(+t.dataset.cmd); }); });
+  showCmd(0);
+
+  var vtabs = document.querySelectorAll('.views [role="tab"]'), panes = document.querySelectorAll('.views .pane');
+  function showPane(i) {
+    vtabs.forEach(function (t, j) { t.setAttribute('aria-selected', i === j ? 'true' : 'false'); });
+    panes.forEach(function (p, j) { p.classList.toggle('on', i === j); });
+  }
+  vtabs.forEach(function (t, i) { t.addEventListener('click', function () { showPane(i); }); });
+  document.addEventListener('keydown', function (e) {
+    var n = parseInt(e.key, 10);
+    if (n >= 1 && n <= 5 && !e.ctrlKey && !e.metaKey && !e.altKey) showPane(n - 1);
+  });
+
+  document.querySelectorAll('.copy').forEach(function (b) {
+    b.addEventListener('click', function () {
+      try {
+        navigator.clipboard.writeText(document.querySelector(b.dataset.copy).textContent).then(function () {
+          b.textContent = '✓ copied'; setTimeout(function () { b.textContent = 'copy'; }, 1500);
+        });
+      } catch (err) { /* clipboard unavailable */ }
+    });
+  });
+
+  var root = document.documentElement;
+  try { var saved = localStorage.getItem('so-theme'); if (saved) root.dataset.theme = saved; } catch (err) { /* storage unavailable */ }
+  document.getElementById('theme').addEventListener('click', function () {
+    var dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    root.dataset.theme = dark ? 'light' : 'dark';
+    try { localStorage.setItem('so-theme', root.dataset.theme); } catch (err) { /* storage unavailable */ }
+  });
+})();
+</script>
+</body>
+</html>
