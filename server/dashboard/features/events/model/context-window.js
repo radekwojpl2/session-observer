@@ -3,12 +3,14 @@
 const DEFAULT_CONTEXT_WINDOW = 200000;
 const ONE_MILLION_WINDOW = 1000000;
 
-// the window a session's context fills. Codex reports its own (272k by default), which is used as is. Claude Code's
-// is 200k, unless the tokens are past that or the model's name says 1M.
-function contextWindowFor(agent, ownWindow, tokens, model = '') {
-  if (agent === CODEX && ownWindow) return ownWindow;
+// A reported window takes precedence over token-count estimates. Claude Code reports its main agent's window
+// through the optional status line filter, so use that value for steps whose model matches the report.
+function contextWindowFor(session, tokens, model = session?.model) {
+  const context = session?.context, observed = session?.observedContext;
+  if (session?.agent === CODEX && context?.window) return context.window;
+  if (observed && observed.model === model) return observed.window;
   if (tokens > DEFAULT_CONTEXT_WINDOW || /\[1m\]|-1m/i.test(model || '')) return ONE_MILLION_WINDOW;
-  return ownWindow || DEFAULT_CONTEXT_WINDOW;
+  return (context && (!context.model || context.model === model) && context.window) || DEFAULT_CONTEXT_WINDOW;
 }
 
 // A context size for a badge: tokens, the change from before, the window and how full it is. The change's colour:

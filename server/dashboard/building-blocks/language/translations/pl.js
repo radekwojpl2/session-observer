@@ -104,6 +104,8 @@ TRANSLATIONS.pl = (() => {
     sessionState: { needsYou: 'czeka na Ciebie', yourTurn: 'Twoja kolej', ended: 'zakończona', working: 'pracuje', live: 'aktywna', inactive: 'nieaktywna' },
     needYouN: n => `Czeka na Ciebie: ${n}`,
     home: {
+      pinned: 'Przypięte sesje', pinSession: 'Przypnij sesję', unpinSession: 'Odepnij sesję',
+      pinFailed: reason => `Nie udało się zmienić przypięcia sesji: ${reason}`,
       needsYou: 'Czeka na Ciebie', allClear: 'Nic teraz na Ciebie nie czeka.',
       permission: t => (t ? `Zgoda na użycie ${t}` : 'Potrzebna zgoda'), question: 'Pytanie do Ciebie', mcp: s => `${s || 'Serwer MCP'} prosi o dane`,
       inSubagent: t => `w subagencie ${t}`, noSessions: 'Brak sesji w tym zakresie.', done: 'zakończono', more: n => `+${n} więcej`, open: 'Otwórz tę sesję',

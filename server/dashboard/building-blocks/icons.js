@@ -16,6 +16,7 @@ const ICONS = {
   other: '<path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>',
   core: '<path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/>',
   turn: '<path d="M4 12a8 8 0 1 0 2.3-5.7M4 4v4h4"/>',
+  star: '<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z"/>',
 };
 
 const iconSvg = (id, className = 'ic') => `<svg class="${className}" viewBox="0 0 24 24">${ICONS[id] || ICONS.other}</svg>`;

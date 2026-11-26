@@ -25,7 +25,7 @@ const routeTurnOpen = new Map();
 let routeFocusedTurnKey = null; // the turn the route was last focused on
 
 // ---- line keys for hover highlighting: every stop and link belongs to its turn's main line or to one subagent's branch
-const lineKeyOfStop = stop => `${stop.turnKey}|${stop.onBranch ? stop.onBranch.id : MAIN_LANE}`.replace(/[\s"]/g, '_');
+const lineKeyOfStop = stop => `${stop.turnKey}|${stop.onBranch ? stop.onBranch.firstStopIndex : MAIN_LANE}`.replace(/[\s"]/g, '_');
 const lineKeyOfLink = link => lineKeyOfStop(link.kind === 'merge' ? link.from : link.to);
 // a stop's keys: its own line, plus the branch it starts (Agent call) or brings back (⤴ stop)
 function stopLineKeys(stops) {
@@ -102,7 +102,7 @@ function collectRouteStops(chain, now) {
     const isLive = !model.endEvent && turn === newest && isTurnRunning(turn);
     const mainLineRunning = model.stops.some(stop => stop.running && stop.lane === 0);
     if (model.endEvent || (isLive && !mainLineRunning)) stops.push(endOfTurnStop(turn, model, stops, offset, furthest, now));
-    for (const branch of model.branches.values()) if (!branch.closed && branch.running) runningTailIndexes.push(branch.lastStopIndex + offset);
+    for (const branch of model.branches) if (!branch.closed && branch.running) runningTailIndexes.push(branch.lastStopIndex + offset);
   }
   return { stops, models, runningTailIndexes };
 }

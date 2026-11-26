@@ -13,6 +13,7 @@ const { conversationItems, measuredSize, reportedContextWindow } = require('./co
 const { subagentDirOf } = require('../sessions/transcript-steps');
 const { CODEX } = require('../sessions/codex-model-steps');
 const { codexSessionContext } = require('./codex/codex-context');
+const { contextUsage } = require('../sessions/observed-context');
 
 const SUBAGENT_TRANSCRIPT = /^agent-([\w-]+)\.jsonl$/;
 
@@ -50,9 +51,10 @@ function sessionContext(session) {
   if (!rows) return { error: 'transcript not found', transcript: mainTranscript || null };
   const subagents = subagentContexts(mainTranscript);
   const sentMessages = sentMessagesOf(rows);
+  const observed = session.observedContext;
   return {
-    session: session.id, transcript: mainTranscript, model: session.model, context: session.context,
-    window: reportedContextWindow(rows),
+    session: session.id, transcript: mainTranscript, model: session.model, context: contextUsage(session),
+    window: observed && observed.model === session.model ? observed.window : reportedContextWindow(rows),
     ...systemPromptOf(rows),
     items: conversationItems(rows),
     subagents,

@@ -15,6 +15,8 @@ const {
 const { LOOPBACK_NAMES, WILDCARD_ADDRESSES } = require('./lib/features/web/request-guard');
 const { FileTail } = require('./lib/building-blocks/file-tail');
 const { sessions, sessionSummary } = require('./lib/features/sessions/sessions');
+const { loadPins, setPin, clearPins, pinnedIds } = require('./lib/features/sessions/pins');
+const { refreshObservedContexts, removeObservedContext, clearObservedContext } = require('./lib/features/sessions/observed-context');
 const { broadcast, pingClients, startBroadcasting, withoutBroadcasting } = require('./lib/building-blocks/live-updates');
 const transcripts = require('./lib/features/sessions/transcript-steps');
 const { clearTranscriptRowsCache } = require('./lib/features/context/transcript-rows');
@@ -74,7 +76,7 @@ function readSessionFile(days, name, file, fresh) {
   readTail(tail, fresh);
 }
 
-function readNewLogEvents() {
+function readNewLogEvents(includeOlderPins = false) {
   const fresh = [];
   try {
     const days = listDays(SESSION_LOG_DIR);
@@ -82,6 +84,14 @@ function readNewLogEvents() {
     for (const day of days) {
       if (day < loadedFrom) continue;
       for (const name of sessionFilesInDay(SESSION_LOG_DIR, day)) newest.set(name, path.join(SESSION_LOG_DIR, day, name));
+    }
+    if (includeOlderPins) {
+      for (const id of pinnedIds()) {
+        const name = sessionLogName(id);
+        if (newest.has(name)) continue;
+        const file = filesNamed(SESSION_LOG_DIR, name, days).at(-1);
+        if (file) newest.set(name, file);
+      }
     }
     for (const [name, file] of newest) readSessionFile(days, name, file, fresh);
     // Older installed hooks may keep appending to the former combined log until their plugin is updated; the next
@@ -128,6 +138,7 @@ function loadOlderDays() {
   // the events of its scope and range once. (The reads other sessions have scheduled stay: a live Stop waits on one.)
   withoutBroadcasting(() => {
     readNewLogEvents();
+    refreshObservedContexts(sessions.values());
     for (const session of sessions.values()) {
       if (known.has(session.id)) continue;
       try { transcripts.readTranscripts(session); } catch { /* ignore */ }
@@ -138,6 +149,8 @@ function loadOlderDays() {
 }
 
 function clearLog() {
+  clearPins();
+  clearObservedContext();
   try { fs.writeFileSync(LOG_FILE, ''); } catch { /* ignore */ }
   let names = [];
   try { names = fs.readdirSync(SESSION_LOG_DIR); } catch { /* no sessions folder: nothing to remove */ }
@@ -164,6 +177,8 @@ function reloadAfterSessionDelete(sessionId) {
   const session = sessions.get(sessionId);
   if (!session) return false;
   readNewLogEvents(); // take in what was appended just before this delete, so it isn't read again afterwards
+  setPin(sessionId, false);
+  removeObservedContext(sessionId);
   for (const file of filesOfSession(SESSION_LOG_DIR, sessionId)) {
     try { fs.unlinkSync(file); } catch (error) { if (error.code !== 'ENOENT') throw error; }
   }
@@ -190,7 +205,9 @@ function protectDataDir() {
 
 // everything already in the log, then every transcript once, before any page is told about changes
 function loadExistingEvents() {
-  readNewLogEvents();
+  loadPins();
+  readNewLogEvents(true);
+  refreshObservedContexts(sessions.values());
   transcripts.cancelScheduledReads();
   for (const session of sessions.values()) {
     try { transcripts.readTranscripts(session); } catch { /* ignore */ }
@@ -200,6 +217,7 @@ function loadExistingEvents() {
 
 // live sessions: keep picking up model steps even between hook events
 function pollBusyTranscripts() {
+  for (const session of refreshObservedContexts(sessions.values())) broadcast('session', sessionSummary(session));
   for (const session of sessions.values()) {
     if (session.busy && session.transcript_path) transcripts.scheduleTranscriptRead(session, 0);
   }

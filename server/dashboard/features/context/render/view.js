@@ -35,7 +35,7 @@ function contextViewHtml() {
   const sessionId = contextSessionId();
   if (!sessionId) return contextMessage(TEXT.pickSession);
   const session = state.sessions.get(sessionId);
-  const version = session ? `${session.eventCount}:${session.usage?.turns}:${session.last}` : '';
+  const version = session ? `${session.eventCount}:${session.usage?.turns}:${session.last}:${session.observedContext?.model}:${session.observedContext?.window}` : '';
   const isStale = contextView.version !== version && Date.now() - contextView.fetchedAt > CONTEXT_REFETCH_MS;
   if (contextView.sessionId !== sessionId || isStale) fetchContext(sessionId, version);
   if (contextView.sessionId !== sessionId) return contextMessage(TEXT.readingTranscript);

@@ -102,6 +102,8 @@ TRANSLATIONS.de = (() => {
     sessionState: { needsYou: 'wartet auf dich', yourTurn: 'du bist dran', ended: 'beendet', working: 'arbeitet', live: 'aktiv', inactive: 'inaktiv' },
     needYouN: n => `Wartet auf dich: ${n}`,
     home: {
+      pinned: 'Angepinnt', pinSession: 'Session anpinnen', unpinSession: 'Pin lösen',
+      pinFailed: reason => `Der Session-Pin konnte nicht geändert werden: ${reason}`,
       needsYou: 'Wartet auf dich', allClear: 'Gerade wartet nichts auf dich.',
       permission: t => (t ? `Erlaubnis für ${t}` : 'Erlaubnis nötig'), question: 'Frage an dich', mcp: s => `${s || 'Ein MCP-Server'} bittet um Eingabe`,
       inSubagent: t => `im Subagent ${t}`, noSessions: 'Keine Sitzungen in diesem Zeitraum.', done: 'fertig', more: n => `+${n} weitere`, open: 'Diese Sitzung öffnen',

@@ -95,12 +95,14 @@ function connectLiveUpdates() {
   });
   stream.addEventListener('session', message => {
     const session = JSON.parse(message.data);
+    const previous = state.sessions.get(session.id)?.observedContext;
     state.sessions.set(session.id, session);
     forgetSessionLinks();
     state.lastUpdateAt = Date.now();
     checkAlerts();
     if (state.frozen) return scheduleRender('header');
     scheduleRender('sessions', 'header', 'mid');
+    if (previous?.window !== session.observedContext?.window || previous?.model !== session.observedContext?.model) scheduleRender('detail');
   });
   stream.addEventListener('event', message => {
     const event = JSON.parse(message.data);

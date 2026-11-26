@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.15.0](https://github.com/radekwojpl2/session-observer/compare/v0.14.2...v0.15.0) (2026-11-26)
+
+
+### Features
+
+* pin sessions from the sidebar and Home ([#85](https://github.com/radekwojpl2/session-observer/issues/85)) ([9a86a92](https://github.com/radekwojpl2/session-observer/commit/9a86a92702cd9d50b964d45e8ace526db3a0d15e))
+
+
+### Bug Fixes
+
+* use Claude Code’s reported context window ([#83](https://github.com/radekwojpl2/session-observer/issues/83)) ([3682479](https://github.com/radekwojpl2/session-observer/commit/3682479377840d9ea215493593ba89cbfaca5487))
+
+## [0.14.2](https://github.com/radekwojpl2/session-observer/compare/v0.14.1...v0.14.2) (2026-11-26)
+
+
+### Bug Fixes
+
+* preserve route branches across repeated subagent starts ([fe4508d](https://github.com/radekwojpl2/session-observer/commit/fe4508d314fc66b398deedc129f57e0599c5204e))
+* preserve route branches across repeated subagent starts ([72266ef](https://github.com/radekwojpl2/session-observer/commit/72266efabdf7e1919fef4dde3a0f52b0e7c58101))
+
 ## [0.14.1](https://github.com/radekwojpl2/session-observer/compare/v0.14.0...v0.14.1) (2026-11-25)
 
 

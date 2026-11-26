@@ -5,6 +5,7 @@ const path = require('path');
 const { PORT, SESSION_LOG_DIR, TOKEN, VERSION, DASHBOARD_PAGE, DASHBOARD_ASSETS_DIR } = require('../../building-blocks/config');
 const guard = require('./request-guard');
 const { sessions, sessionSummary, eventsOfAllSessions } = require('../sessions/sessions');
+const { setPin } = require('../sessions/pins');
 const { sessionContext } = require('../context/session-context');
 const { addClient, broadcast } = require('../../building-blocks/live-updates');
 
@@ -103,7 +104,7 @@ function serveContext(response, url) {
   }
 }
 
-// GET routes by path; the clear-log and load-older POSTs and the session DELETE are handled on their own
+// Session mutations and the clear-log and load-older POSTs are handled before the read routes.
 function createRequestHandler({ clearLog, deleteSession, logHistory, loadOlderDays }) {
   const routes = {
     '/': (request, response) => serveDashboardPage(response),
@@ -136,11 +137,21 @@ function createRequestHandler({ clearLog, deleteSession, logHistory, loadOlderDa
     if (url.pathname === '/api/history/older' && request.method === 'POST') {
       try { return sendJson(response, 200, loadOlderDays()); } catch (error) { return sendServerError(response, error); }
     }
-    const deleteMatch = request.method === 'DELETE' && url.pathname.match(/^\/api\/sessions\/([^/]+)$/);
-    if (deleteMatch) {
+    const sessionMatch = url.pathname.match(/^\/api\/sessions\/([^/]+)(\/pin)?$/);
+    const pinChange = sessionMatch?.[2] && (request.method === 'PUT' || request.method === 'DELETE');
+    const sessionDelete = sessionMatch && !sessionMatch[2] && request.method === 'DELETE';
+    if (pinChange || sessionDelete) {
       let sessionId;
-      try { sessionId = decodeURIComponent(deleteMatch[1]); } catch { return sendError(response, 400, 'bad session id'); }
+      try { sessionId = decodeURIComponent(sessionMatch[1]); } catch { return sendError(response, 400, 'bad session id'); }
       try {
+        if (pinChange) {
+          const session = sessions.get(sessionId);
+          if (!session) return sendError(response, 404, 'unknown session');
+          setPin(sessionId, request.method === 'PUT');
+          const summary = sessionSummary(session);
+          broadcast('session', summary);
+          return sendJson(response, 200, { pinned: summary.pinned });
+        }
         if (!deleteSession(sessionId)) return sendError(response, 404, 'unknown session');
         return sendJson(response, 200, { ok: true });
       } catch (error) {

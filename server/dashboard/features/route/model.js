@@ -5,7 +5,7 @@ const FORK_OFFSET = 64;   // how far right of its Agent call a subagent's first 
 const LANE_GAP = 40;      // free space kept between two subagents sharing a lane
 const RUNNING_TAIL = 40;  // the dashed tail a running subagent's lane is drawn with
 const STOP_WIDTH = { step: 24, end: 58, regular: 80 }; // the room a stop takes on its lane
-const MAIN_LANE = 'main'; // the main agent's lane key; a subagent's branch is keyed by its agent id
+const MAIN_LANE = 'main';
 
 // spacing between two consecutive stops on one lane
 const routeStopWidth = stop => (stop.isStep ? STOP_WIDTH.step : stop.isEnd ? STOP_WIDTH.end : STOP_WIDTH.regular);
@@ -15,8 +15,9 @@ const routeStopGap = (a, b) => (routeStopWidth(a) + routeStopWidth(b)) / 2;
 // main line or the other subagents apart.
 function createRouteBuilder() {
   const stops = [];
-  const branches = new Map();          // agent id → branch
-  const lastStepOfLane = new Map();    // MAIN_LANE or branch id → its latest model-step stop, which gets the text it wrote
+  const branches = [];
+  const latestBranchById = new Map(); // an agent ID can start a new branch after its previous branch closes
+  const lastStepOfLane = new Map();   // MAIN_LANE or branch → its latest model-step stop
   let lastMainStopIndex;
 
   // adds a stop to a lane: the main line (branch null) or a subagent's branch
@@ -36,11 +37,16 @@ function createRouteBuilder() {
 
   // the open branch an event belongs to, if any
   function branchOf(data) {
-    const branch = data.agent_id != null && branches.get(String(data.agent_id));
+    const branch = data.agent_id != null && latestBranchById.get(String(data.agent_id));
     return branch && !branch.closed ? branch : null;
   }
 
-  return { stops, branches, lastStepOfLane, addStop, branchOf, lastMainStop: () => (lastMainStopIndex != null ? stops[lastMainStopIndex] : null), lastMainStopIndex: () => lastMainStopIndex };
+  function addBranch(branch) {
+    branches.push(branch);
+    latestBranchById.set(branch.id, branch);
+  }
+
+  return { stops, branches, lastStepOfLane, addStop, addBranch, branchOf, lastMainStop: () => (lastMainStopIndex != null ? stops[lastMainStopIndex] : null), lastMainStopIndex: () => lastMainStopIndex };
 }
 
 // Lanes: the subagent forked last gets the lane nearest the main line, so parallel forks nest (└┘ inside └──┘) instead
@@ -52,7 +58,7 @@ function assignLanes(stops, branches) {
   ];
   const spansByLane = [];
   let maxLane = 0;
-  const latestForkFirst = [...branches.values()].sort((a, b) =>
+  const latestForkFirst = [...branches].sort((a, b) =>
     stops[b.firstStopIndex].position - stops[a.firstStopIndex].position || b.firstStopIndex - a.firstStopIndex);
   for (const branch of latestForkFirst) {
     const [from, to] = spanOf(branch);
@@ -68,7 +74,7 @@ function assignLanes(stops, branches) {
 
 function buildRouteModel(turn) {
   const route = createRouteBuilder();
-  const { stops, branches, lastStepOfLane, addStop, branchOf } = route;
+  const { stops, branches, lastStepOfLane, addStop, addBranch, branchOf } = route;
   const openToolStops = new Map();  // tool_use_id → its stop, until the result arrives
   const agentCallsWaiting = [];     // Agent calls whose subagent hasn't started yet
   let stepCount = 0, toolCount = 0, problemCount = 0, endEvent = null, lastText = null, lastEventTime = 0;
@@ -87,12 +93,12 @@ function buildRouteModel(turn) {
       case 'ModelStep':
         if (data.subagent && !branch) break; // internal helper agents with no branch: not part of the route
         stepCount++;
-        lastStepOfLane.set(branch ? branch.id : MAIN_LANE, addStop(stopFor(event, { group: branch ? 'agents' : 'model', isStep: true }), branch));
+        lastStepOfLane.set(branch || MAIN_LANE, addStop(stopFor(event, { group: branch ? 'agents' : 'model', isStep: true }), branch));
         break;
       case 'ModelText': {
         if (data.subagent && !branch) break;
         const written = { text: String(data.text || ''), kind: data.kind, ts: eventTime(event) };
-        const step = lastStepOfLane.get(branch ? branch.id : MAIN_LANE);
+        const step = lastStepOfLane.get(branch || MAIN_LANE);
         if (step) {
           const prefix = written.kind === 'thinking' ? `(${TEXT.event.thinking}) ` : '';
           step.text = (step.text ? step.text + ' ' : '') + prefix + written.text;
@@ -127,9 +133,10 @@ function buildRouteModel(turn) {
         break;
       }
       case 'SubagentStart': {
+        if (branch) break; // a repeated start must not replace the open branch or consume the next Agent call
         const agentCall = agentCallsWaiting.shift() ?? route.lastMainStop();
         const started = { id: String(data.agent_id ?? event.seq), type: data.agent_type || TEXT.subagentLc, startedAt: eventTime(event), lastStopIndex: null };
-        branches.set(started.id, started);
+        addBranch(started);
         const stop = addStop(stopFor(event, {
           group: 'agents', label: started.type, detail: agentCall?.agentDescription || TEXT.subagentLc,
           forkFromIndex: agentCall ? agentCall.index : null, startsBranch: started,
@@ -175,7 +182,7 @@ function buildRouteModel(turn) {
     }
   }
   for (const [toolUseId, stop] of openToolStops) stop.running = activity.runningTools.has(toolUseId);
-  for (const branch of branches.values()) {
+  for (const branch of branches) {
     if (!branch.closed) branch.running = [...activity.runningSubagents.keys()].some(id => String(id) === branch.id);
   }
   const maxLane = assignLanes(stops, branches);
@@ -184,23 +191,25 @@ function buildRouteModel(turn) {
 
 // ---- context at the end of a turn
 // the last main-line model step's context tokens (null if none reported yet)
-function turnEndContextTokens(turn) {
-  let tokens = null;
-  for (const event of turn.events) {
-    const data = event.data;
-    if (event.event === 'ModelStep' && !data?.subagent && data?.agent_id == null && data?.tokens?.context) tokens = data.tokens.context;
+function turnEndContextStep(turn) {
+  for (let index = turn.events.length - 1; index >= 0; index--) {
+    const { event, data } = turn.events[index];
+    if (event === 'ModelStep' && !data?.subagent && data?.agent_id == null && data?.tokens?.context) return data;
   }
-  return tokens;
+  return null;
 }
 
 // context at the end of this turn, its change from the end of the turn before, and how full the window is
 function turnContextInfo(sessionTurns, turn) {
-  const tokens = turnEndContextTokens(turn);
-  if (tokens == null) return null;
+  const step = turnEndContextStep(turn);
+  if (!step) return null;
+  const tokens = step.tokens.context;
   let previous = null;
-  for (let index = sessionTurns.indexOf(turn) - 1; index >= 0 && previous == null; index--) previous = turnEndContextTokens(sessionTurns[index]);
+  for (let index = sessionTurns.indexOf(turn) - 1; index >= 0 && previous == null; index--) {
+    previous = turnEndContextStep(sessionTurns[index])?.tokens.context ?? null;
+  }
   const session = state.sessions.get(turn.sessionId);
-  const window = contextWindowFor(session?.agent, session?.context?.window, tokens);
+  const window = contextWindowFor(session, tokens, step.model);
   const change = previous == null ? null : tokens - previous;
   return contextSize(tokens, change, window, change == null ? '' : signedTokens(change));
 }

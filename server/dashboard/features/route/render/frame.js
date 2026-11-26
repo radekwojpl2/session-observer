@@ -6,7 +6,7 @@
 function describeRouteActivity(model, now) {
   if (!model) return '';
   const parts = [];
-  const runningBranches = [...model.branches.values()].filter(branch => !branch.closed && branch.running);
+  const runningBranches = model.branches.filter(branch => !branch.closed && branch.running);
   for (const stop of model.stops) {
     if (!stop.running || stop.onBranch) continue;
     const what = `${stop.label}${stop.detail ? ' ' + truncateToColumns(baseName(String(stop.detail)), 40) : ''}`;
@@ -38,7 +38,7 @@ function routeNowHtml(model) {
 
 function routeHeaderHtml(turn, model, isLive, sessionTurns) {
   const prompt = turn.prompt !== null ? escapeHtml(shorten(stripTags(turn.prompt), 240)) : `<span class="muted">${escapeHtml(TEXT.sessionStart)}</span>`;
-  const subagents = model.branches.size;
+  const subagents = model.branches.length;
   const counts = `${escapeHtml(countOf(model.stepCount, 'step'))} · ${escapeHtml(countOf(model.toolCount, 'tool'))}${subagents ? ` · ${escapeHtml(countOf(subagents, 'subagent'))}` : ''}`;
   const problems = model.problemCount ? `·<span class="err">${escapeHtml(countOf(model.problemCount, 'problem'))}</span>` : '';
   return `<div class="lhead${isLive ? ' live' : ''}"><div class="lp">${prompt}</div>

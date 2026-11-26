@@ -1,10 +1,12 @@
 // The sessions held in memory: each one's events and running totals, updated as events arrive.
 'use strict';
+const { isPinned } = require('./pins');
 const { MAX_EVENTS_PER_SESSION, MAX_ALL_EVENTS } = require('../../building-blocks/config');
 const { categoryOf, SUBAGENT_TOOLS } = require('./event-categories');
 const { trackNeedsYou } = require('./needs-you');
 const { trackSubagents } = require('./subagent-list');
 const { trackParents, parentOf } = require('./session-links');
+const { contextUsage } = require('./observed-context');
 
 const TITLE_MAX = 140; // characters of the first prompt kept as the session's title
 const sessions = new Map(); // session id → session
@@ -19,7 +21,7 @@ function newSession(id) {
     counts: {}, tools: {}, skills: {}, mcp: {}, agents: {},
     toolMs: 0, toolCalls: 0, failures: 0, modelSteps: 0,
     usage: { input: 0, output: 0, cache_read: 0, cache_write: 0, turns: 0, models: {} },
-    context: null,
+    context: null, observedContext: null,
     needsYou: [],     // what it waits on you for: [{ kind: permission | question | mcp, tool, text, since, agentId }]
     subagentList: [], // [{ id, type, callId, description, background, started, ended }]
     parentCandidates: null, // the agent sessions it may have been started from: [{ agent, id, callId }] (session-links.js)
@@ -149,7 +151,7 @@ function ingest(event) {
 // what the API sends for a session: everything but its events and the calls in flight, with the session that started it
 function sessionSummary(session) {
   const { events, pendingToolStarts, subagentDescriptionsWaiting, parentCandidates, ...fields } = session;
-  return { ...fields, parent: parentOf(session, sessions), eventCount: events.length, running: pendingToolStarts.size };
+  return { ...fields, pinned: isPinned(session.id), context: contextUsage(session), parent: parentOf(session, sessions), eventCount: events.length, running: pendingToolStarts.size };
 }
 
 const byTimeThenSeq = (a, b) => (a.ts < b.ts ? -1 : a.ts > b.ts ? 1 : a.seq - b.seq);

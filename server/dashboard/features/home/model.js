@@ -5,12 +5,10 @@
 const FINISHED_SUBAGENTS_SHOWN = 3; // a session's finished subagents beyond these fold into "+N more"
 const HOME_LINK_DEPTH_MAX = 4; // sessions started by started sessions nest this deep; deeper ones stay at the top
 
-// the sessions Home shows: in the range, from the agents the filter shows, matching the search
-function homeSessions() {
-  const cutoff = rangeCutoffIso();
+// Search and agent filters apply to both the project tree and pinned sessions.
+function homeMatchingSessions() {
   const search = state.searchText;
   return [...state.sessions.values()]
-    .filter(session => !cutoff || (session.last || '') >= cutoff)
     .filter(session => isAgentShown(session.agent || DEFAULT_AGENT))
     .filter(session => !search || [session.title, session.cwd, session.id].join(' ').toLowerCase().includes(search));
 }

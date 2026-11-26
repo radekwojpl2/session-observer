@@ -168,8 +168,9 @@ function addUsage(session, message) {
 // how full the main agent's context window is after this response
 function contextWindowUse(session, row, message) {
   const tokens = contextTokensOf(message.usage);
-  const window = hasOneMillionWindow(message.model || session.model) || tokens > CONTEXT_WINDOW ? ONE_MILLION_WINDOW : CONTEXT_WINDOW;
-  return { tokens, window, pct: Math.min(1, tokens / window), ts: row.timestamp };
+  const model = message.model || session.model;
+  const window = hasOneMillionWindow(model) || tokens > CONTEXT_WINDOW ? ONE_MILLION_WINDOW : CONTEXT_WINDOW;
+  return { tokens, window, pct: Math.min(1, tokens / window), ts: row.timestamp, model };
 }
 
 function rememberStep(messageId, step) {

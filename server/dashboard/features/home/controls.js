@@ -2,6 +2,8 @@
 // Session Observer dashboard — Home, the controls: a session or a wait opens that session on its Route.
 function initHomeControls() {
   viewBox().addEventListener('click', event => {
+    const pinButton = event.target.closest('[data-pin-session]');
+    if (pinButton) return toggleSessionPin(pinButton);
     const deleteButton = event.target.closest('[data-delete-session]');
     if (deleteButton) {
       event.preventDefault();

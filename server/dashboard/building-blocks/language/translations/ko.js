@@ -100,6 +100,8 @@ TRANSLATIONS.ko = (() => {
     sessionState: { needsYou: '내 응답 필요', yourTurn: '내 차례', ended: '종료됨', working: '작업 중', live: '활성', inactive: '비활성' },
     needYouN: n => `응답 필요 ${n}`,
     home: {
+      pinned: '고정된 세션', pinSession: '세션 고정', unpinSession: '세션 고정 해제',
+      pinFailed: reason => `세션 고정을 변경하지 못했습니다: ${reason}`,
       needsYou: '내 응답 필요', allClear: '지금 응답이 필요한 항목이 없습니다.',
       permission: t => (t ? `${t} 사용 권한` : '권한 필요'), question: '나에게 온 질문', mcp: s => `${s || 'MCP 서버'}가 입력을 요청함`,
       inSubagent: t => `서브에이전트 ${t}`, noSessions: '이 기간에는 세션이 없습니다.', done: '완료', more: n => `+${n}개 더`, open: '이 세션 열기',
