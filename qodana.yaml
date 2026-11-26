@@ -1,0 +1,5 @@
+# Qodana config. Do not store secrets here: this file is included in the Qodana report.
+version: "1.0"
+linter: qodana-js
+profile:
+  name: qodana.recommended
