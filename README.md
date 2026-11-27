@@ -49,7 +49,7 @@ flowchart LR
   H -->|append by day and session| L[(~/.claude/session-observer/sessions/DAY/*.jsonl)]
   L -->|recent days at start, older on request| S[Local Node server]
   S -->|HTTP and live updates| D[Dashboard in your browser]
-  S -. reads transcript when needed .-> T[Claude transcript or Codex rollout]
+  S -. reads transcript when needed .-> T[Claude transcript, Codex rollout or opencode.db]
 ~~~
 
 Each integration appends every event to a JSONL file for its session inside a folder for the current UTC day. The server keeps sessions in memory. At start it reads only the last few days, and the dashboard can load older days on request. The dashboard labels sessions by agent and reads transcripts when a view needs message or context detail.
@@ -208,7 +208,7 @@ The plugin starts the dashboard with the `node` on your PATH. What it records, p
 
 ## Privacy and stored data
 
-Session Observer writes hook events to `~/.claude/session-observer/sessions/<day>/<session-hash>.jsonl`. At each start, the server moves the former combined `events.jsonl` into these folders. Until their plugin is updated, older installed hooks keep appending to that file, and the server tails it. `deleted-sessions.jsonl` keeps the ids and times of deleted sessions, so that import skips them. Session logs can contain prompts, commands and tool output. The server binds to `127.0.0.1` by default and reads Claude transcripts or Codex rollouts locally when needed. Treat them as sensitive.
+Session Observer writes hook events to `~/.claude/session-observer/sessions/<day>/<session-hash>.jsonl`. At each start, the server moves the former combined `events.jsonl` into these folders. Until their plugin is updated, older installed hooks keep appending to that file, and the server tails it. `deleted-sessions.jsonl` keeps the ids and times of deleted sessions, so that import skips them. Session logs can contain prompts, commands and tool output. The server binds to `127.0.0.1` by default and reads Claude transcripts, Codex rollouts or OpenCode's `opencode.db` (read-only) locally when needed. Treat them as sensitive.
 
 To clear Observer's event history, stop the server and delete the `sessions` directory, `events.jsonl` and `deleted-sessions.jsonl` from the configured data directory. To drop only old history, delete the day folders you no longer need (`~/.claude/session-observer` by default). This does not delete the original Claude or Codex transcripts, or OpenCode's own sessions.
 
