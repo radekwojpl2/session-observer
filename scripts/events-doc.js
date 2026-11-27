@@ -9,7 +9,8 @@ const { CONTRACT_VERSION, ENVELOPE, EVENTS } = require('../server/lib/building-b
 
 const DOC = path.join(__dirname, '..', 'docs', 'events.md');
 
-const cell = text => String(text).replace(/\|/g, '\\|');
+// a table cell's text: backslashes first, then the pipes that would end the cell
+const cell = text => String(text).replace(/\\/g, '\\\\').replace(/\|/g, '\\|');
 const fieldRows = fields => Object.entries(fields)
   .map(([name, spec]) => `| \`${name}\` | ${spec.type} | ${spec.required ? 'yes' : ''} | ${cell(spec.about)} |`);
 const fieldTable = fields => ['| Field | Type | Always | What it holds |', '| --- | --- | --- | --- |', ...fieldRows(fields)];
