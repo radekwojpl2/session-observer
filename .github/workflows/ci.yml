@@ -46,7 +46,7 @@ jobs:
         run: claude plugin validate .
 
   test:
-    name: Smoke test (Node ${{ matrix.node }}, ${{ matrix.os }})
+    name: Tests (Node ${{ matrix.node }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -63,8 +63,9 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node }}
-      - name: Run tests
-        run: node --test test/smoke.test.js test/tech.test.js test/codex.test.js
+      - name: Run every test file
+        shell: bash   # the glob expands the same way on Windows
+        run: node --test test/*.test.js
 
   # Single required status check for branch protection — stays stable when the
   # matrix above changes.
