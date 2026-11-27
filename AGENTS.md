@@ -17,6 +17,8 @@ and serves a live dashboard on http://127.0.0.1:4777.
 - Events follow the contract in `server/lib/building-blocks/event-contract.js`. `docs/events.md` is generated from it
   (`node scripts/events-doc.js`): change the contract, never the doc. Each agent's recorded sessions live in
   `server/lib/features/agents/<agent>/fixtures/`; re-record them with `scripts/scrub-fixture.js` when the agent changes.
+- Each agent is a folder in `server/lib/features/agents/` plus its id in `AGENT_IDS`; nothing about an agent goes
+  elsewhere. A new one starts with `node scripts/new-agent.js <id> "<Name>"`; the steps are in `docs/adding-an-agent.md`.
 - Files use CRLF. For scripted edits use Node, not Python (not installed here).
 
 ## Check your work
