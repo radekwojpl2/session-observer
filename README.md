@@ -38,7 +38,7 @@ The Home and Overview screenshots use example sessions. The remaining screenshot
 
 *Context: what fills the context window, down to each record.*
 
-![Compare with two OpenCode runs of the same prompt and a Claude Code session side by side](docs/compare.jpg)
+![Compare with Codex, Claude Code and OpenCode reviewing the same tests side by side](docs/compare.jpg)
 
 *Compare: up to three sessions side by side, each measured against the first.*
 
