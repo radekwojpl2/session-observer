@@ -17,6 +17,11 @@ test('Claude Code and Codex are registered, Claude Code first and the default', 
   assert.equal(agentById('nobody'), null);
 });
 
+test('every manifest says where commands it runs see its session id', () => {
+  assert.deepEqual(agentById('claude').parentEnv, { session: ['CLAUDE_CODE_SESSION_ID'] });
+  assert.deepEqual(agentById('codex').parentEnv, { session: ['CODEX_SESSION_ID', 'CODEX_THREAD_ID'], toolCall: 'CODEX_TOOL_CALL_ID' });
+});
+
 test('every manifest names the agent, its colours, its command and how its events are captured', () => {
   for (const id of AGENT_IDS) {
     const agent = agentById(id);
@@ -56,12 +61,14 @@ test('the dashboard gets names, colours, tools and how the context differs, but 
   assert.deepEqual([codex.reportsContextWindow, codex.autocompactBuffer, codex.contextNoteKey], [true, false, 'codexContextNote']);
 });
 
-test('Codex has server hooks for its model steps, session file and Context view; an unknown agent has none', () => {
-  const codex = agentServer('codex');
-  for (const hook of ['noteEvent', 'modelStepFrom', 'addStepUsage', 'transcriptRowEvents', 'sessionContext', 'reset', 'clearSession']) {
-    assert.equal(typeof codex[hook], 'function', hook);
+test('each agent has server hooks for its session files and Context view; an unknown agent has none', () => {
+  for (const id of AGENT_IDS) {
+    for (const hook of ['sessionFiles', 'readSessionFileRow', 'sessionContext']) assert.equal(typeof agentServer(id)[hook], 'function', `${id}.${hook}`);
   }
-  assert.equal(codex.readsSubagentTranscripts, false);
+  const codex = agentServer('codex');
+  for (const hook of ['noteEvent', 'modelStepFrom', 'addStepUsage', 'reset', 'clearSession']) assert.equal(typeof codex[hook], 'function', hook);
+  assert.deepEqual(codex.sessionFiles({ transcript_path: 'rollout.jsonl' }), [{ file: 'rollout.jsonl', isSubagent: false }]);
+  assert.equal(agentServer('claude').readBeforeSubagentStart, true);
   assert.equal(agentServer('nobody'), null);
   const request = { event: 'PostModelRequest', agent: 'codex', session_id: 's', ts: '2026-11-27T10:00:00.000Z', data: { token_usage: { input_tokens: 10, output_tokens: 2 } } };
   assert.equal(codex.modelStepFrom(request), true);

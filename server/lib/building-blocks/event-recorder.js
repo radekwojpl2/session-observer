@@ -26,25 +26,29 @@ function truncate(value, depth = 0, limit = maxString()) {
   return truncated;
 }
 
-// the agent sessions this one was started from, as its environment shows: Claude Code puts its session id into every
-// command it runs, Codex its session id and the id of the tool call, and an in-process plugin the id of the session
-// it runs in (OBSERVER_PARENT_AGENT / OBSERVER_PARENT_SESSION). They carry on down a chain of agents, so a session
-// can see several; the server takes the one that started last, its direct parent.
-function parentsFromEnvironment(ownId, env = process.env, knownAgents = null) {
+// the agent sessions this one was started from, as its environment shows. Each agent puts its session id (and maybe
+// the tool call's) into every command it runs, in the variables its manifest names (`sources`: [{ agent, session:
+// [names], toolCall? }], from scripts/hook.js); an in-process plugin names the session it runs in
+// (OBSERVER_PARENT_AGENT / OBSERVER_PARENT_SESSION). They carry on down a chain of agents, so a session can see
+// several; the server takes the one that started last, its direct parent.
+function parentsFromEnvironment(ownId, env = process.env, knownAgents = null, sources = []) {
   const parents = [];
   const add = (agent, sessionId, toolCallId) => {
     if (!sessionId || sessionId === ownId || parents.some(parent => parent.session_id === sessionId)) return;
     parents.push(toolCallId ? { agent, session_id: sessionId, tool_call_id: toolCallId } : { agent, session_id: sessionId });
   };
-  add('codex', env.CODEX_SESSION_ID || env.CODEX_THREAD_ID, env.CODEX_TOOL_CALL_ID);
-  add('claude', env.CLAUDE_CODE_SESSION_ID);
+  for (const source of sources) {
+    const sessionId = (source.session || []).map(name => env[name]).find(Boolean);
+    add(source.agent, sessionId, source.toolCall ? env[source.toolCall] : undefined);
+  }
   const pluginAgent = env.OBSERVER_PARENT_AGENT;
   if (pluginAgent && (!knownAgents || knownAgents.has(pluginAgent))) add(pluginAgent, env.OBSERVER_PARENT_SESSION);
   return parents;
 }
 
-// `agent`: who sends the events; `logDir`: the sessions folder; `env`: where to look for parent sessions
-function createRecorder({ agent, logDir, env = process.env, append = appendSessionEvent }) {
+// `agent`: who sends the events; `logDir`: the sessions folder; `env` and `parentSources`: where to look for the
+// sessions that started this one (see parentsFromEnvironment)
+function createRecorder({ agent, logDir, env = process.env, parentSources = [], append = appendSessionEvent }) {
   // writes one event and returns it (null when writing failed). `sessionId`: its session; `native`: the agent's own
   // event as `{ event, data }`, kept beside the translation; `parents`: sessions known to have started this one
   function record(eventName, data, { sessionId, native = null, parents = [], ts = null } = {}) {
@@ -59,7 +63,7 @@ function createRecorder({ agent, logDir, env = process.env, append = appendSessi
         data: truncate(data && typeof data === 'object' ? data : {}),
       };
       if (native) event.native = truncate(native);
-      const linked = parentsFromEnvironment(id, env);
+      const linked = parentsFromEnvironment(id, env, null, parentSources);
       for (const parent of parents) {
         if (parent && parent.session_id && parent.session_id !== id && !linked.some(known => known.session_id === parent.session_id)) linked.push(parent);
       }
