@@ -5,7 +5,7 @@
     {
       "name": "session-observer",
       "source": "./",
-      "description": "Live local dashboard of everything happening in your Claude Code sessions."
+      "description": "Live local dashboard of everything happening in your Claude Code, Codex and OpenCode sessions."
     }
   ]
 }

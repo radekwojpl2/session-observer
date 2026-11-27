@@ -1,7 +1,7 @@
 {
   "name": "session-observer",
   "version": "0.20.0",
-  "description": "Observe everything that happens in a Codex session (prompts, tool calls, patches, subagents, permissions, compactions, tokens) on a live local dashboard, together with your Claude Code sessions.",
+  "description": "Observe everything that happens in a Codex session (prompts, tool calls, patches, subagents, permissions, compactions, tokens) on a live local dashboard, together with your Claude Code and OpenCode sessions.",
   "author": {
     "name": "Radek"
   },
@@ -10,14 +10,17 @@
     "observability",
     "hooks",
     "dashboard",
-    "telemetry"
+    "telemetry",
+    "codex",
+    "claude-code",
+    "opencode"
   ],
   "homepage": "https://github.com/radekwojpl2/session-observer",
   "repository": "https://github.com/radekwojpl2/session-observer",
   "interface": {
     "displayName": "Session Observer",
-    "shortDescription": "Live dashboard of your Codex and Claude Code sessions",
-    "longDescription": "Records every prompt, tool call, patch, subagent, permission, compaction and token count of your Codex sessions to a local log, and shows them on a live dashboard at http://localhost:4777, next to your Claude Code sessions. Nothing leaves your machine.",
+    "shortDescription": "Live dashboard of your Codex, Claude Code and OpenCode sessions",
+    "longDescription": "Records every prompt, tool call, patch, subagent, permission, compaction and token count of your Codex sessions to a local log, and shows them on a live dashboard at http://localhost:4777, next to your Claude Code and OpenCode sessions. Nothing leaves your machine.",
     "developerName": "Radek",
     "category": "Developer Tools",
     "capabilities": [
