@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.20.0](https://github.com/radekwojpl2/session-observer/compare/v0.19.0...v0.20.0) (2026-11-27)
+
+
+### Features
+
+* OpenCode's Context view, from its own database ([#123](https://github.com/radekwojpl2/session-observer/issues/123)) ([b00fe5d](https://github.com/radekwojpl2/session-observer/commit/b00fe5dc2bd135b4d39b6e14b090a6f77a7d9783))
+* scaffold and guide for adding an agent ([#121](https://github.com/radekwojpl2/session-observer/issues/121)) ([57861ce](https://github.com/radekwojpl2/session-observer/commit/57861ceb8b00b31669393ee1ed9e3b7012b24724))
+* show OpenCode sessions ([#119](https://github.com/radekwojpl2/session-observer/issues/119)) ([fa01512](https://github.com/radekwojpl2/session-observer/commit/fa01512b6ce26fd07ad278838c0499ac015196f6))
+
+
+### Code Changes
+
+* an agents feature with a registry ([#112](https://github.com/radekwojpl2/session-observer/issues/112)) ([29de56f](https://github.com/radekwojpl2/session-observer/commit/29de56fae76406cc455ab408d4180d204dc6ad55))
+* Claude Code as an agent folder ([#118](https://github.com/radekwojpl2/session-observer/issues/118)) ([65437d1](https://github.com/radekwojpl2/session-observer/commit/65437d171bb8f46f2162d0e6f545edfc22a40307))
+* Codex as an agent folder ([#116](https://github.com/radekwojpl2/session-observer/issues/116)) ([56cceb8](https://github.com/radekwojpl2/session-observer/commit/56cceb801e4feda80e9fab077ac909471e0ca8a3))
+* write every event through one recorder ([#109](https://github.com/radekwojpl2/session-observer/issues/109)) ([d9337e1](https://github.com/radekwojpl2/session-observer/commit/d9337e1341489f5a11dbd07d89a6f7faf277aeba))
+
 ## [0.19.0](https://github.com/radekwojpl2/session-observer/compare/v0.18.1...v0.19.0) (2026-11-26)
 
 
