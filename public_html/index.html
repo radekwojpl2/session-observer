@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Session Observer</title>
-<meta name="description" content="One local dashboard for Claude Code and Codex sessions.">
+<meta name="description" content="One local dashboard for Claude Code, Codex and OpenCode sessions.">
 <link rel="icon" type="image/svg+xml" href="assets/icon-eye.svg">
 <link rel="apple-touch-icon" href="assets/icon-eye-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -131,14 +131,15 @@
   <section class="sec hero">
     <div class="badge"><b>●</b> live · local · zero deps · MIT</div>
     <h1>The dashboard for what your coding agent actually did.</h1>
-    <p class="lead">Prompts, tool calls, model steps, subagents, context use and failures from Claude Code and Codex, streamed live to one page on localhost.</p>
+    <p class="lead">Prompts, tool calls, model steps, subagents, context use and failures from Claude Code, Codex and OpenCode, streamed live to one page on localhost.</p>
 
     <div class="install" data-group="hero">
       <div class="tabs" role="tablist">
         <button role="tab" aria-selected="true" data-cmd="0">claude code</button>
         <button role="tab" aria-selected="false" data-cmd="1">codex</button>
         <button role="tab" aria-selected="false" data-cmd="2">codex cli</button>
-        <button role="tab" aria-selected="false" data-cmd="3">demo</button>
+        <button role="tab" aria-selected="false" data-cmd="3">opencode</button>
+        <button role="tab" aria-selected="false" data-cmd="4">demo</button>
       </div>
       <div class="cmd"><pre class="multi" id="cmd"></pre><button class="copy" type="button" data-copy="#cmd">copy</button></div>
       <div class="note" id="cmd-note"></div>
@@ -152,7 +153,7 @@
 
   <section class="sec" id="features">
     <h2>What is Session Observer?</h2>
-    <p class="muted" style="max-width:680px;margin-bottom:28px">A Claude Code and Codex plugin. A hook writes every event to a local JSONL file; a small Node server tails those files and serves a live dashboard.</p>
+    <p class="muted" style="max-width:680px;margin-bottom:28px">A plugin for Claude Code, Codex and OpenCode. A hook, or in OpenCode a plugin, writes every event to a local JSONL file; a small Node server tails those files and serves a live dashboard.</p>
     <ul class="feat">
       <li><div><b>Live sessions</b> <span>see which agents are working, idle or waiting on you, across every project</span></div></li>
       <li><div><b>Context breakdown</b> <span>a /context-style grid with estimated tokens for system prompt, tools, MCP, memory, skills and messages</span></div></li>
@@ -194,13 +195,13 @@
       <div><h3><em>03</em>Debugging runs</h3><p>Filter to <code>only problems</code>, open the turn marked ×, read the exact command and output that failed.</p></div>
       <div><h3><em>04</em>Subagent fan-out</h3><p>Each parallel subagent gets its own line in Route, nested under the turn that started it.</p></div>
       <div><h3><em>05</em>Many sessions at once</h3><p>Desktop notifications and <code>u</code> jump to the next session waiting on a permission or a question.</p></div>
-      <div><h3><em>06</em>Learning and review</h3><p>Read how the model reasons, which skills fire, and how Claude Code and Codex solve the same task.</p></div>
+      <div><h3><em>06</em>Learning and review</h3><p>Read how the model reasons, which skills fire, and how Claude Code, Codex and OpenCode solve the same task.</p></div>
     </div>
   </section>
 
   <section class="sec">
     <h2>How it works</h2>
-<pre class="log"><b>claude code</b> / <b>codex</b>          <span class="ok"># both agents, one log</span>
+<pre class="log"><b>claude code</b> / <b>codex</b> / <b>opencode</b>  <span class="ok"># every agent, one log</span>
   └─ hook event ─▶ <span class="ac">scripts/hook.js</span>          <span class="ok"># exits 0, never blocks</span>
        └─ append ─▶ sessions/<b>2026-11-26</b>/<b>3fa9…c1</b>.jsonl
             └─ tail every 400 ms ─▶ <span class="ac">server/server.js</span>
@@ -225,8 +226,8 @@
     <dl class="faq">
       <dt>Does it slow my agent down?</dt><dd>No. The hook appends one line and exits 0; errors are swallowed.</dd>
       <dt>Is the token split exact?</dt><dd>The total is measured at the latest model step; categories are estimates from their text.</dd>
-      <dt>Where is my data?</dt><dd>Events from Claude Code and Codex: plain JSONL in ~/.claude/session-observer (OBSERVER_DATA_DIR to move it). Codex rollouts are read in place from ~/.codex/sessions. The server binds to 127.0.0.1.</dd>
-      <dt>What do I need?</dt><dd>Node.js 18+. No npm install, no build step.</dd>
+      <dt>Where is my data?</dt><dd>Events from Claude Code, Codex and OpenCode: plain JSONL in ~/.claude/session-observer (OBSERVER_DATA_DIR to move it). Codex rollouts are read in place from ~/.codex/sessions, and OpenCode's opencode.db read-only. The server binds to 127.0.0.1.</dd>
+      <dt>What do I need?</dt><dd>Node.js 18+ (22.5+ for OpenCode's Context view). No npm install, no build step.</dd>
       <dt>Port 4777 is busy?</dt><dd>Set OBSERVER_PORT=4778.</dd>
     </dl>
   </section>
@@ -244,6 +245,7 @@
     ['/plugin marketplace add radekwojpl2/session-observer\n/plugin install session-observer@session-observer-marketplace', 'inside Claude Code · restart afterwards · dashboard on localhost:4777'],
     ['codex plugin marketplace add radekwojpl2/session-observer', 'then install Session Observer in the Codex desktop app · trust hooks in /hooks'],
     ['git clone https://github.com/radekwojpl2/session-observer\nnode session-observer/scripts/setup-codex.js', 'keeps your existing hooks · --remove to undo'],
+    ['git clone https://github.com/radekwojpl2/session-observer\nnode session-observer/scripts/setup-opencode.js', 'adds a plugin to ~/.config/opencode/plugin · restart OpenCode · --remove to undo'],
     ['git clone https://github.com/radekwojpl2/session-observer\nnode session-observer/scripts/demo.js', 'synthetic demo on localhost:4800 · your real log is untouched']
   ];
   var cmd = document.getElementById('cmd'), note = document.getElementById('cmd-note');
