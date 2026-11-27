@@ -4,7 +4,22 @@
     {
       "file": "session.jsonl",
       "recorded": "2026-11-27",
-      "what": "codex exec on Windows: a prompt, model requests with token usage, one shell command, then SessionEnd"
+      "what": "codex exec on Windows: a prompt, model requests with token usage, one shell command, then SessionEnd",
+      "expect": {
+        "turns": 1,
+        "toolCalls": 1,
+        "tools": {
+          "Bash": 1
+        },
+        "modelSteps": 1,
+        "usage": {
+          "input": 5790,
+          "output": 65
+        },
+        "failures": 0,
+        "ended": true,
+        "busy": false
+      }
     }
   ]
 }
