@@ -64,7 +64,7 @@ function toolArgument(data) {
   if (tool === 'AskUserQuestion') return (input.questions || []).map(question => question.question).join(' | ');
   if (isSubagentCall(tool)) return [input.subagent_type, input.description].filter(Boolean).join(' — ');
   if (tool === 'WebFetch' && input.url) return webFetchTarget(input.url);
-  if (tool === PATCH_TOOL) return patchedFiles(input).join(', ') || patchTextOf(input);
+  if (isPatchTool(tool)) return patchedFiles(input).join(', ') || patchTextOf(input);
   return input.command || input.file_path || input.notebook_path || input.path || input.pattern || input.url || input.query
     || input.description || input.subject || input.prompt
     || Object.values(input).find(value => typeof value === 'string')

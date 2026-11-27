@@ -2,17 +2,18 @@
 // chains of both. The hook writes on each event the parent sessions its environment names (`event.parents`); here a
 // session keeps them, and its parent is resolved when asked: the named session that started last, before this one.
 'use strict';
+const { AGENT_IDS, agentById, toolsWithRole } = require('../agents/registry');
 
 // the commands that start each agent, to find the tool call that started a session when its parent names none: the
 // agent's name as a command word (`codex exec`, `npx @openai/codex`, `& "C:\…\claude.exe" -p`), not inside a path or a
 // word (`~/.codex/config.toml`, `codex-rollout.js`)
 const agentCommand = name => new RegExp(`(?:^|[\\s;&|(\`"'/\\\\])${name}(?:\\.(?:exe|cmd|ps1))?(?=$|[\\s;&|)"'])`, 'i');
-const STARTS_AGENT = { claude: agentCommand('claude'), codex: agentCommand('codex') };
+const STARTS_AGENT = Object.fromEntries(AGENT_IDS.map(id => [id, agentCommand(agentById(id).command)]));
 // a call is over at its answer (a refused one gets only PermissionDenied), or when its turn ends: an interrupted call
 // gets no hook at all (as in needs-you.js)
 const ANSWERS_A_CALL = new Set(['PostToolUse', 'PostToolUseFailure', 'PermissionDenied']);
 const ENDS_THE_TURN = new Set(['UserPromptSubmit', 'Stop', 'StopFailure', 'SessionEnd']);
-const SHELL_TOOLS = new Set(['Bash', 'PowerShell', 'shell', 'exec_command', 'local_shell']);
+const SHELL_TOOLS = toolsWithRole('command'); // the tools that run input.command in a shell
 
 // takes the parent sessions an event names (once: they are the same on every event of a session)
 function trackParents(session, event) {

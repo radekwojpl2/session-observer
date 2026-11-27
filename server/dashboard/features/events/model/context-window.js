@@ -7,7 +7,7 @@ const ONE_MILLION_WINDOW = 1000000;
 // through the optional status line filter, so use that value for steps whose model matches the report.
 function contextWindowFor(session, tokens, model = session?.model) {
   const context = session?.context, observed = session?.observedContext;
-  if (session?.agent === CODEX && context?.window) return context.window;
+  if (agentReportsContextWindow(session?.agent) && context?.window) return context.window;
   if (observed && observed.model === model) return observed.window;
   if (tokens > DEFAULT_CONTEXT_WINDOW || /\[1m]|-1m/i.test(model || '')) return ONE_MILLION_WINDOW;
   return (context && (!context.model || context.model === model) && context.window) || DEFAULT_CONTEXT_WINDOW;

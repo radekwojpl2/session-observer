@@ -80,7 +80,7 @@ TRANSLATIONS.es = (() => {
     orderStarted: 'iniciadas más recientes', orderActivity: 'última actividad', orderName: 'nombre', orderProject: 'proyecto', noProject: '(sin carpeta)',
     range: 'Periodo', range1h: 'última 1 h', range6h: 'últimas 6 h', range24h: 'últimas 24 h', range7d: 'últimos 7 días', rangeAll: 'todo',
     search: 'Buscar', searchPh: 'prompts, respuestas, comandos, rutas, errores…',
-    group: 'Grupo de herramientas', groupTitle: 'Qué parte del mapa: Archivos, Shell, Git, MCP…', allGroups: 'todos los grupos', agent: 'Agente', allAgents: 'todos los agentes', agentTitle: 'Mostrar sesiones de Claude Code, de Codex o de ambos',
+    group: 'Grupo de herramientas', groupTitle: 'Qué parte del mapa: Archivos, Shell, Git, MCP…', allGroups: 'todos los grupos', agent: 'Agente', allAgents: 'todos los agentes', agentTitle: 'Mostrar sesiones de un agente o de todos',
     onlyProblems: 'solo problemas', filters: 'Filtros', resetFilters: 'Quitar filtros', view: 'Vista',
 
     subagent: 'Subagente', subagentLc: 'subagente', mainAgent: 'Agente principal', mainAgentLc: 'agente principal',

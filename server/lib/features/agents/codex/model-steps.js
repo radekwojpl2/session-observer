@@ -6,7 +6,7 @@
 // PostModelRequest. The calls an agent started since its previous step are that step's: their tool_use_ids match the
 // hooks, and the step moves to just before the first of them, where the request was.
 'use strict';
-const { CODEX_CONTEXT_WINDOW } = require('../../building-blocks/config');
+const { contextWindow: CODEX_CONTEXT_WINDOW } = require('./manifest');
 
 const CODEX = 'codex';
 const isCodexModelRequest = event => event.agent === CODEX && event.event === 'PostModelRequest';

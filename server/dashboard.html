@@ -57,8 +57,8 @@
     <summary><span data-t="filters">Filters</span><span class="hmenu-count" id="filterCount" hidden></span></summary>
     <div class="hmenu-box panel">
       <label id="groupFilter" data-t-title="groupTitle" title="Which part of the map: Files, Shell, Git, MCP…"><span data-t="group">Tool group</span><select id="station"></select></label>
-      <label id="agentFilter" style="display:none" data-t-title="agentTitle" title="Show sessions from Claude Code, Codex or both"><span data-t="agent">Agent</span>
-        <select id="agent"><option value="" data-t="allAgents">all agents</option><option value="claude">Claude Code</option><option value="codex">Codex</option></select>
+      <label id="agentFilter" style="display:none" data-t-title="agentTitle" title="Show sessions from one agent, or from all of them"><span data-t="agent">Agent</span>
+        <select id="agent"><option value="" data-t="allAgents">all agents</option></select>
       </label>
       <label class="check" id="problemsFilter"><input type="checkbox" id="problems"> <span data-t="onlyProblems">only problems</span></label>
       <hr>
@@ -105,11 +105,12 @@
 <script src="dashboard/building-blocks/code-highlight.js"></script>
 <script src="dashboard/building-blocks/json-view.js"></script>
 <script src="dashboard/building-blocks/card-parts.js"></script>
+<script src="dashboard/features/agents/model/agents.js"></script>
+<script src="dashboard/features/agents/render/agents.js"></script>
 <script src="dashboard/features/events/model/tool-groups.js"></script>
 <script src="dashboard/features/events/model/tool-techs.js"></script>
 <script src="dashboard/features/events/model/meaning.js"></script>
 <script src="dashboard/features/events/model/state.js"></script>
-<script src="dashboard/features/events/model/agents.js"></script>
 <script src="dashboard/features/events/model/session-activity.js"></script>
 <script src="dashboard/features/events/model/turns.js"></script>
 <script src="dashboard/features/events/model/activity.js"></script>

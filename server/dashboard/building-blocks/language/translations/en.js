@@ -82,7 +82,7 @@ TRANSLATIONS.en = (() => {
     orderStarted: 'newest started', orderActivity: 'last activity', orderName: 'name', orderProject: 'project', noProject: '(no folder)',
     range: 'Range', range1h: 'last 1 h', range6h: 'last 6 h', range24h: 'last 24 h', range7d: 'last 7 d', rangeAll: 'everything',
     search: 'Search', searchPh: 'prompts, replies, commands, paths, errors…',
-    group: 'Tool group', groupTitle: 'Which part of the map: Files, Shell, Git, MCP…', allGroups: 'all groups', agent: 'Agent', allAgents: 'all agents', agentTitle: 'Show sessions from Claude Code, Codex or both',
+    group: 'Tool group', groupTitle: 'Which part of the map: Files, Shell, Git, MCP…', allGroups: 'all groups', agent: 'Agent', allAgents: 'all agents', agentTitle: 'Show sessions from one agent, or from all of them',
     onlyProblems: 'only problems', filters: 'Filters', resetFilters: 'Reset filters', view: 'View',
 
     // shared words

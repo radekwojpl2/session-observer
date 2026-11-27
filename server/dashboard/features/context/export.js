@@ -6,7 +6,7 @@ function itemMarkdown(item, depth) {
   const heading = '#'.repeat(Math.min(6, 3 + depth));
   switch (item.kind) {
     case 'user': return `${heading} You\n\n${item.text}\n`;
-    case 'text': return `${heading} ${contextView.data?.agent === CODEX ? 'Codex' : 'Claude'}\n\n${item.text}\n`;
+    case 'text': return `${heading} ${agentShortName(contextView.data?.agent)}\n\n${item.text}\n`;
     case 'thinking': return `${heading} Thinking\n\n${markdownFence(item.text)}`;
     case 'summary': return `${heading} Compaction summary\n\n${item.text}\n`;
     case 'compact': return `---\n\n*Compacted${item.preTokens ? ` at ${item.preTokens} tokens` : ''}*\n`;

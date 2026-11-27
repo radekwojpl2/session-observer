@@ -2,7 +2,7 @@
 
 # Session Observer
 
-**One local dashboard for Claude Code and Codex.** Follow prompts, tool calls, model steps, subagents, context use and failures as they happen.
+**One local dashboard for Claude Code, Codex and OpenCode.** Follow prompts, tool calls, model steps, subagents, context use and failures as they happen.
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/radekwojpl2/session-observer/ci.yml?branch=main&label=Tests&logo=github)](https://github.com/radekwojpl2/session-observer/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/radekwojpl2/session-observer?label=release)](https://github.com/radekwojpl2/session-observer/releases)
@@ -10,6 +10,7 @@
 [![License: MIT](https://img.shields.io/github/license/radekwojpl2/session-observer?label=license&color=brightgreen)](LICENSE)
 [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-D97757)](#install)
 [![Codex plugin](https://img.shields.io/badge/Codex-plugin-412991)](#install)
+[![OpenCode plugin](https://img.shields.io/badge/OpenCode-plugin-211E1E)](#opencode)
 [![Dependencies: zero](https://img.shields.io/badge/dependencies-zero-brightgreen)](#development)
 [![Last commit](https://img.shields.io/github/last-commit/radekwojpl2/session-observer?label=last%20commit&color=brightgreen)](https://github.com/radekwojpl2/session-observer/commits/main)
 
@@ -43,13 +44,15 @@ The Home and Overview screenshots use example sessions. The remaining screenshot
 flowchart LR
   C[Claude Code] -->|plugin hooks| H[scripts/hook.js]
   X[Codex] -->|plugin hooks or CLI config| H
+  O[OpenCode] -->|in-process plugin| P[capture/plugin.js]
+  P -->|append by day and session| L
   H -->|append by day and session| L[(~/.claude/session-observer/sessions/DAY/*.jsonl)]
   L -->|recent days at start, older on request| S[Local Node server]
   S -->|HTTP and live updates| D[Dashboard in your browser]
-  S -. reads transcript when needed .-> T[Claude transcript or Codex rollout]
+  S -. reads transcript when needed .-> T[Claude transcript, Codex rollout or opencode.db]
 ~~~
 
-Both integrations append each event to a JSONL file for its session inside a folder for the current UTC day. The server keeps sessions in memory. At start it reads only the last few days, and the dashboard can load older days on request. The dashboard labels sessions by agent and reads transcripts when a view needs message or context detail.
+Each integration appends every event to a JSONL file for its session inside a folder for the current UTC day. The server keeps sessions in memory. At start it reads only the last few days, and the dashboard can load older days on request. The dashboard labels sessions by agent and reads transcripts when a view needs message or context detail.
 
 ### Event storage
 
@@ -166,35 +169,52 @@ node scripts/setup-codex.js --remove
 
 On first use, open /hooks in Codex and trust the Session Observer hooks. The dashboard starts on the first session if it is not already running.
 
-## Claude Code and Codex: what differs
+### OpenCode
 
-| | Claude Code | Codex |
-|---|---|---|
-| Hook setup | Installed with the Claude Code plugin | Desktop plugin or CLI setup script |
-| Event source | Claude Code hook events | Codex hook events, including model request and usage events |
-| Message and context source | Claude session transcript | Codex rollout file in ~/.codex/sessions |
-| Context detail | Transcript, instructions, tools, skills and attachments when recorded | Rollout parser reads prompts, replies, tool activity and context metadata |
-| Reasoning | Shown when the transcript provides it | Codex stores reasoning encrypted; only available summaries are readable |
-| Dashboard | Same local dashboard and event log | Same local dashboard and event log |
+OpenCode has no hook commands, so Session Observer adds a plugin that runs inside it. From this repository:
+
+~~~sh
+node scripts/setup-opencode.js
+~~~
+
+This writes `session-observer.js` into OpenCode's plugin folder (`~/.config/opencode/plugin/`, or under `$XDG_CONFIG_HOME`). Restart OpenCode afterwards. Run it again if you move this repository. To remove it:
+
+~~~sh
+node scripts/setup-opencode.js --remove
+~~~
+
+The plugin starts the dashboard with the `node` on your PATH. What it records, passes through or leaves out: [server/lib/features/agents/opencode/FIDELITY.md](server/lib/features/agents/opencode/FIDELITY.md).
+
+## Claude Code, Codex and OpenCode: what differs
+
+| | Claude Code | Codex | OpenCode |
+|---|---|---|---|
+| Hook setup | Installed with the Claude Code plugin | Desktop plugin or CLI setup script | Plugin setup script |
+| Event source | Claude Code hook events | Codex hook events, including model request and usage events | Its plugin hooks and bus events, translated; each keeps OpenCode's own event |
+| Message and context source | Claude session transcript | Codex rollout file in ~/.codex/sessions | The plugin: steps, tokens, replies and the system prompt as they happen |
+| Context detail | Transcript, instructions, tools, skills and attachments when recorded | Rollout parser reads prompts, replies, tool activity and context metadata | OpenCode's own database (`opencode.db`, read-only, Node 22.5+): prompts, replies, reasoning, tool calls with full output, steps, subagents. Tool definitions aren't stored there |
+| Subagents | In the same session | In the same session | A session of their own, linked to the task call that started it |
+| Reasoning | Shown when the transcript provides it | Codex stores reasoning encrypted; only available summaries are readable | In the Context view, from its database |
+| Dashboard | Same local dashboard and event log | Same local dashboard and event log | Same local dashboard and event log |
 
 ## Tricky details
 
 - **Hooks stay out of the way.** The hook writes events quickly, swallows errors and exits successfully so it does not block the coding session.
-- **Remove one session's Observer data.** Use its × button on Home or in the session list to delete its JSONL file. If the agent is still running, later events can create a new entry. Its original Claude Code or Codex transcript is not deleted.
-- **The sessions are not merged.** Claude Code and Codex sessions share a dashboard, but each keeps its own transcript and session identity.
+- **Remove one session's Observer data.** Use its × button on Home or in the session list to delete its JSONL file. If the agent is still running, later events can create a new entry. Its original transcript, rollout or OpenCode session is not deleted.
+- **The sessions are not merged.** Claude Code, Codex and OpenCode sessions share a dashboard, but each keeps its own transcript and session identity.
 - **Agents started by agents are linked.** When Claude Code runs `codex exec`, or Codex runs `claude -p`, the new session nests under the one that started it on Home, Overview says "started by", and the call that started it links to it. The hook reads the parent from the environment: `CLAUDE_CODE_SESSION_ID`, or `CODEX_SESSION_ID` with `CODEX_TOOL_CALL_ID`. Claude Code started by Claude Code is not linked: Claude Code replaces that variable with its own id.
 - **Codex hooks need trust.** Trust them once in Codex with /hooks. The CLI script preserves your other hooks, but its paths point to this clone.
 - **Context sizes are estimates.** Transcript formats and token counts differ by agent. Codex's rollout format is undocumented and may change; encrypted reasoning text cannot be recovered by the dashboard.
 
 ## Privacy and stored data
 
-Session Observer writes hook events to `~/.claude/session-observer/sessions/<day>/<session-hash>.jsonl`. At each start, the server moves the former combined `events.jsonl` into these folders. Until their plugin is updated, older installed hooks keep appending to that file, and the server tails it. `deleted-sessions.jsonl` keeps the ids and times of deleted sessions, so that import skips them. Session logs can contain prompts, commands and tool output. The server binds to `127.0.0.1` by default and reads Claude transcripts or Codex rollouts locally when needed. Treat them as sensitive.
+Session Observer writes hook events to `~/.claude/session-observer/sessions/<day>/<session-hash>.jsonl`. At each start, the server moves the former combined `events.jsonl` into these folders. Until their plugin is updated, older installed hooks keep appending to that file, and the server tails it. `deleted-sessions.jsonl` keeps the ids and times of deleted sessions, so that import skips them. Session logs can contain prompts, commands and tool output. The server binds to `127.0.0.1` by default and reads Claude transcripts, Codex rollouts or OpenCode's `opencode.db` (read-only) locally when needed. Treat them as sensitive.
 
-To clear Observer's event history, stop the server and delete the `sessions` directory, `events.jsonl` and `deleted-sessions.jsonl` from the configured data directory. To drop only old history, delete the day folders you no longer need (`~/.claude/session-observer` by default). This does not delete the original Claude or Codex transcripts.
+To clear Observer's event history, stop the server and delete the `sessions` directory, `events.jsonl` and `deleted-sessions.jsonl` from the configured data directory. To drop only old history, delete the day folders you no longer need (`~/.claude/session-observer` by default). This does not delete the original Claude or Codex transcripts, or OpenCode's own sessions.
 
 ## Troubleshooting
 
-- **No sessions appear:** start a new Claude Code or Codex session after installing. For Codex, open `/hooks` and trust Session Observer; for Codex CLI, rerun `node scripts/setup-codex.js` if you moved the repository.
+- **No sessions appear:** start a new Claude Code, Codex or OpenCode session after installing. For Codex, open `/hooks` and trust Session Observer; for Codex CLI, rerun `node scripts/setup-codex.js` if you moved the repository. For OpenCode, restart it after setup, and rerun `node scripts/setup-opencode.js` if you moved the repository.
 - **The dashboard does not open:** start it with `node server/server.js`. If port 4777 is already in use, start it on another port:
 
   ~~~powershell

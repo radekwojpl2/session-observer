@@ -14,11 +14,17 @@ and serves a live dashboard on http://127.0.0.1:4777.
   code by function (`model`, `render`, `controls`); dashboard `app/` wires the features and starts the page. A feature
   file runs nothing at load: its listeners go in an `init…Controls()` that `app/main.js` calls.
 - The hook must never block or fail Claude: it always exits 0 and swallows errors.
+- Events follow the contract in `server/lib/building-blocks/event-contract.js`. `docs/events.md` is generated from it
+  (`node scripts/events-doc.js`): change the contract, never the doc. Each agent's recorded sessions live in
+  `server/lib/features/agents/<agent>/fixtures/`; re-record them with `scripts/scrub-fixture.js` when the agent changes.
+- Each agent is a folder in `server/lib/features/agents/` plus its id in `AGENT_IDS`; nothing about an agent goes
+  elsewhere. A new one starts with `node scripts/new-agent.js <id> "<Name>"`; the steps are in `docs/adding-an-agent.md`.
 - Files use CRLF. For scripted edits use Node, not Python (not installed here).
 
 ## Check your work
 - `node test/check.js` — JSON parses, JS compiles, hooks point at real scripts, dashboard files match.
-- `node --test test/*.test.js` — smoke tests: hook → log → server → HTTP API.
+- `node --test test/*.test.js` — smoke tests: hook → log → server → HTTP API. `test/agents.test.js` is the conformance
+  test every agent folder passes: its recorded sessions, through a real server, make the sessions `fixtures.json` expects.
 - To try a branch without touching the installed plugin's server: `OBSERVER_PORT=4778 node server/server.js`.
 
 ## Git

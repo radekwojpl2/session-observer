@@ -92,7 +92,7 @@ function addChatTurn(chat, turn) {
           chat.html += `<div class="bub think" ${seqAttributes}>${escapeHtml(text)}</div>`;
         } else {
           modelSaidSomething = true;
-          chat.html += `<div class="bub ai ${agentClass(event)}" ${seqAttributes}>${markdownLiteHtml(text)}${bubbleTime(event.ts)}</div>`;
+          chat.html += `<div class="bub ai ${agentClass(event)}" data-agent-name="${escapeHtml(agentShortName(agentOfEvent(event)))}" ${seqAttributes}>${markdownLiteHtml(text)}${bubbleTime(event.ts)}</div>`;
         }
         break;
       }
@@ -131,7 +131,7 @@ function finalReplyBubble(stopEvent, modelSaidSomething) {
   const failed = stopEvent.event === 'StopFailure';
   if (!stopEvent.data?.last_assistant_message && !failed) return '';
   const text = stopEvent.data?.last_assistant_message || stopEvent.data?.error || TEXT.event.turnFailedLc;
-  return `<div class="bub ai ${agentClass(stopEvent)} ${failed ? 'fail' : ''}" data-seq="${stopEvent.seq}" data-seqs="${stopEvent.seq}">${markdownLiteHtml(text)}${bubbleTime(stopEvent.ts)}</div>`;
+  return `<div class="bub ai ${agentClass(stopEvent)} ${failed ? 'fail' : ''}" data-agent-name="${escapeHtml(agentShortName(agentOfEvent(stopEvent)))}" data-seq="${stopEvent.seq}" data-seqs="${stopEvent.seq}">${markdownLiteHtml(text)}${bubbleTime(stopEvent.ts)}</div>`;
 }
 
 function chatViewHtml() {

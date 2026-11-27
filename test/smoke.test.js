@@ -110,6 +110,13 @@ test('the server reports its version: in the health check and first on the live 
   assert.equal(JSON.parse(/event: hello\ndata: (.+)\n/.exec(text)[1]).version, version);
 });
 
+test('the agents the dashboard draws come from the server', async () => {
+  const agents = await getJson('/api/agents');
+  assert.deepEqual(agents.map(agent => agent.id), ['claude', 'codex', 'opencode']);
+  assert.equal(agents[1].name, 'Codex');
+  assert.ok(agents[1].tools.roles.patch.includes('apply_patch'));
+});
+
 test('dashboard HTML is served', async () => {
   const r = await get('/');
   assert.equal(r.status, 200);

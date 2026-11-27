@@ -1,0 +1,73 @@
+{
+  "agentVersion": "OpenCode 1.17.8",
+  "fixtures": [
+    {
+      "file": "task-parent.jsonl",
+      "recorded": "2026-11-27",
+      "what": "opencode run on Windows with a local fake model: a task call starts a general subagent, then a reply",
+      "expect": {
+        "turns": 1,
+        "toolCalls": 1,
+        "modelSteps": 2,
+        "usage": {
+          "input": 2000,
+          "output": 60,
+          "cache_read": 400
+        },
+        "failures": 0,
+        "ended": true,
+        "busy": false,
+        "tools": {
+          "task": 1
+        }
+      }
+    },
+    {
+      "file": "task-child.jsonl",
+      "recorded": "2026-11-27",
+      "what": "the subagent's own session: a bash call and a reply, linked to the parent's task call",
+      "expect": {
+        "turns": 1,
+        "toolCalls": 1,
+        "modelSteps": 2,
+        "usage": {
+          "input": 2000,
+          "output": 60,
+          "cache_read": 400
+        },
+        "failures": 0,
+        "ended": true,
+        "busy": false,
+        "tools": {
+          "bash": 1
+        },
+        "parent": {
+          "id": "ses_de33d44e3ffeQJYNIZqP65DOAN",
+          "agent": "opencode",
+          "callId": "call_task"
+        }
+      }
+    },
+    {
+      "file": "bash.jsonl",
+      "recorded": "2026-11-27",
+      "what": "opencode run on Windows with a local fake model: one bash call and a reply",
+      "expect": {
+        "turns": 1,
+        "toolCalls": 1,
+        "modelSteps": 2,
+        "usage": {
+          "input": 2000,
+          "output": 60,
+          "cache_read": 400
+        },
+        "failures": 0,
+        "ended": true,
+        "busy": false,
+        "tools": {
+          "bash": 1
+        }
+      }
+    }
+  ]
+}

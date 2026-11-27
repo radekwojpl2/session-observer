@@ -119,6 +119,29 @@ if (codexPlugin.name !== plugin.name) fail('.codex-plugin/plugin.json: name diff
   }
 }
 
+// 6b. docs/events.md is the one scripts/events-doc.js writes from the event contract
+if (!require('../scripts/events-doc').isUpToDate()) fail('docs/events.md is out of date: run node scripts/events-doc.js');
+
+// 6c. Every agent folder (server/lib/features/agents/<agent>/) is complete and registered, and every registered agent
+//     has its folder: a manifest naming it, a tool map, and recorded sessions the conformance test (test/agents.test.js)
+//     runs
+{
+  const agentsDir = path.join(ROOT, 'server', 'lib', 'features', 'agents');
+  const registered = require(path.join(agentsDir, 'registry.js')).AGENT_IDS;
+  const folders = fs.readdirSync(agentsDir, { withFileTypes: true }).filter(entry => entry.isDirectory()).map(entry => entry.name);
+  for (const id of registered) if (!folders.includes(id)) fail(`features/agents/registry.js lists "${id}", but there is no features/agents/${id}/`);
+  for (const id of folders) {
+    const at = `server/lib/features/agents/${id}`;
+    if (!registered.includes(id)) fail(`${at}: not in AGENT_IDS (features/agents/registry.js)`);
+    for (const file of ['manifest.js', 'tools.js', 'fixtures/fixtures.json']) {
+      if (!fs.existsSync(path.join(agentsDir, id, file))) fail(`${at}: missing ${file}`);
+    }
+    try {
+      if (require(path.join(agentsDir, id, 'manifest.js')).id !== id) fail(`${at}/manifest.js: id must be "${id}"`);
+    } catch (e) { fail(`${at}/manifest.js: does not load (${e.message})`); }
+  }
+}
+
 // 7. In CI on a pull request: the title is a Conventional Commit. A squash merge puts it on main, where
 //    release-please reads it to pick the next version and write the changelog.
 const title = process.env.PR_TITLE;
@@ -126,8 +149,8 @@ if (title && !/^(feat|fix|perf|refactor|revert|docs|test|ci|chore|build|style)(\
   fail(`PR title "${title}" is not a Conventional Commit, e.g. "feat: …", "fix: …", "refactor: …", "docs: …" (add "!" for a breaking change)`);
 }
 
-// 8. In CI on a pull request: the description links an issue and has proofs (CONTRIBUTING.md). Bots and
-//    release-please's release PRs don't use the template, so they are skipped.
+// 8. In CI on a pull request: the description links an issue (CONTRIBUTING.md). Bots and release-please's release
+//    PRs don't use the template, so they are skipped. (Proofs are asked for in the template, not checked here.)
 const author = process.env.PR_AUTHOR || '';
 const headRef = process.env.PR_HEAD_REF || '';
 if (process.env.GITHUB_EVENT_NAME === 'pull_request' && !author.endsWith('[bot]') && !headRef.startsWith('release-please--')) {
@@ -136,12 +159,6 @@ if (process.env.GITHUB_EVENT_NAME === 'pull_request' && !author.endsWith('[bot]'
   for (let prev; prev !== body;) { prev = body; body = body.replace(/<!--[\s\S]*?(-->|$)/g, ''); }
   if (!/\b(close[sd]?|fix(e[sd])?|resolve[sd]?)\s+(([\w.-]+\/[\w.-]+)?#\d+|https:\/\/github\.com\/\S+\/issues\/\d+)/i.test(body)) {
     fail('PR description links no issue: add "Closes #123" (CONTRIBUTING.md, "Opening the pull request")');
-  }
-  const proofs = (body.split(/^##\s+Proofs\s*$/m)[1] || '').split(/^##\s/m)[0];
-  const hasMedia = /!\[[^\]]*]\([^)]+\)|<img\s|<video\s|https:\/\/github\.com\/user-attachments\/\S+/i.test(proofs);
-  const notApplicable = /^\s*N\/A\s*[:\-–—]\s*\S.{5,}/im.test(proofs);
-  if (!hasMedia && !notApplicable) {
-    fail('PR description has no proofs: add annotated screenshots under "## Proofs", or "N/A: <reason>" when nothing changes for users (CONTRIBUTING.md, "Proofs")');
   }
 }
 

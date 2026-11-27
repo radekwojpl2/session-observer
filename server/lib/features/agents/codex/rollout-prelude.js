@@ -5,8 +5,8 @@
 // "host_skills.instructions", …). The file is Codex's own record, not a stable interface: anything this reader does
 // not recognize is left out, never an error.
 'use strict';
-const { clipText } = require('../transcript-rows');
-const { readListingLines } = require('../system-prompt');
+const { clipText } = require('../../context/transcript-rows');
+const { readListingLines } = require('../../context/system-prompt');
 
 const KIND = {
   system: 'model.base_instructions',

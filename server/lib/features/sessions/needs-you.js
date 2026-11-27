@@ -9,6 +9,7 @@
 // another call that finishes meanwhile (one run in parallel) leaves it alone. A permission with no such call gets a
 // key of its own, and ends with a result of the same agent and tool whose input fields all come back in it.
 'use strict';
+const { toolsWithRole } = require('../agents/registry');
 const crypto = require('crypto');
 const { QUESTION_TOOLS } = require('./event-categories');
 const { isRunningBackgroundSubagent } = require('./subagent-list');
@@ -16,7 +17,7 @@ const { isRunningBackgroundSubagent } = require('./subagent-list');
 const WAITS_KEPT_MAX = 10;
 const CALLS_KEPT_MAX = 50;
 const TEXT_MAX = 300;
-const ASYNC_QUESTION_TOOLS = new Set(['request_user_input_async']);
+const ASYNC_QUESTION_TOOLS = toolsWithRole('asyncQuestion'); // ask, and also wait for your next message (Codex)
 const ENDS_EVERY_WAIT = new Set(['UserPromptSubmit', 'Stop', 'StopFailure', 'SessionEnd']);
 const ANSWERS_A_TOOL = new Set(['PostToolUse', 'PostToolUseFailure', 'PermissionDenied']);
 
