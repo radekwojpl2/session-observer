@@ -122,6 +122,26 @@ if (codexPlugin.name !== plugin.name) fail('.codex-plugin/plugin.json: name diff
 // 6b. docs/events.md is the one scripts/events-doc.js writes from the event contract
 if (!require('../scripts/events-doc').isUpToDate()) fail('docs/events.md is out of date: run node scripts/events-doc.js');
 
+// 6c. Every agent folder (server/lib/features/agents/<agent>/) is complete and registered, and every registered agent
+//     has its folder: a manifest naming it, a tool map, and recorded sessions the conformance test (test/agents.test.js)
+//     runs
+{
+  const agentsDir = path.join(ROOT, 'server', 'lib', 'features', 'agents');
+  const registered = require(path.join(agentsDir, 'registry.js')).AGENT_IDS;
+  const folders = fs.readdirSync(agentsDir, { withFileTypes: true }).filter(entry => entry.isDirectory()).map(entry => entry.name);
+  for (const id of registered) if (!folders.includes(id)) fail(`features/agents/registry.js lists "${id}", but there is no features/agents/${id}/`);
+  for (const id of folders) {
+    const at = `server/lib/features/agents/${id}`;
+    if (!registered.includes(id)) fail(`${at}: not in AGENT_IDS (features/agents/registry.js)`);
+    for (const file of ['manifest.js', 'tools.js', 'fixtures/fixtures.json']) {
+      if (!fs.existsSync(path.join(agentsDir, id, file))) fail(`${at}: missing ${file}`);
+    }
+    try {
+      if (require(path.join(agentsDir, id, 'manifest.js')).id !== id) fail(`${at}/manifest.js: id must be "${id}"`);
+    } catch (e) { fail(`${at}/manifest.js: does not load (${e.message})`); }
+  }
+}
+
 // 7. In CI on a pull request: the title is a Conventional Commit. A squash merge puts it on main, where
 //    release-please reads it to pick the next version and write the changelog.
 const title = process.env.PR_TITLE;

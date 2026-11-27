@@ -21,7 +21,8 @@ and serves a live dashboard on http://127.0.0.1:4777.
 
 ## Check your work
 - `node test/check.js` — JSON parses, JS compiles, hooks point at real scripts, dashboard files match.
-- `node --test test/*.test.js` — smoke tests: hook → log → server → HTTP API.
+- `node --test test/*.test.js` — smoke tests: hook → log → server → HTTP API. `test/agents.test.js` is the conformance
+  test every agent folder passes: its recorded sessions, through a real server, make the sessions `fixtures.json` expects.
 - To try a branch without touching the installed plugin's server: `OBSERVER_PORT=4778 node server/server.js`.
 
 ## Git
