@@ -47,6 +47,17 @@ for (const r of refs) if (!fs.existsSync(path.join(ROOT, 'server', r))) fail(`se
 for (const f of walk(path.join(ROOT, 'server', 'dashboard')).map(p => rel(p).slice('server/'.length)).filter(f => /[.](js|css)$/.test(f))) {
   if (!refs.includes(f)) fail(`server/${f}: not loaded by server/dashboard.html`);
 }
+// no two scripts declare the same top-level name: they share one global scope, so the second file would not load
+{
+  const declaredIn = new Map();
+  for (const ref of refs.filter(r => r.endsWith('.js'))) {
+    const source = fs.readFileSync(path.join(ROOT, 'server', ref), 'utf8');
+    for (const [, name] of source.matchAll(/^(?:const|let|var|(?:async\s+)?function\*?|class)\s+([A-Za-z_$][\w$]*)/gm)) {
+      if (declaredIn.has(name)) fail(`server/${ref}: "${name}" is already declared in server/${declaredIn.get(name)} (the scripts share one scope)`);
+      else declaredIn.set(name, ref);
+    }
+  }
+}
 // each script is strict on its own (they are separate files, so one 'use strict' no longer covers them all)
 for (const r of refs.filter(r => r.endsWith('.js'))) {
   const f = path.join(ROOT, 'server', r);
