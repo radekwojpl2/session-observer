@@ -61,6 +61,7 @@ and an event or field the contract doesn't know is never an error.
 | [`SessionEnd`](#sessionend) | lifecycle | `claude`, `codex` | The session ends. |
 | [`PreModelRequest`](#premodelrequest) | env | `codex` | Codex sends a request to the model. |
 | [`PostModelRequest`](#postmodelrequest) | env | `codex` | Codex gets the model's answer. The server turns it into a ModelStep. |
+| [`AgentEvent`](#agentevent) | env | agents with a translation | An agent's own event with no match here, kept as it came (in `native`). |
 | [`ModelStep`](#modelstep) | model | the server | One model response: from Claude Code's transcript, or a Codex PostModelRequest. |
 | [`ModelText`](#modeltext) | model | the server | A block of text or thinking the model wrote. |
 
@@ -363,6 +364,16 @@ Category: env. Sent by `codex`.
 | `token_usage` | object |  | Token counts, OpenAI names. |
 | `response_id` | string |  | The response. |
 | `error` | any |  | Why it failed. |
+
+### AgentEvent
+
+An agent's own event with no match here, kept as it came (in `native`).
+
+Category: env. Sent by agents with a translation.
+
+| Field | Type | Always | What it holds |
+| --- | --- | --- | --- |
+| `native_event` | string | yes | The agent's name for it. |
 
 ### ModelStep
 
