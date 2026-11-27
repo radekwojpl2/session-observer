@@ -43,9 +43,17 @@ Any bus event with a session that isn't mapped or dropped, for example `todo.upd
 | `permission.updated`, `permission.asked` | The `permission.ask` hook records the ask |
 | `plugin.added`, `catalog.updated`, `integration.updated`, `reference.updated`, `server.*`, `installation.*`, `lsp.*`, `file.watcher.*`, `vcs.*`, `tui.*`, `pty.*` | Start-up and editor noise, with no session |
 
+## The Context view
+
+Read from OpenCode's own database (`opencode.db`, SQLite), read-only, with Node's built-in `node:sqlite` (Node 22.5
+or later). The plugin records where the database is (`opencode_db` on SessionStart, from OpenCode's own
+`XDG_DATA_HOME`); `OBSERVER_OPENCODE_DB` overrides it. Messages and parts become the view's items: prompts, replies,
+reasoning, tool calls with their full input and output, steps with their tokens, compactions and summaries. Child
+sessions become its subagents, linked to their task call.
+
 ## Not yet
 
-- **The Context view.** OpenCode keeps sessions in a SQLite database (`opencode.db`); reading it needs `node:sqlite`,
-  so for now the view says it is not available.
-- **Reasoning text.** `reasoning` parts aren't recorded as `ModelText` yet.
+- **Reasoning text, live.** `reasoning` parts aren't recorded as `ModelText` yet. The Context view shows them, from the database.
+- **The full system prompt in the Context view.** The database doesn't store it, so the view shows the one the plugin
+  recorded, cut at `OBSERVER_MAX_FIELD` characters (8000 by default). The tool list isn't stored either.
 - **Checked, not yet seen live:** `permission.ask`, compaction, and the interactive TUI. Only `opencode run` was recorded.

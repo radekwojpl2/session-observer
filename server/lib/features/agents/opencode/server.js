@@ -1,13 +1,11 @@
 // What the server does for OpenCode: its plugin reports its own model steps (with tokens and the model's window),
-// so they only need adding up. It has no session file to read; its Context view is not built yet (FIDELITY.md).
+// so they only need adding up. Its Context view reads OpenCode's own database (context.js).
 'use strict';
 const { isReportedStep, addReportedUsage } = require('../../sessions/reported-steps');
+const { opencodeSessionContext } = require('./context');
 
 module.exports = {
   modelStepFrom: isReportedStep, // already a ModelStep: nothing to rewrite
   addStepUsage: addReportedUsage,
-  sessionContext: session => ({
-    error: "OpenCode's Context view is not available yet: its plugin records the conversation, not a session file this view can read.",
-    transcript: null, session: session.id,
-  }),
+  sessionContext: opencodeSessionContext,
 };

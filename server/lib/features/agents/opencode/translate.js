@@ -28,7 +28,8 @@ function digestOf(text) {
   return (hash >>> 0).toString(16) + ':' + text.length;
 }
 
-function createOpencodeTranslator({ emit, onFirstSession = () => {} }) {
+// `databasePath`: where this OpenCode keeps its sessions (opencode.db), recorded so the Context view can read them
+function createOpencodeTranslator({ emit, onFirstSession = () => {}, databasePath = null }) {
   const windows = new Map();       // session id → { window, model }, from chat.params
   const systemPrompts = new Map(); // session id → the system prompt last sent (experimental.chat.system.transform)
   const recordedPrompts = new Map(); // session id → digest of the system prompt last recorded
@@ -51,7 +52,7 @@ function createOpencodeTranslator({ emit, onFirstSession = () => {} }) {
     sessionsSeen.add(info.id);
     const parents = info.parentID ? [{ agent: AGENT, session_id: info.parentID, tool_call_id: taskCalls.get(info.parentID) || undefined }] : [];
     for (const parent of parents) if (!parent.tool_call_id) delete parent.tool_call_id;
-    send('SessionStart', info.id, { source: 'startup', cwd: info.directory || null, title: info.title || null, opencode_version: info.version || null }, { native, parents });
+    send('SessionStart', info.id, { source: 'startup', cwd: info.directory || null, title: info.title || null, opencode_version: info.version || null, opencode_db: databasePath }, { native, parents });
   }
 
   // a tool part as it changes: remember which step asked for the call, and record a failure no hook reports

@@ -162,3 +162,83 @@ test('setup-opencode.js adds the plugin loader, keeps a file it did not write, a
     fs.rmSync(home, { recursive: true, force: true });
   }
 });
+
+// ---- the Context view, from OpenCode's database (a copy built from fixtures/context-db.json)
+const { opencodeSessionContext, databasePathOf } = require('../server/lib/features/agents/opencode/context');
+const DB_ROWS = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'server', 'lib', 'features', 'agents', 'opencode', 'fixtures', 'context-db.json'), 'utf8'));
+const PARENT = 'ses_de33d44e3ffeQJYNIZqP65DOAN', CHILD = 'ses_de33d4169ffeqrU9f7TyfNv5hk';
+
+// OpenCode's tables, with only the columns the reader uses
+function fixtureDatabase() {
+  const { DatabaseSync } = require('node:sqlite');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'so-opencode-db-'));
+  const file = path.join(dir, 'opencode.db');
+  const db = new DatabaseSync(file);
+  db.exec('CREATE TABLE session (id TEXT PRIMARY KEY, parent_id TEXT, title TEXT, time_created INTEGER);'
+    + 'CREATE TABLE message (id TEXT PRIMARY KEY, session_id TEXT, time_created INTEGER, data TEXT);'
+    + 'CREATE TABLE part (id TEXT PRIMARY KEY, message_id TEXT, session_id TEXT, data TEXT);');
+  for (const row of DB_ROWS.session) db.prepare('INSERT INTO session VALUES (?, ?, ?, ?)').run(row.id, row.parent_id, row.title, row.time_created);
+  for (const row of DB_ROWS.message) db.prepare('INSERT INTO message VALUES (?, ?, ?, ?)').run(row.id, row.session_id, row.time_created, row.data);
+  for (const row of DB_ROWS.part) db.prepare('INSERT INTO part VALUES (?, ?, ?, ?)').run(row.id, row.message_id, row.session_id, row.data);
+  db.close();
+  return { dir, file };
+}
+
+const recordedSession = (id, file) => ({
+  id, model: 'fake-model', context: { tokens: 1200, window: 64000 },
+  events: [
+    { event: 'SessionStart', data: { opencode_db: file } },
+    { event: 'InstructionsLoaded', data: { system_prompt: 'You are opencode. Always be brief.' } },
+  ],
+});
+
+test('the Context view reads the conversation from OpenCode\'s database, in the shape the view shows', () => {
+  const { dir, file } = fixtureDatabase();
+  try {
+    const context = opencodeSessionContext(recordedSession(PARENT, file));
+    assert.equal(context.error, undefined);
+    assert.equal(context.agent, 'opencode');
+    assert.equal(context.window, 64000);
+    assert.equal(context.system, 'You are opencode. Always be brief.', 'the system prompt the plugin recorded');
+    assert.deepEqual(context.tools, [], 'a list beside a system prompt, as the view counts tool sizes from it');
+    const kinds = context.items.map(item => item.kind);
+    assert.deepEqual(kinds, ['user', 'step', 'call', 'result', 'step', 'text'], 'each step before what it produced');
+    const call = context.items.find(item => item.kind === 'call');
+    assert.deepEqual([call.name, call.id, call.input.subagent_type], ['task', 'call_task', 'general']);
+    assert.deepEqual(context.items.find(item => item.kind === 'step'), { kind: 'step', ts: context.items[1].ts, model: 'fake-model', out: 30, ctx: 1200 });
+    assert.match(context.items.at(-1).text, /spike-ok/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('a subagent session shows under its parent, linked to the task call that started it', () => {
+  const { dir, file } = fixtureDatabase();
+  try {
+    const { subagents } = opencodeSessionContext(recordedSession(PARENT, file));
+    assert.deepEqual(Object.keys(subagents), [CHILD]);
+    assert.deepEqual([subagents[CHILD].toolUseId, subagents[CHILD].type, subagents[CHILD].description], ['call_task', 'general', 'Child run']);
+    const bash = subagents[CHILD].items.find(item => item.kind === 'call');
+    assert.deepEqual([bash.name, bash.input.command], ['bash', 'echo spike-ok']);
+    assert.match(subagents[CHILD].items.find(item => item.kind === 'result').text, /spike-ok/, 'the full tool output');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('a missing database or session says so instead of failing', () => {
+  assert.match(opencodeSessionContext(recordedSession(PARENT, path.join(os.tmpdir(), 'no-such-dir', 'opencode.db'))).error, /not found/);
+  const { dir, file } = fixtureDatabase();
+  try {
+    assert.match(opencodeSessionContext(recordedSession('ses_unknown', file)).error, /not in the OpenCode database/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("the database is the one the plugin recorded, unless OBSERVER_OPENCODE_DB says otherwise", () => {
+  const session = recordedSession(PARENT, '/data/opencode/opencode.db');
+  assert.equal(databasePathOf(session, {}), '/data/opencode/opencode.db');
+  assert.equal(databasePathOf(session, { OBSERVER_OPENCODE_DB: '/elsewhere.db' }), '/elsewhere.db');
+  assert.equal(databasePathOf({ events: [] }, { XDG_DATA_HOME: '/xdg' }), path.join('/xdg', 'opencode', 'opencode.db'));
+});
