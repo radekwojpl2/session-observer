@@ -126,6 +126,21 @@ test('the plugin answers every hook OpenCode calls, and an error never reaches O
   await hooks.event({ event: null });
 });
 
+test('the plugin loader imports, and does nothing instead of failing when this copy has moved', async () => {
+  const { loaderSource } = require('../server/lib/features/agents/opencode/setup');
+  const { pathToFileURL } = require('node:url');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'so-opencode-loader-'));
+  try {
+    const write = (name, source) => { const file = path.join(dir, name); fs.writeFileSync(file, source); return pathToFileURL(file).href; };
+    const real = await import(write('real.mjs', loaderSource()));
+    assert.equal(typeof real.SessionObserver, 'function');
+    const moved = await import(write('moved.mjs', loaderSource(path.join(dir, 'gone', 'plugin.js'))));
+    assert.deepEqual(await moved.SessionObserver({}), {}, 'a plugin with no hooks');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('setup-opencode.js adds the plugin loader, keeps a file it did not write, and removes its own', () => {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'so-opencode-'));
   const env = { ...process.env, XDG_CONFIG_HOME: home };
@@ -135,7 +150,8 @@ test('setup-opencode.js adds the plugin loader, keeps a file it did not write, a
     assert.equal(run().status, 0);
     const source = fs.readFileSync(loader, 'utf8');
     assert.match(source, /createRequire\(import\.meta\.url\)/);
-    assert.match(source, /export const SessionObserver = createOpencodePlugin\(\);/);
+    assert.match(source, /SessionObserver = createOpencodePlugin\(\);/);
+    assert.match(source, /export \{ SessionObserver \};/);
     assert.equal(run('--remove').status, 0);
     assert.throws(() => fs.readFileSync(loader), { code: 'ENOENT' }, 'removed');
     fs.writeFileSync(loader, '// my own plugin', { flag: 'wx' });

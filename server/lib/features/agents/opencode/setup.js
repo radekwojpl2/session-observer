@@ -12,13 +12,19 @@ const PLUGIN_MODULE = path.join(__dirname, 'capture', 'plugin.js');
 
 const pluginDir = (env = process.env) => path.join(env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config'), 'opencode', 'plugin');
 
-// the loader: OpenCode wants an ES module; this copy's plugin is CommonJS, so it is required through createRequire
+// the loader: OpenCode wants an ES module; this copy's plugin is CommonJS, so it is required through createRequire.
+// If this copy has moved or gone, the loader exports a plugin that does nothing, so OpenCode still starts.
 const loaderSource = (modulePath = PLUGIN_MODULE) => [
   `// ${MARKER}. Written by Session Observer (scripts/setup-opencode.js); remove with --remove.`,
+  `// If ${path.basename(modulePath)} has moved, this plugin does nothing: run setup-opencode.js again from the new copy.`,
   "import { createRequire } from 'node:module';",
   'const require = createRequire(import.meta.url);',
-  `const { createOpencodePlugin } = require(${JSON.stringify(modulePath)});`,
-  'export const SessionObserver = createOpencodePlugin();',
+  'let SessionObserver = async () => ({});',
+  'try {',
+  `  const { createOpencodePlugin } = require(${JSON.stringify(modulePath)});`,
+  '  SessionObserver = createOpencodePlugin();',
+  '} catch {}',
+  'export { SessionObserver };',
   '',
 ].join('\n');
 
