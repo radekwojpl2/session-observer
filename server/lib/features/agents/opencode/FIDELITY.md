@@ -12,7 +12,7 @@ Checked against OpenCode 1.17.8 (`opencode run`, Windows). The types come from `
 | --- | --- |
 | `SessionStart` | event `session.created`; `info.parentID` becomes `parents`, with the parent's last `task` call id |
 | `UserPromptSubmit` | hook `chat.message` (the text parts) |
-| `InstructionsLoaded` | hook `experimental.chat.system.transform`, recorded at the next `chat.params` when the prompt changed |
+| `InstructionsLoaded` | hook `experimental.chat.system.transform`, recorded at the next `chat.params` when the prompt changed: the system prompt, and each instruction file in it (`Instructions from: <path>` blocks: AGENTS.md, CLAUDE.md, config instructions) on its own, with its content |
 | `PreToolUse` | hook `tool.execute.before` |
 | `PostToolUse` | hook `tool.execute.after`; a `task` call's `metadata.sessionId` is kept as `child_session_id` |
 | `PostToolUseFailure` | event `message.part.updated`, a tool part in state `error`, when no result came |

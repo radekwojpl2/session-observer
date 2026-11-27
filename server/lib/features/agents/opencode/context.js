@@ -114,6 +114,20 @@ function subagentContexts(db, sessionId) {
   return subagents;
 }
 
+// the instruction files the plugin found in the system prompt (AGENTS.md, CLAUDE.md, …), the latest of each. A file
+// in the session's folder is the project's; OpenCode's global ones get no label (the view's "global" means ~/.claude).
+function recordedInstructionFiles(session) {
+  const files = new Map();
+  const cwd = (session.cwd || '').replace(/\\/g, '/').toLowerCase();
+  for (const event of session.events || []) {
+    const data = event.data || {};
+    if (event.event !== 'InstructionsLoaded' || data.from !== 'system prompt' || typeof data.content !== 'string') continue;
+    const inProject = cwd && String(data.file_path).replace(/\\/g, '/').toLowerCase().startsWith(cwd + '/');
+    files.set(data.file_path, { path: data.file_path, type: inProject ? 'Project' : null, content: clipText(data.content) });
+  }
+  return [...files.values()];
+}
+
 // the system prompt the plugin recorded last for this session
 function recordedSystemPrompt(session) {
   const events = (session.events || []).filter(event => event.event === 'InstructionsLoaded' && typeof event.data?.system_prompt === 'string');
@@ -131,7 +145,7 @@ function opencodeSessionContext(session) {
       session: session.id, agent: 'opencode', transcript: file, model: session.model, context: session.context,
       window: session.context?.window || null,
       // (tools: the database doesn't keep their definitions; a list, as the view expects one beside a system prompt)
-      system: recordedSystemPrompt(session), tools: [], instructions: [], skills: null, agents: null, mcp: null,
+      system: recordedSystemPrompt(session), tools: [], instructions: recordedInstructionFiles(session), skills: null, agents: null, mcp: null,
       items: conversationItems(db, session.id),
       subagents: subagentContexts(db, session.id),
       wire: null,

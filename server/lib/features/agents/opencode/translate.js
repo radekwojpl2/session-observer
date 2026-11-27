@@ -21,6 +21,28 @@ const textOfParts = parts => (Array.isArray(parts) ? parts : [])
   .filter(part => part && part.type === 'text' && !part.synthetic && typeof part.text === 'string')
   .map(part => part.text).join('\n').trim();
 
+// The instruction files OpenCode put in a system prompt (AGENTS.md, CLAUDE.md, its config's instructions): each is a
+// block "Instructions from: <path>", a new line, then the file's content (session/instruction.ts), followed by the
+// next block or by the skills
+// listing. Recorded one by one, so each keeps its own field limit and the Context view can list them.
+const INSTRUCTIONS_FROM = 'Instructions from: ';
+const AFTER_INSTRUCTIONS = /^(Instructions from: |Skills provide specialized instructions|<available_skills>)/;
+function instructionFilesOf(system) {
+  const files = [];
+  let current = null;
+  for (const line of system.split(/\r?\n/)) {
+    if (line.startsWith(INSTRUCTIONS_FROM)) {
+      if (current) files.push(current);
+      current = { path: line.slice(INSTRUCTIONS_FROM.length).trim(), lines: [] };
+    } else if (current && AFTER_INSTRUCTIONS.test(line)) {
+      files.push(current);
+      current = null;
+    } else if (current) current.lines.push(line);
+  }
+  if (current) files.push(current);
+  return files.map(file => ({ path: file.path, content: file.lines.join('\n').trim() }));
+}
+
 // a short, stable digest of a text, to record the system prompt only when it changes
 function digestOf(text) {
   let hash = 0;
@@ -150,6 +172,10 @@ function createOpencodeTranslator({ emit, onFirstSession = () => {}, databasePat
       recordedPrompts.set(input.sessionID, digest);
       send('InstructionsLoaded', input.sessionID, { file_path: 'system prompt', system_prompt: system, system_prompt_chars: system.length, digest },
         { native: { event: 'experimental.chat.system.transform', data: { parts: 1 } } });
+      for (const file of instructionFilesOf(system)) {
+        send('InstructionsLoaded', input.sessionID, { file_path: file.path, content: file.content, from: 'system prompt' },
+          { native: { event: 'experimental.chat.system.transform', data: { instructions_from: file.path } } });
+      }
     },
 
     systemTransform(input, output) {
@@ -203,4 +229,4 @@ function createOpencodeTranslator({ emit, onFirstSession = () => {}, databasePat
   };
 }
 
-module.exports = { createOpencodeTranslator, DROPPED };
+module.exports = { createOpencodeTranslator, instructionFilesOf, DROPPED };

@@ -242,3 +242,40 @@ test("the database is the one the plugin recorded, unless OBSERVER_OPENCODE_DB s
   assert.equal(databasePathOf(session, { OBSERVER_OPENCODE_DB: '/elsewhere.db' }), '/elsewhere.db');
   assert.equal(databasePathOf({ events: [] }, { XDG_DATA_HOME: '/xdg' }), path.join('/xdg', 'opencode', 'opencode.db'));
 });
+
+// ---- instruction files (AGENTS.md, CLAUDE.md, …), which OpenCode puts in the system prompt
+const { instructionFilesOf } = require('../server/lib/features/agents/opencode/translate');
+const SYSTEM_WITH_FILES = [
+  'You are opencode.', '<env>', '  Working directory: /work/app', '</env>',
+  'Instructions from: /work/app/AGENTS.md', '# App', 'Always be brief.', '',
+  'Instructions from: /home/me/.config/opencode/AGENTS.md', 'Use tabs.',
+  'Skills provide specialized instructions and workflows for specific tasks.', '<available_skills>', '</available_skills>',
+].join('\n');
+
+test("the instruction files in OpenCode's system prompt are found, each with its own content", () => {
+  assert.deepEqual(instructionFilesOf(SYSTEM_WITH_FILES), [
+    { path: '/work/app/AGENTS.md', content: '# App\nAlways be brief.' },
+    { path: '/home/me/.config/opencode/AGENTS.md', content: 'Use tabs.' },
+  ]);
+  assert.deepEqual(instructionFilesOf('You are opencode.\nNo files here.'), []);
+});
+
+test('each instruction file is recorded on its own, and the Context view lists them', () => {
+  const { translate, events } = translator();
+  translate.systemTransform({ sessionID: 's1' }, { system: [SYSTEM_WITH_FILES] });
+  translate.chatParams({ sessionID: 's1', agent: 'build', model: { id: 'm', limit: { context: 64000 } } });
+  const files = events.filter(event => event.event === 'InstructionsLoaded' && event.data.from === 'system prompt');
+  assert.deepEqual(files.map(event => event.data.file_path), ['/work/app/AGENTS.md', '/home/me/.config/opencode/AGENTS.md']);
+  for (const event of files) assert.deepEqual(eventProblems(event), []);
+
+  const { dir, file } = fixtureDatabase();
+  try {
+    const context = opencodeSessionContext({ ...recordedSession(PARENT, file), cwd: '/work/app', events: [{ event: 'SessionStart', data: { opencode_db: file } }, ...events] });
+    assert.deepEqual(context.instructions, [
+      { path: '/work/app/AGENTS.md', type: 'Project', content: '# App\nAlways be brief.' },
+      { path: '/home/me/.config/opencode/AGENTS.md', type: null, content: 'Use tabs.' },
+    ]);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
