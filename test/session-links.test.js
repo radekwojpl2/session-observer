@@ -18,9 +18,10 @@ test('the hook names the parents its environment shows, never its own session', 
   assert.deepEqual(parentSessions('own', {}), []);
   assert.deepEqual(parentSessions('own', { CLAUDE_CODE_SESSION_ID: 'own' }), []);
   assert.deepEqual(parentSessions('child', { CLAUDE_CODE_SESSION_ID: 'claude-1' }), [{ agent: 'claude', session_id: 'claude-1' }]);
+  // (in the registry's order: which is the direct parent is the server's call, by start time)
   assert.deepEqual(parentSessions('child', { CODEX_SESSION_ID: 'codex-1', CODEX_TOOL_CALL_ID: 'exec-9', CLAUDE_CODE_SESSION_ID: 'claude-1' }), [
-    { agent: 'codex', session_id: 'codex-1', tool_call_id: 'exec-9' },
     { agent: 'claude', session_id: 'claude-1' },
+    { agent: 'codex', session_id: 'codex-1', tool_call_id: 'exec-9' },
   ]);
   assert.deepEqual(parentSessions('child', { CODEX_THREAD_ID: 'codex-2' }), [{ agent: 'codex', session_id: 'codex-2' }]);
 });

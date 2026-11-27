@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { DATA_DIR } = require('../../building-blocks/config');
 const { sessionLogName } = require('../../building-blocks/session-logs');
+const { agentById } = require('../agents/registry');
 
 const directory = path.join(DATA_DIR, 'context-windows');
 const nameOf = id => sessionLogName(id).replace(/\.jsonl$/, '.json');
@@ -46,7 +47,7 @@ function refreshObservedContexts(sessions) {
   try { names = new Set(fs.readdirSync(directory)); } catch { names = new Set(); }
   const changed = [];
   for (const session of sessions) {
-    if (session.agent !== 'claude') continue;
+    if (!agentById(session.agent)?.statusLineContext) continue; // (scripts/claude-statusline.js writes them)
     const sample = names.size && names.has(nameOf(session.id)) ? readObservedContext(session.id) : null;
     const prior = session.observedContext;
     if (sample?.model === prior?.model && sample?.window === prior?.window) continue;

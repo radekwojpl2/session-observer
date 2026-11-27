@@ -12,21 +12,27 @@ const net = require('net');
 const DATA_DIR = process.env.OBSERVER_DATA_DIR || path.join(os.homedir(), '.claude', 'session-observer');
 const SESSION_LOG_DIR = path.join(DATA_DIR, 'sessions');
 const PORT = Number(process.env.OBSERVER_PORT || 4777);
-const AGENTS = new Set(['claude', 'codex']);
 const DEFAULT_AGENT = 'claude';
-// which agent sent the event: Codex's hook commands pass --agent codex, Claude Code's pass nothing
+// which agent sent the event: Codex's hook commands pass --agent codex, Claude Code's pass nothing. Only an agent the
+// registry knows counts (loaded here, not at the top: a missing or broken module must not make the hook fail).
 function agentFromArguments(args) {
   const flag = args.indexOf('--agent');
   const named = flag >= 0 ? args[flag + 1] : null;
-  return AGENTS.has(named) ? named : DEFAULT_AGENT;
+  try { return named && require('../server/lib/features/agents/registry').isKnownAgent(named) ? named : DEFAULT_AGENT; } catch { return DEFAULT_AGENT; }
 }
 
 // loaded when needed, not at the top: a missing or broken module must not make the hook fail
 const recorderModule = () => require('../server/lib/building-blocks/event-recorder');
 
+// where each agent puts its session id in the commands it runs (its manifest's parentEnv)
+function parentSources() {
+  const { AGENT_IDS, agentById } = require('../server/lib/features/agents/registry');
+  return AGENT_IDS.map(id => ({ agent: id, ...agentById(id).parentEnv })).filter(source => source.session);
+}
+
 // the agent sessions this one was started from, as its environment shows (see event-recorder.js)
 function parentSessions(ownId, env = process.env) {
-  return recorderModule().parentsFromEnvironment(ownId, env);
+  return recorderModule().parentsFromEnvironment(ownId, env, null, parentSources());
 }
 
 // Appends one event to its session's log and returns it. Hook commands call it with the agent's payload; an agent's
@@ -34,7 +40,7 @@ function parentSessions(ownId, env = process.env) {
 // owner-only: the log holds prompts, file contents and command output (mode applies when created; no-op on Windows)
 // one file per session, in the folder of the UTC day it was last active (moved there by its first event of the day)
 function recordEvent(payload, eventName, agent, extraParents = [], native = null) {
-  const recorder = recorderModule().createRecorder({ agent: agent || DEFAULT_AGENT, logDir: SESSION_LOG_DIR });
+  const recorder = recorderModule().createRecorder({ agent: agent || DEFAULT_AGENT, logDir: SESSION_LOG_DIR, parentSources: parentSources() });
   return recorder.record(eventName, payload, { sessionId: payload && payload.session_id, parents: extraParents, native });
 }
 

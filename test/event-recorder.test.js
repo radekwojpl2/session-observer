@@ -75,10 +75,12 @@ test('an event with no match is passed through as AgentEvent', () => {
 
 test('parents come from the environment and from the caller, without repeats or itself', () => {
   const env = { CLAUDE_CODE_SESSION_ID: 'claude-1', OBSERVER_PARENT_AGENT: 'pi', OBSERVER_PARENT_SESSION: 'pi-1' };
-  assert.deepEqual(parentsFromEnvironment('child', env), [{ agent: 'claude', session_id: 'claude-1' }, { agent: 'pi', session_id: 'pi-1' }]);
-  assert.deepEqual(parentsFromEnvironment('pi-1', env), [{ agent: 'claude', session_id: 'claude-1' }]);
-  assert.deepEqual(parentsFromEnvironment('child', env, new Set(['claude'])), [{ agent: 'claude', session_id: 'claude-1' }]);
-  const { recorder } = memoryRecorder({ env: { CLAUDE_CODE_SESSION_ID: 'claude-1' } });
+  const sources = [{ agent: 'claude', session: ['CLAUDE_CODE_SESSION_ID'] }]; // as a manifest's parentEnv names them
+  assert.deepEqual(parentsFromEnvironment('child', env, null, sources), [{ agent: 'claude', session_id: 'claude-1' }, { agent: 'pi', session_id: 'pi-1' }]);
+  assert.deepEqual(parentsFromEnvironment('pi-1', env, null, sources), [{ agent: 'claude', session_id: 'claude-1' }]);
+  assert.deepEqual(parentsFromEnvironment('child', env, new Set(['claude']), sources), [{ agent: 'claude', session_id: 'claude-1' }]);
+  assert.deepEqual(parentsFromEnvironment('child', env), [{ agent: 'pi', session_id: 'pi-1' }], 'no sources: only an in-process plugin\'s');
+  const { recorder } = memoryRecorder({ env: { CLAUDE_CODE_SESSION_ID: 'claude-1' }, parentSources: sources });
   const event = recorder.record('SessionStart', {}, { sessionId: 'child', parents: [{ agent: 'opencode', session_id: 'oc-parent' }, { agent: 'claude', session_id: 'claude-1' }, { agent: 'opencode', session_id: 'child' }] });
   assert.deepEqual(event.parents, [{ agent: 'claude', session_id: 'claude-1' }, { agent: 'opencode', session_id: 'oc-parent' }]);
 });

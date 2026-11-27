@@ -17,10 +17,12 @@ module.exports = {
   },
   // adds a step's tokens to its session's totals and context window use
   addStepUsage: addCodexUsage,
-  // the events one line of its session file makes (what the model wrote), instead of reading it as a Claude transcript
-  transcriptRowEvents: codexRolloutTexts,
-  // Codex keeps each subagent in a session file of its own, not beside the main one
-  readsSubagentTranscripts: false,
+  // its session file only: Codex keeps each subagent in a session file of its own
+  sessionFiles: session => [{ file: session.transcript_path, isSubagent: false }],
+  // what one line of its session file adds: what the model wrote, linked to the step that wrote it
+  readSessionFileRow(session, row, isSubagentFile, read) {
+    read.ingestAll(codexRolloutTexts(session, row, read.stepOf));
+  },
   sessionContext: codexSessionContext,
   reset() {
     resetCodexSteps();
