@@ -7,6 +7,7 @@ const guard = require('./request-guard');
 const { sessions, sessionSummary, eventsOfAllSessions } = require('../sessions/sessions');
 const { setPin } = require('../sessions/pins');
 const { sessionContext } = require('../context/session-context');
+const { publicAgents } = require('../agents/registry');
 const { addClient, broadcast } = require('../../building-blocks/live-updates');
 
 const ALL_SESSIONS = 'all'; // the session id in /api/events?session= that asks for every session's events
@@ -114,6 +115,7 @@ function createRequestHandler({ clearLog, deleteSession, logHistory, loadOlderDa
     '/api/sessions': (request, response) => sendJson(response, 200, sessionsNewestFirst()),
     '/api/events': (request, response, url) => serveEvents(response, url),
     '/api/history': (request, response) => sendJson(response, 200, logHistory()),
+    '/api/agents': (request, response) => sendJson(response, 200, publicAgents()),
     '/api/context': (request, response, url) => serveContext(response, url),
     '/api/stream': (request, response) => addClient(request, response, { version: VERSION }),
   };

@@ -11,11 +11,13 @@ const path = require('node:path');
 const source = file => fs.readFileSync(path.join(__dirname, '..', 'server', 'dashboard', file), 'utf8');
 const SCRIPTS = [
   'building-blocks/language/i18n.js', 'building-blocks/language/translations/en.js', 'building-blocks/language/selected-language.js',
-  'building-blocks/format.js', 'building-blocks/tech-badges.js', 'features/events/model/tool-groups.js', 'features/events/model/tool-techs.js',
+  'building-blocks/format.js', 'building-blocks/tech-badges.js', 'features/agents/model/agents.js', 'features/events/model/tool-groups.js', 'features/events/model/tool-techs.js',
 ];
 const EXPORTS = 'TECH_BADGES, BADGE_SHAPES, TECH_BY_EXTENSION, TECH_BY_PROGRAM, TECH_BY_FILE_NAME, techOfFile, techOfProgram, splitShellCommands, '
   + 'programOfCommand, techsOfToolCall, firstTechOfToolCall, techBadgeMark, techBadgeIcon, techBadgeIcons';
-const dashboard = new Function(SCRIPTS.map(source).join('\n') + `\nreturn { ${EXPORTS} };`)();
+// the agents as the server lists them (/api/agents)
+const dashboard = new Function('AGENT_LIST', SCRIPTS.map(source).join('\n') + `\nsetAgents(AGENT_LIST);\nreturn { ${EXPORTS} };`)(
+  require('../server/lib/features/agents/registry').publicAgents());
 
 const techOfCommand = (command, tool = 'Bash') => dashboard.firstTechOfToolCall(tool, { command });
 const techOfPath = (file_path, tool = 'Edit') => dashboard.firstTechOfToolCall(tool, { file_path });

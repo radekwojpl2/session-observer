@@ -6,6 +6,7 @@
 // or a model named as 1M. Otherwise the size is a guess (200k until the context goes past it), and a 1M model
 // guessed at 200k would alert at 100k, 150k and 180k for nothing.
 'use strict';
+const { agentById } = require('../agents/registry');
 const { contextUsage } = require('./observed-context');
 const { hasOneMillionWindow } = require('../../building-blocks/token-usage');
 
@@ -19,7 +20,7 @@ const levelOf = pct => CONTEXT_THRESHOLDS.filter(threshold => pct >= threshold).
 
 function isWindowKnown(session) {
   const { context, observedContext } = session;
-  if (session.agent === 'codex') return true;
+  if (agentById(session.agent)?.reportsContextWindow) return true;
   if (observedContext && observedContext.model === context.model) return true;
   return hasOneMillionWindow(context.model || session.model);
 }

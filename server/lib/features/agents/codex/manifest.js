@@ -1,0 +1,14 @@
+// Codex: its events come from hook commands (.codex-plugin/plugin.json, or scripts/setup-codex.js → scripts/hook.js
+// --agent codex); model steps come from its PostModelRequest events, texts from its rollout file.
+'use strict';
+
+module.exports = {
+  id: 'codex',
+  name: 'Codex',
+  shortName: 'Codex',
+  color: { light: '#3f4652', dark: '#d4d7dd' },
+  command: 'codex',
+  capture: 'hook commands',
+  runtime: 'node',
+  reportsContextWindow: true, // its model requests carry model_context_window
+};

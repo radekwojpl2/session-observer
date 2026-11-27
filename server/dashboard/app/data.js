@@ -160,7 +160,10 @@ function resetView() {
 
 async function loadSessions() {
   try {
-    const [sessions, history] = await Promise.all([fetch('/api/sessions'), fetch('/api/history')].map(async request => (await request).json()));
+    const [sessions, history, agents] = await Promise.all([fetch('/api/sessions'), fetch('/api/history'), fetch('/api/agents')].map(async request => (await request).json()));
+    setAgents(agents);
+    renderAgentColors();
+    renderAgentFilterOptions();
     state.sessions = new Map(sessions.map(session => [session.id, session]));
     state.history = history;
   } catch { /* server down */ }
