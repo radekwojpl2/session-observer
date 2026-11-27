@@ -14,7 +14,8 @@ const cell = text => String(text).replace(/\\/g, '\\\\').replace(/\|/g, '\\|');
 const fieldRows = fields => Object.entries(fields)
   .map(([name, spec]) => `| \`${name}\` | ${spec.type} | ${spec.required ? 'yes' : ''} | ${cell(spec.about)} |`);
 const fieldTable = fields => ['| Field | Type | Always | What it holds |', '| --- | --- | --- | --- |', ...fieldRows(fields)];
-const agentList = agents => agents.map(agent => (agent === 'server' ? 'the server' : `\`${agent}\``)).join(', ');
+const AGENT_WORDS = { server: 'the server', translated: 'agents with a translation' };
+const agentList = agents => agents.map(agent => AGENT_WORDS[agent] || `\`${agent}\``).join(', ');
 
 function render() {
   const lines = [

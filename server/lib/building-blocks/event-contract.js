@@ -36,6 +36,7 @@ const COMMON = {
 const BOTH = ['claude', 'codex'];
 const CLAUDE = ['claude'];
 const SERVER = ['server'];
+const TRANSLATED = ['translated']; // any agent whose own events are translated (an in-process plugin)
 
 // `category`: what the dashboard colours and counts it as (tool events take theirs from the tool, see
 // features/sessions/event-categories.js); `agents`: who sends it ('server' = made by the server)
@@ -129,6 +130,10 @@ const EVENTS = {
   PostModelRequest: {
     category: 'env', agents: ['codex'], about: "Codex gets the model's answer. The server turns it into a ModelStep.",
     fields: { status: field('string', 'How it ended.'), token_usage: field('object', 'Token counts, OpenAI names.'), response_id: field('string', 'The response.'), error: field('any', 'Why it failed.') },
+  },
+  AgentEvent: {
+    category: 'env', agents: TRANSLATED, about: "An agent's own event with no match here, kept as it came (in `native`).",
+    fields: { native_event: field('string', "The agent's name for it.", true) },
   },
   ModelStep: {
     category: 'model', agents: SERVER, about: "One model response: from Claude Code's transcript, or a Codex PostModelRequest.",
