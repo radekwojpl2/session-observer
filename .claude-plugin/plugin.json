@@ -1,7 +1,7 @@
 {
   "name": "session-observer",
   "version": "0.20.0",
-  "description": "Observe everything that happens in a Claude Code session (prompts, tool calls, skills, questions, subagents, permissions, compactions, tokens) on a live local dashboard.",
+  "description": "Observe everything that happens in a Claude Code session (prompts, tool calls, skills, questions, subagents, permissions, compactions, tokens) on a live local dashboard, together with your Codex and OpenCode sessions.",
   "author": {
     "name": "Radek"
   },
@@ -10,6 +10,9 @@
     "observability",
     "hooks",
     "dashboard",
-    "telemetry"
+    "telemetry",
+    "claude-code",
+    "codex",
+    "opencode"
   ]
 }

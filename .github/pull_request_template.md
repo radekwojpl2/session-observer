@@ -26,3 +26,5 @@ No user-visible change? Replace all of this with "N/A: <reason>".
 - [ ] `node test/check.js` and `node --test test/*.test.js` pass
 - [ ] New dashboard text is in every translation file
 - [ ] README screenshots in `docs/` updated, if the dashboard changed visibly
+- [ ] Changed the event contract? `docs/events.md` regenerated with `node scripts/events-doc.js`
+- [ ] Changed an agent (Claude Code, Codex, OpenCode)? Its fixtures re-recorded with `scripts/scrub-fixture.js`

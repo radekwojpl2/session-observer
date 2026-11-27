@@ -14,7 +14,7 @@ body:
     attributes:
       label: Steps to reproduce
       placeholder: |
-        1. Start a Claude Code session and …
+        1. Start a Claude Code, Codex or OpenCode session and …
         2. Open the dashboard on …
         3. …
     validations:
@@ -41,7 +41,8 @@ body:
       options:
         - Claude Code
         - Codex
-        - Both
+        - OpenCode
+        - More than one
     validations:
       required: true
   - type: input
