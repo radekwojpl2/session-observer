@@ -38,6 +38,10 @@ The Home and Overview screenshots use example sessions. The remaining screenshot
 
 *Context: what fills the context window, down to each record.*
 
+![Compare with two OpenCode runs of the same prompt and a Claude Code session side by side](docs/compare.jpg)
+
+*Compare: up to three sessions side by side, each measured against the first.*
+
 ## How it works
 
 ~~~mermaid
@@ -248,13 +252,19 @@ node scripts/demo.js
 
 The demo opens at http://localhost:4800.
 
+### Compare sessions
+
+Run the same task again, or give it to another agent, then compare the runs. Click the compare button beside a session in the left list (it shows on hover), or open **Compare** and add sessions from its menu. You can compare up to three sessions. The first one, **A**, is the baseline. Every other value shows its change from A: green when it is lower (less time, fewer tokens, fewer problems), red when it is higher. Click **make baseline** on another session to measure against it instead.
+
+Compare shows what each session cost (see [Cost estimates](#cost-estimates)), each session's first prompt and last reply, its tool calls by group, the files each one edited, and each turn's duration and cost side by side. Click a turn (or **Open all**) to list every step of it for each session in columns: each model step with what it cost, what the model wrote, and each tool call with its file or command, how long it took and whether it failed. File paths are read from each session's own folder, so runs in different worktrees line up. Your selection is kept in the page address (`?compare=`), so a reload or a bookmark keeps it.
+
 ### Desktop notifications
 
 Choose **Notify** under **⚙ Settings** in the header to get a desktop notification when a session needs you (a permission, a question, an MCP server asking), and optionally when a turn finishes. The browser asks for permission the first time. Notifications appear only while the dashboard window is not focused. Click one to open that session.
 
 ### Keyboard shortcuts
 
-Press **?** (or the **?** button in the header) for the list. **j** / **k** (or **]** / **[**) step through the turns, **Shift+J** / **Shift+K** through the sessions, **0** goes to All activity, **u** to the next session that needs you, **Esc** closes the turn, **/** goes to the search, and **1**–**5** switch between Home, Overview, Route, Chat and Context. The same dialog has a tab with common Claude Code keys, linked to its docs.
+Press **?** (or the **?** button in the header) for the list. **j** / **k** (or **]** / **[**) step through the turns, **Shift+J** / **Shift+K** through the sessions, **0** goes to All activity, **u** to the next session that needs you, **Esc** closes the turn, **/** goes to the search, and **1**–**6** switch between Home, Overview, Route, Chat, Context and Compare. The same dialog has a tab with common Claude Code keys, linked to its docs.
 
 ### Dashboard languages
 
@@ -287,6 +297,21 @@ Want another language? [Open an issue to request one](https://github.com/radekwo
 | OBSERVER_LOAD_DAYS | 7 | Days of session folders read at start, today included; 0 reads every day |
 | OBSERVER_CONTEXT_FIELD | 100000 | Maximum characters shown per context field |
 | OBSERVER_CODEX_CONTEXT_WINDOW | 272000 | Fallback Codex context window, in tokens |
+
+### Cost estimates
+
+Overview and Compare show what a session cost at the model maker's API prices. Each model step is priced from its tokens: input, output, cache reads, and cache writes. Claude's 1-hour cache writes cost more than 5-minute ones and are priced separately. Prompts above a model's long-context threshold use the higher price. OpenCode reports what each step cost, and that figure is used as it is.
+
+It is an estimate. On a subscription such as Claude Max or ChatGPT Plus you don't pay per token, but the estimate still compares runs fairly. A model with no known price shows **–**. A total that leaves out such steps is marked **\***.
+
+The built-in prices come from the [Anthropic](https://platform.claude.com/docs/en/about-claude/pricing) and [OpenAI](https://developers.openai.com/api/docs/pricing) pricing pages (November 2026), in `server/lib/features/cost/prices.js`. To add a model or correct a price, create `prices.json` in the data directory (`~/.claude/session-observer/` by default) and restart the server. Prices are USD per million tokens. `input` and `output` are required. A missing cache price falls back to the input price.
+
+~~~json
+{
+  "deepseek-v4.1-flash": { "input": 0.3, "output": 1.2, "cache_read": 0.03 },
+  "claude-opus-5-5": { "input": 4, "output": 20, "cache_read": 0.2, "cache_write": 5, "cache_write_1h": 8 }
+}
+~~~
 
 ## Development
 

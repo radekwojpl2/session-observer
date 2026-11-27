@@ -5,7 +5,9 @@
 //   route    — the current turn as a metro line: every model step and tool call is a stop
 //   chat     — the conversation as a messenger: prompts, the agent's replies, tool calls as chips
 //   context  — one session's whole conversation in full, read from its transcript
-const VIEWS = ['home', 'overview', 'route', 'chat', 'context'].map(id => ({ id, label: TEXT.views[id] }));
+//   compare  — up to three sessions side by side: the same task run again, or by different agents
+const VIEWS = ['home', 'overview', 'route', 'chat', 'context', 'compare'].map(id => ({ id, label: TEXT.views[id] }));
+const VIEWS_WITHOUT_DETAILS = new Set(['home', 'compare']); // they use the Details panel's room themselves
 const VIEW_REDRAW_MS = 250;
 let lastViewDrawAt = 0;
 let lastViewHtml = '';
@@ -25,7 +27,10 @@ function setView(id, historyMode = 'push') {
   document.querySelector('.stage').dataset.layout = id;
   elementById('filters').dataset.layout = id;
   elementById('panels').dataset.layout = id;
-  // each tab's tooltip names its key (1 – 5, features/shortcuts)
+  elementById('panels').toggleAttribute('data-no-details', VIEWS_WITHOUT_DETAILS.has(id));
+  document.body.toggleAttribute('data-compare-wide', id === 'compare' && compareWide); // features/compare
+  fitPanelsToWindow(); // the filters may have been hidden or shown
+  // each tab's tooltip names its key (1 – 6, features/shortcuts)
   elementById('layouts').innerHTML = VIEWS.map((view, index) =>
     `<button role="tab" aria-selected="${view.id === id}" data-layout="${view.id}" class="${view.id === id ? 'cur' : ''}" title="${escapeHtml(view.label)} (${index + 1})" aria-keyshortcuts="${index + 1}">${view.label}</button>`).join('');
   viewNeedsDrawing = true;
@@ -38,6 +43,7 @@ function viewHtml() {
   if (state.view === 'home') return homeViewHtml();
   if (state.view === 'chat') return chatViewHtml();
   if (state.view === 'context') return contextViewHtml();
+  if (state.view === 'compare') return compareViewHtml();
   return routeViewHtml();
 }
 
@@ -79,11 +85,11 @@ function restoreChatScroll(box) {
   remember();
 }
 
-// home: the whole view scrolls, and live updates redraw it often, so keep where you scrolled to
-const rememberHomeScroll = box => box.querySelector('.home')?.scrollTop ?? 0;
+// home and compare: the whole view scrolls, and live updates redraw it often, so keep where you scrolled to
+const rememberHomeScroll = box => box.querySelector('.home, .cmp')?.scrollTop ?? 0;
 
 function restoreHomeScroll(box, top) {
-  const home = box.querySelector('.home');
+  const home = box.querySelector('.home, .cmp');
   if (home) home.scrollTop = top;
 }
 
@@ -129,6 +135,8 @@ function drawView(now) {
   if (pointerHeld) return; // a click in progress: drawn once it is released (rendering.js)
   viewNeedsDrawing = false;
   lastViewDrawAt = now;
+  // a menu open in the view (Compare's session picker) would close under a redraw: drawn once it is left
+  if (document.activeElement?.tagName === 'SELECT' && viewBox().contains(document.activeElement)) return;
   if (state.view === 'overview') return; // the overview is #mid, drawn by renderOverview
   const html = viewHtml();
   if (html === lastViewHtml) return;

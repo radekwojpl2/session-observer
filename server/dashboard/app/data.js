@@ -107,6 +107,7 @@ function connectLiveUpdates() {
   stream.addEventListener('event', message => {
     const event = JSON.parse(message.data);
     state.lastUpdateAt = Date.now();
+    if (!state.frozen) noteComparedEvent(event); // Compare loads its sessions' events itself
     if (!isInScope(event)) return;
     if (state.frozen) {
       state.frozenEvents.push(event);
@@ -119,6 +120,7 @@ function connectLiveUpdates() {
     const { id } = JSON.parse(message.data);
     state.sessions.delete(id);
     forgetSessionLinks();
+    uncompareSession(id);
     if (state.scope === id) return resetView();
     state.events = state.events.filter(event => event.session_id !== id);
     state.frozenEvents = state.frozenEvents.filter(event => event.session_id !== id);

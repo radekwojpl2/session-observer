@@ -15,6 +15,7 @@ const SETTING_KEYS = {
   theme: 'so.theme', layout: 'so.layout', range: 'so.range', detailSections: 'so.dsec',
   agent: 'so.agent', contextRange: 'so.ctxMode', contextOrder: 'so.ctxOrder', contextBookkeeping: 'so.ctxMeta',
   alerts: 'so.notify', sessionOrder: 'so.sessOrder', detailWidth: 'so.detailW', detailSize: 'so.detailSize',
+  compare: 'so.compare', compareWide: 'so.compareWide', compareTab: 'so.compareTab',
 };
 
 // CSS animations restart when their element is re-rendered: this placeholder becomes a negative delay that keeps

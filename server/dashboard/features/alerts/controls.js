@@ -18,7 +18,7 @@ function contextAlertNotification(session, crossing) {
 
 // opens the session, and in it the turn whose model step pushed the context over, at that step
 async function openContextCrossing(sessionId, seq) {
-  if (state.view === 'home' || state.view === 'overview') setView('route');
+  if (state.view === 'home' || state.view === 'overview' || state.view === 'compare') setView('route');
   if (state.scope !== sessionId) await selectScope(sessionId);
   selectTurnOfSeq(seq);
   viewNeedsDrawing = true;

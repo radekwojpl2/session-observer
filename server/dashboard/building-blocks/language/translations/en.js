@@ -21,7 +21,25 @@ TRANSLATIONS.en = (() => {
       task: 'Task', mcp: 'MCP', permission: 'Permission', error: 'Error', notification: 'Notice',
       compact: 'Compact', context: 'Context', lifecycle: 'Lifecycle', env: 'Env',
     },
-    views: { home: 'Home', overview: 'Overview', route: 'Route', chat: 'Chat', context: 'Context' },
+    views: { home: 'Home', overview: 'Overview', route: 'Route', chat: 'Chat', context: 'Context', compare: 'Compare' },
+    // the Compare view (features/compare)
+    compare: {
+      tabs: { summary: 'Summary', answers: 'Answers', steps: 'Steps' },
+      answersTitle: 'Answers', answersHint: 'what the model replied to each prompt, side by side', noReply: 'No reply in this turn.',
+      stillWorking: 'Still working…', cutShort: 'The log keeps the reply only up to here.', readFull: 'Read it in full in Context',
+      fullWidth: 'Full width', exitFullWidth: 'Exit full width', fullWidthTitle: 'Hide the sessions list and filters so Compare has the whole window',
+      lead: 'Up to 3 sessions side by side: the same task run again, or done by different agents. A is the baseline the others are measured against.', empty: 'Nothing to compare yet. Use the compare button beside a session in the list, or add sessions here.', addAnother: 'Add another session to compare with this one.',
+      add: 'Add a session to compare…', addThis: 'Compare this session', remove: 'Remove from the comparison',
+      full: 'Already comparing 3 sessions: remove one first', baseline: 'baseline', makeBaseline: 'make baseline',
+      makeBaselineTitle: 'Measure the other sessions against this one', sameAgent: a => `${a}, run again`, differentAgents: 'Different agents',
+      samePrompt: 'same first prompt', differentPrompts: 'the first prompts differ', numbers: 'Numbers',
+      numbersHint: 'change from A · green = better, red = worse · green edge = best', none: 'none yet', loading: 'loading…',
+      toolMix: 'Tool calls by group', toolMixHint: 'bar length = number of calls', noTools: 'No tool calls yet.',
+      files: 'Files', noFiles: 'No files read or edited.', filesHint: (edited, read, all) => `${edited} edited · ${read} only read · ${all} by every session`,
+      fileEdited: 'edited', fileRead: 'read', showAllFiles: n => `Show all ${n} files`,
+      turnsTitle: 'Turn by turn', turnsHint: 'dots = the turn\'s route: ● tool call, ◇ model step, ■ subagent · click a turn to see every step', openOnRoute: 'Open on the Route', expandAll: 'Open all', collapseAll: 'Close all', showAllTurns: n => `Show all ${n} turns`, inSubagent: 'in a subagent', turnN: n => `Turn ${n}`,
+      metrics: { activeTime: 'Working time', cost: 'Cost (est.)', span: 'First to last event', turns: 'Turns', modelSteps: 'Model steps', toolCalls: 'Tool calls', toolTime: 'Time in tools', problems: 'Problems', subagents: 'Subagents', inputTokens: 'Input tokens', outputTokens: 'Output tokens', context: 'Context used', filesEdited: 'Files edited', filesRead: 'Files read', commands: 'Shell commands' },
+    },
     themes: { auto: 'auto', dark: 'dark', light: 'light' },
 
     // header and filters (the page's own text)
@@ -124,8 +142,9 @@ TRANSLATIONS.en = (() => {
     tiles: {
       sessions: 'Sessions', turns: 'Turns', toolCalls: 'Tool calls', modelSteps: 'Model steps', problems: 'Problems',
       failedOrDenied: 'failed or denied', outputTokens: 'Output tokens', subagents: 'Subagents', duration: 'Duration',
-      context: 'Context', tokens: 'Tokens',
+      context: 'Context', tokens: 'Tokens', cost: 'Cost (est.)',
     },
+    costNote: 'at API prices', costPartial: 'some model steps have no price, so they are left out',
     allLead: r => `Every session in ${r}. Pick a session on the left to see only its work.`,
     sessionNotFound: 'Session not found.', endedX: r => `ended ${r}`, inTools: d => `${d} in tools`, tokSub: o => `in · ${o} out`,
     filtered: 'filtered', turns: 'Turns', noTurnsMatch: 'No turns match.', sessionStartParen: '(session start)',
