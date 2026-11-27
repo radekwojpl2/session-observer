@@ -11,7 +11,7 @@ const { contextUsage } = require('./observed-context');
 const TITLE_MAX = 140; // characters of the first prompt kept as the session's title
 const sessions = new Map(); // session id → session
 let lastSeq = 0;
-const DEFAULT_AGENT = 'claude'; // events logged before the hook named its agent came from Claude Code
+const { DEFAULT_AGENT } = require('../agents/registry');
 
 function newSession(id) {
   return {

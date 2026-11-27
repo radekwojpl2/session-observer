@@ -78,7 +78,7 @@ TRANSLATIONS.ja = (() => {
     orderStarted: '開始が新しい順', orderActivity: '最終アクティビティ', orderName: '名前', orderProject: 'プロジェクト', noProject: '（フォルダーなし）',
     range: '期間', range1h: '直近 1 時間', range6h: '直近 6 時間', range24h: '直近 24 時間', range7d: '直近 7 日', rangeAll: 'すべて',
     search: '検索', searchPh: 'プロンプト、返答、コマンド、パス、エラー…',
-    group: 'ツールグループ', groupTitle: 'マップのどの部分か: ファイル、シェル、Git、MCP…', allGroups: 'すべてのグループ', agent: 'エージェント', allAgents: 'すべてのエージェント', agentTitle: 'Claude Code、Codex、または両方のセッションを表示',
+    group: 'ツールグループ', groupTitle: 'マップのどの部分か: ファイル、シェル、Git、MCP…', allGroups: 'すべてのグループ', agent: 'エージェント', allAgents: 'すべてのエージェント', agentTitle: '1 つのエージェント、またはすべてのエージェントのセッションを表示',
     onlyProblems: '問題のみ', filters: 'フィルター', resetFilters: 'フィルターをリセット', view: '表示',
 
     subagent: 'サブエージェント', subagentLc: 'サブエージェント', mainAgent: 'メインエージェント', mainAgentLc: 'メインエージェント',

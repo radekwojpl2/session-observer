@@ -250,10 +250,13 @@ test('setup-codex leaves a broken hooks file alone', () => {
 const source = file => fs.readFileSync(path.join(ROOT, 'server', 'dashboard', file), 'utf8');
 const SCRIPTS = [
   'building-blocks/language/i18n.js', 'building-blocks/language/translations/en.js', 'building-blocks/language/selected-language.js',
-  'building-blocks/format.js', 'building-blocks/tech-badges.js', 'features/events/model/tool-groups.js', 'features/events/model/tool-techs.js',
+  'building-blocks/format.js', 'building-blocks/tech-badges.js', 'features/agents/model/agents.js', 'features/events/model/tool-groups.js', 'features/events/model/tool-techs.js',
   'features/events/model/meaning.js',
 ];
-const dashboard = new Function(SCRIPTS.map(source).join('\n') + '\nreturn { patchedFiles, filesOfToolCall, toolGroupOf, toolArgument, firstTechOfToolCall, isSubagentCall };')();
+// the agents as the server lists them (/api/agents)
+const dashboard = new Function('AGENT_LIST', SCRIPTS.map(source).join('\n')
+  + '\nsetAgents(AGENT_LIST);\nreturn { patchedFiles, filesOfToolCall, toolGroupOf, toolArgument, firstTechOfToolCall, isSubagentCall };')(
+  require('../server/lib/features/agents/registry').publicAgents());
 
 test("the dashboard reads Codex's tools: patches edit files, exec_command runs commands, spawn_agent starts a subagent", () => {
   const input = { command: PATCH };
