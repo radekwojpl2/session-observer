@@ -119,6 +119,9 @@ if (codexPlugin.name !== plugin.name) fail('.codex-plugin/plugin.json: name diff
   }
 }
 
+// 6b. docs/events.md is the one scripts/events-doc.js writes from the event contract
+if (!require('../scripts/events-doc').isUpToDate()) fail('docs/events.md is out of date: run node scripts/events-doc.js');
+
 // 7. In CI on a pull request: the title is a Conventional Commit. A squash merge puts it on main, where
 //    release-please reads it to pick the next version and write the changelog.
 const title = process.env.PR_TITLE;
