@@ -39,9 +39,10 @@ function parentSessions(ownId, env = process.env) {
 // in-process plugin calls it with an event it translated. `extraParents`: sessions known to have started this one.
 // owner-only: the log holds prompts, file contents and command output (mode applies when created; no-op on Windows)
 // one file per session, in the folder of the UTC day it was last active (moved there by its first event of the day)
-function recordEvent(payload, eventName, agent, extraParents = [], native = null) {
+// `ts`: when it happened, when not now (a model step placed where its request began)
+function recordEvent(payload, eventName, agent, extraParents = [], native = null, ts = null) {
   const recorder = recorderModule().createRecorder({ agent: agent || DEFAULT_AGENT, logDir: SESSION_LOG_DIR, parentSources: parentSources() });
-  return recorder.record(eventName, payload, { sessionId: payload && payload.session_id, parents: extraParents, native });
+  return recorder.record(eventName, payload, { sessionId: payload && payload.session_id, parents: extraParents, native, ts });
 }
 
 function isPortInUse(port) {

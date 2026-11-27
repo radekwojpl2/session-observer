@@ -30,8 +30,8 @@ const good = (overrides = {}) => ({
   data: { tool_name: 'Read', tool_input: { file_path: 'a.txt' }, tool_use_id: 't1' }, ...overrides,
 });
 
-test('Claude Code and Codex each have a recorded session', () => {
-  assert.deepEqual(fixtureSets().map(set => set.agent).sort(), ['claude', 'codex']);
+test('every agent has a recorded session', () => {
+  assert.deepEqual(fixtureSets().map(set => set.agent).sort(), ['claude', 'codex', 'opencode']);
 });
 
 for (const set of fixtureSets()) {

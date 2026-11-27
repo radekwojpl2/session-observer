@@ -9,8 +9,8 @@ const { AGENT_IDS, DEFAULT_AGENT, agentById, isKnownAgent, toolsWithRole, public
 const ROLES = ['command', 'subagentCall', 'subagent', 'question', 'asyncQuestion', 'task', 'patch'];
 const sorted = set => [...set].sort();
 
-test('Claude Code and Codex are registered, Claude Code first and the default', () => {
-  assert.deepEqual(AGENT_IDS, ['claude', 'codex']);
+test('Claude Code, Codex and OpenCode are registered, Claude Code first and the default', () => {
+  assert.deepEqual(AGENT_IDS, ['claude', 'codex', 'opencode']);
   assert.equal(DEFAULT_AGENT, 'claude');
   assert.ok(isKnownAgent('codex'));
   assert.equal(isKnownAgent('nobody'), false);
@@ -43,7 +43,8 @@ test('every tool map has its groups, all roles and its path fields', () => {
   }
 });
 
-test('the roles add up to the sets the server spelled out before', () => {
+test("Claude Code's and Codex's roles add up to the sets the server spelled out before", () => {
+  const toolsWithRole = role => new Set(['claude', 'codex'].flatMap(id => agentById(id).tools.roles[role]));
   assert.deepEqual(sorted(toolsWithRole('question')), ['AskUserQuestion', 'request_user_input', 'request_user_input_async']);
   assert.deepEqual(sorted(toolsWithRole('subagent')), ['Agent', 'SendMessage', 'Task', 'spawn_agent']);
   assert.deepEqual(sorted(toolsWithRole('task')), ['TaskCreate', 'TaskGet', 'TaskList', 'TaskStop', 'TaskUpdate', 'TodoWrite', 'update_plan']);
@@ -62,9 +63,13 @@ test('the dashboard gets names, colours, tools and how the context differs, but 
 });
 
 test('each agent has server hooks for its session files and Context view; an unknown agent has none', () => {
-  for (const id of AGENT_IDS) {
-    for (const hook of ['sessionFiles', 'readSessionFileRow', 'sessionContext']) assert.equal(typeof agentServer(id)[hook], 'function', `${id}.${hook}`);
+  for (const id of AGENT_IDS) assert.equal(typeof agentServer(id).sessionContext, 'function', `${id}.sessionContext`);
+  // the agents with a session file of their own read it; OpenCode's plugin reports everything instead
+  for (const id of ['claude', 'codex']) {
+    for (const hook of ['sessionFiles', 'readSessionFileRow']) assert.equal(typeof agentServer(id)[hook], 'function', `${id}.${hook}`);
   }
+  assert.equal(agentServer('opencode').sessionFiles, undefined);
+  assert.equal(typeof agentServer('opencode').modelStepFrom, 'function', 'OpenCode reports its model steps');
   const codex = agentServer('codex');
   for (const hook of ['noteEvent', 'modelStepFrom', 'addStepUsage', 'reset', 'clearSession']) assert.equal(typeof codex[hook], 'function', hook);
   assert.deepEqual(codex.sessionFiles({ transcript_path: 'rollout.jsonl' }), [{ file: 'rollout.jsonl', isSubagent: false }]);

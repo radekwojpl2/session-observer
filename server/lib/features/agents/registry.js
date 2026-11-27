@@ -3,7 +3,7 @@
 // through /api/agents. Adding an agent: its folder, and one line in AGENT_IDS.
 'use strict';
 
-const AGENT_IDS = ['claude', 'codex']; // in the order the dashboard lists them
+const AGENT_IDS = ['claude', 'codex', 'opencode']; // in the order the dashboard lists them
 const DEFAULT_AGENT = 'claude'; // events logged before the hook named its agent came from Claude Code
 
 const AGENTS = AGENT_IDS.map(id => ({ ...require(`./${id}/manifest`), tools: require(`./${id}/tools`) }));
