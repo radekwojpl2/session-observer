@@ -12,13 +12,13 @@ Checked against OpenCode 1.17.8 (`opencode run`, Windows). The types come from `
 | --- | --- |
 | `SessionStart` | event `session.created`; `info.parentID` becomes `parents`, with the parent's last `task` call id |
 | `UserPromptSubmit` | hook `chat.message` (the text parts) |
-| `InstructionsLoaded` | hook `experimental.chat.system.transform`, recorded at the next `chat.params` when the prompt changed: the system prompt, and each instruction file in it (`Instructions from: <path>` blocks: AGENTS.md, CLAUDE.md, config instructions) on its own, with its content |
+| `InstructionsLoaded` | hook `experimental.chat.system.transform`, recorded at the next `chat.params` when the prompt or the tools changed. It holds the whole system prompt (in 7000-character parts, so the log keeps it whole), the tools as sent to the model (hook `tool.definition`), the skills it lists (`<available_skills>`), and the subagent types the `task` tool lists. Each instruction file in the prompt (`Instructions from: <path>` blocks: AGENTS.md, CLAUDE.md, config instructions) is recorded on its own, with its content |
 | `PreToolUse` | hook `tool.execute.before` |
 | `PostToolUse` | hook `tool.execute.after`; a `task` call's `metadata.sessionId` is kept as `child_session_id` |
 | `PostToolUseFailure` | event `message.part.updated`, a tool part in state `error`, when no result came |
 | `PermissionRequest` | hook `permission.ask` |
 | `ModelStep` | event `message.part.updated`, a `step-finish` part. Tokens come from the part, the window from `chat.params`, the tool calls from the step's tool parts. It is placed at its `step-start`, before its calls |
-| `ModelText` | hook `experimental.text.complete` |
+| `ModelText` | hook `experimental.text.complete` (replies); a `reasoning` part once it ends (thinking) |
 | `PreCompact` / `PostCompact` | hook `experimental.session.compacting` / event `session.compacted` |
 | `Stop` | event `session.idle` |
 | `StopFailure` | event `session.error` |
@@ -53,7 +53,9 @@ sessions become its subagents, linked to their task call.
 
 ## Not yet
 
-- **Reasoning text, live.** `reasoning` parts aren't recorded as `ModelText` yet. The Context view shows them, from the database.
-- **The full system prompt in the Context view.** The database doesn't store it, so the view shows the one the plugin
-  recorded, cut at `OBSERVER_MAX_FIELD` characters (8000 by default). The tool list isn't stored either.
+- **Tool parameters.** OpenCode 1.17.8 hands plugins its own schema objects, not JSON Schema, so tools show with their
+  description only.
+- **Subagent types.** OpenCode 1.17.8's `task` tool doesn't list them, so the list stays empty (the parser reads
+  `- <name>: <description>` lines if a version adds them).
+- **MCP servers, the request's measured size.** Not available to the plugin or in the database.
 - **Checked, not yet seen live:** `permission.ask`, compaction, and the interactive TUI. Only `opencode run` was recorded.

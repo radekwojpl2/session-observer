@@ -102,13 +102,17 @@ function taskCallOf(db, parentId, childId) {
   return { id: null, type: null, description: null };
 }
 
-function subagentContexts(db, sessionId) {
+// `sessionById`: the sessions the server holds, so a subagent's own recorded prompt and tools can be shown
+function subagentContexts(db, sessionId, sessionById) {
   const subagents = {};
   for (const child of db.prepare('SELECT id, title FROM session WHERE parent_id = ? ORDER BY time_created').all(sessionId)) {
     const call = taskCallOf(db, sessionId, child.id);
+    const recorded = sessionById(child.id);
+    const prompt = recorded ? recordedPrompt(recorded) : { system: null, tools: null };
     subagents[child.id] = {
       type: call.type, description: call.description || child.title || null, toolUseId: call.id,
-      system: null, tools: null, instructions: [], items: conversationItems(db, child.id),
+      system: prompt.system, tools: prompt.tools, instructions: recorded ? recordedInstructionFiles(recorded) : [],
+      items: conversationItems(db, child.id),
     };
   }
   return subagents;
@@ -128,26 +132,38 @@ function recordedInstructionFiles(session) {
   return [...files.values()];
 }
 
-// the system prompt the plugin recorded last for this session
-function recordedSystemPrompt(session) {
-  const events = (session.events || []).filter(event => event.event === 'InstructionsLoaded' && typeof event.data?.system_prompt === 'string');
-  const text = events.at(-1)?.data.system_prompt;
-  return text ? clipText(text) : null;
+// what the plugin recorded last of this session's prompt: the whole system prompt (in parts, so the log keeps it
+// whole; older recordings have it in one field, cut short), the tools as sent to the model, the skills and subagent
+// types it offered
+function recordedPrompt(session) {
+  const events = (session.events || []).filter(event => event.event === 'InstructionsLoaded' && event.data?.file_path === 'system prompt');
+  const data = events.at(-1)?.data || {};
+  const text = Array.isArray(data.system_prompt_parts) ? data.system_prompt_parts.join('') : data.system_prompt;
+  const listing = list => (Array.isArray(list) && list.length ? list.map(item => ({ name: item.name, description: clipText(String(item.description || '')) })) : null);
+  return {
+    system: typeof text === 'string' && text ? clipText(text) : null,
+    // (a list beside a system prompt, as the view counts tool sizes from it)
+    tools: Array.isArray(data.tools) ? data.tools.map(tool => ({ name: tool.name, description: clipText(String(tool.description || '')), schema: tool.schema ?? null })) : [],
+    skills: listing(data.skills),
+    agents: listing(data.agents),
+  };
 }
 
-function opencodeSessionContext(session) {
+// `sessionById`: how to find another session the server holds (a subagent's); the server's sessions by default
+function opencodeSessionContext(session, sessionById = id => require('../../sessions/sessions').sessions.get(id)) {
   const file = databasePathOf(session);
   const { db, error } = openDatabase(file);
   if (error) return { error, transcript: file };
   try {
     if (!db.prepare('SELECT id FROM session WHERE id = ?').get(session.id)) return { error: 'session not in the OpenCode database', transcript: file };
+    const prompt = recordedPrompt(session);
     return {
       session: session.id, agent: 'opencode', transcript: file, model: session.model, context: session.context,
       window: session.context?.window || null,
-      // (tools: the database doesn't keep their definitions; a list, as the view expects one beside a system prompt)
-      system: recordedSystemPrompt(session), tools: [], instructions: recordedInstructionFiles(session), skills: null, agents: null, mcp: null,
+      system: prompt.system, tools: prompt.tools, instructions: recordedInstructionFiles(session),
+      skills: prompt.skills, agents: prompt.agents, mcp: null,
       items: conversationItems(db, session.id),
-      subagents: subagentContexts(db, session.id),
+      subagents: subagentContexts(db, session.id, sessionById),
       wire: null,
       measured: null,
     };

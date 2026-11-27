@@ -94,7 +94,7 @@ test("the title generator's call is left out, and the system prompt is recorded 
   translate.chatParams({ sessionID: 's1', agent: 'build', model: { id: 'm', limit: { context: 64000 } } });
   const loaded = events.filter(event => event.event === 'InstructionsLoaded');
   assert.equal(loaded.length, 1);
-  assert.match(loaded[0].data.system_prompt, /Always be brief/);
+  assert.match(loaded[0].data.system_prompt_parts.join(''), /Always be brief/, 'the whole prompt, in parts the log keeps whole');
 });
 
 test('noise is dropped, other session events pass through, and commands see their session', () => {
@@ -188,7 +188,9 @@ const recordedSession = (id, file) => ({
   id, model: 'fake-model', context: { tokens: 1200, window: 64000 },
   events: [
     { event: 'SessionStart', data: { opencode_db: file } },
-    { event: 'InstructionsLoaded', data: { system_prompt: 'You are opencode. Always be brief.' } },
+    { event: 'InstructionsLoaded', data: { file_path: 'system prompt', system_prompt_parts: ['You are opencode. ', 'Always be brief.'],
+      tools: [{ name: 'bash', description: 'Runs a command.', schema: { type: 'object' } }], skills: [{ name: 'aspire', description: 'Router.' }],
+      agents: [{ name: 'general', description: 'General agent' }] } },
   ],
 });
 
@@ -200,7 +202,8 @@ test('the Context view reads the conversation from OpenCode\'s database, in the 
     assert.equal(context.agent, 'opencode');
     assert.equal(context.window, 64000);
     assert.equal(context.system, 'You are opencode. Always be brief.', 'the system prompt the plugin recorded');
-    assert.deepEqual(context.tools, [], 'a list beside a system prompt, as the view counts tool sizes from it');
+    assert.deepEqual(context.tools, [{ name: 'bash', description: 'Runs a command.', schema: { type: 'object' } }], 'as sent to the model (tool.definition)');
+    assert.deepEqual([context.skills, context.agents], [[{ name: 'aspire', description: 'Router.' }], [{ name: 'general', description: 'General agent' }]]);
     const kinds = context.items.map(item => item.kind);
     assert.deepEqual(kinds, ['user', 'step', 'call', 'result', 'step', 'text'], 'each step before what it produced');
     const call = context.items.find(item => item.kind === 'call');
@@ -275,6 +278,50 @@ test('each instruction file is recorded on its own, and the Context view lists t
       { path: '/work/app/AGENTS.md', type: 'Project', content: '# App\nAlways be brief.' },
       { path: '/home/me/.config/opencode/AGENTS.md', type: null, content: 'Use tabs.' },
     ]);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('tool definitions, skills and subagent types are recorded with the system prompt, and older recordings still read', () => {
+  const { translate, events } = translator();
+  translate.toolDefinition({ toolID: 'bash' }, { description: 'Runs a command.', parameters: { type: 'object' } });
+  const taskDescription = ['Launch a subagent.', 'Available agent types:', '- general: General agent', '- explore: Fast search'].join('\n');
+  translate.toolDefinition({ toolID: 'task' }, { description: taskDescription, parameters: {} });
+  const system = ['You are opencode.', '<available_skills>', '<skill>', '<name>aspire</name>', '<description>Router.</description>', '</skill>', '</available_skills>'].join('\n');
+  translate.systemTransform({ sessionID: 's1' }, { system: [system] });
+  translate.chatParams({ sessionID: 's1', agent: 'build', model: { id: 'm', limit: { context: 64000 } } });
+  const prompt = events.find(event => event.data.file_path === 'system prompt');
+  assert.deepEqual(prompt.data.tools.map(tool => tool.name), ['bash', 'task']);
+  assert.deepEqual(prompt.data.skills, [{ name: 'aspire', description: 'Router.', location: null }]);
+  assert.deepEqual(prompt.data.agents.map(agent => agent.name), ['general', 'explore']);
+  assert.deepEqual(eventProblems(prompt), []);
+
+  const { dir, file } = fixtureDatabase();
+  try {
+    const old = opencodeSessionContext({ id: PARENT, events: [{ event: 'SessionStart', data: { opencode_db: file } }, { event: 'InstructionsLoaded', data: { file_path: 'system prompt', system_prompt: 'Recorded in one field.' } }] }, () => null);
+    assert.equal(old.system, 'Recorded in one field.');
+    assert.deepEqual(old.tools, []);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("a reasoning part becomes the model's thinking, once, when it ends", () => {
+  const { translate, events } = translator();
+  translate.event(part({ id: 'r1', type: 'reasoning', text: 'Let me think.', time: { start: 1 } }));
+  translate.event(part({ id: 'r1', type: 'reasoning', text: 'Let me think.', time: { start: 1, end: 2 } }));
+  translate.event(part({ id: 'r1', type: 'reasoning', text: 'Let me think.', time: { start: 1, end: 2 } }));
+  assert.deepEqual(events.map(event => [event.event, event.data.kind, event.data.text]), [['ModelText', 'thinking', 'Let me think.']]);
+});
+
+test("a subagent's own recorded prompt and tools show under it", () => {
+  const { dir, file } = fixtureDatabase();
+  try {
+    const child = { id: CHILD, events: [{ event: 'InstructionsLoaded', data: { file_path: 'system prompt', system_prompt_parts: ['Child prompt.'], tools: [{ name: 'bash', description: '', schema: null }] } }] };
+    const { subagents } = opencodeSessionContext(recordedSession(PARENT, file), id => (id === CHILD ? child : null));
+    assert.equal(subagents[CHILD].system, 'Child prompt.');
+    assert.deepEqual(subagents[CHILD].tools.map(tool => tool.name), ['bash']);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

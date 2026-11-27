@@ -29,6 +29,7 @@ function createOpencodePlugin() {
       'chat.message': quietly((input, output) => translator.chatMessage(input, output)),
       'chat.params': quietly(input => translator.chatParams(input)),
       'experimental.chat.system.transform': quietly((input, output) => translator.systemTransform(input, output)),
+      'tool.definition': quietly((input, output) => translator.toolDefinition(input, output)),
       'tool.execute.before': quietly((input, output) => translator.toolBefore(input, output)),
       'tool.execute.after': quietly((input, output) => translator.toolAfter(input, output)),
       'permission.ask': quietly(input => translator.permissionAsk(input)),
