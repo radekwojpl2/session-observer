@@ -33,15 +33,15 @@ and an event or field the contract doesn't know is never an error.
 
 | Event | Category | Sent by | What happens |
 | --- | --- | --- | --- |
-| [`SessionStart`](#sessionstart) | lifecycle | `claude`, `codex` | A session starts or resumes. |
+| [`SessionStart`](#sessionstart) | lifecycle | `claude`, `codex`, `opencode` | A session starts or resumes. |
 | [`Setup`](#setup) | lifecycle | `claude` | The agent sets itself up before a session. |
-| [`UserPromptSubmit`](#userpromptsubmit) | prompt | `claude`, `codex` | You send a prompt. |
+| [`UserPromptSubmit`](#userpromptsubmit) | prompt | `claude`, `codex`, `opencode` | You send a prompt. |
 | [`UserPromptExpansion`](#userpromptexpansion) | prompt | `claude` | A slash command or reference expands your prompt. |
-| [`PreToolUse`](#pretooluse) | from the tool | `claude`, `codex` | A tool call starts. |
-| [`PostToolUse`](#posttooluse) | from the tool | `claude`, `codex` | A tool call finishes. |
-| [`PostToolUseFailure`](#posttoolusefailure) | error | `claude` | A tool call fails. |
+| [`PreToolUse`](#pretooluse) | from the tool | `claude`, `codex`, `opencode` | A tool call starts. |
+| [`PostToolUse`](#posttooluse) | from the tool | `claude`, `codex`, `opencode` | A tool call finishes. |
+| [`PostToolUseFailure`](#posttoolusefailure) | error | `claude`, `opencode` | A tool call fails. |
 | [`PostToolBatch`](#posttoolbatch) | from the tool | `claude` | A batch of parallel tool calls finishes (repeats the tool rows; hidden in Details). |
-| [`PermissionRequest`](#permissionrequest) | permission | `claude`, `codex` | The agent asks you to allow a tool call. |
+| [`PermissionRequest`](#permissionrequest) | permission | `claude`, `codex`, `opencode` | The agent asks you to allow a tool call. |
 | [`PermissionDenied`](#permissiondenied) | permission | `claude` | A tool call is denied. |
 | [`Notification`](#notification) | notification | `claude` | The agent notifies you (waiting for input, finished, …). |
 | [`MessageDisplay`](#messagedisplay) | notification | `claude` | The agent's reply as it is shown (repeats ModelText; hidden in Details). |
@@ -52,24 +52,24 @@ and an event or field the contract doesn't know is never an error.
 | [`TeammateIdle`](#teammateidle) | subagent | `claude` | A teammate waits for work. |
 | [`TaskCreated`](#taskcreated) | task | `claude` | A background task starts. |
 | [`TaskCompleted`](#taskcompleted) | task | `claude` | A background task finishes. |
-| [`PreCompact`](#precompact) | compact | `claude`, `codex` | The context is about to be compacted. |
-| [`PostCompact`](#postcompact) | compact | `claude`, `codex` | The context was compacted. |
-| [`InstructionsLoaded`](#instructionsloaded) | context | `claude` | An instruction file (CLAUDE.md, AGENTS.md, rules, memory) is loaded. |
-| [`Stop`](#stop) | lifecycle | `claude`, `codex` | The agent finishes its turn. |
-| [`StopFailure`](#stopfailure) | error | `claude` | The turn ends with an error. |
+| [`PreCompact`](#precompact) | compact | `claude`, `codex`, `opencode` | The context is about to be compacted. |
+| [`PostCompact`](#postcompact) | compact | `claude`, `codex`, `opencode` | The context was compacted. |
+| [`InstructionsLoaded`](#instructionsloaded) | context | `claude`, `opencode` | An instruction file (CLAUDE.md, AGENTS.md, rules, memory) is loaded, or the system prompt changes. |
+| [`Stop`](#stop) | lifecycle | `claude`, `codex`, `opencode` | The agent finishes its turn. |
+| [`StopFailure`](#stopfailure) | error | `claude`, `opencode` | The turn ends with an error. |
 | [`Interrupt`](#interrupt) | lifecycle | `claude`, `codex`, the server | You stop the agent mid-turn. |
-| [`SessionEnd`](#sessionend) | lifecycle | `claude`, `codex` | The session ends. |
+| [`SessionEnd`](#sessionend) | lifecycle | `claude`, `codex`, `opencode` | The session ends. |
 | [`PreModelRequest`](#premodelrequest) | env | `codex` | Codex sends a request to the model. |
 | [`PostModelRequest`](#postmodelrequest) | env | `codex` | Codex gets the model's answer. The server turns it into a ModelStep. |
 | [`AgentEvent`](#agentevent) | env | agents with a translation | An agent's own event with no match here, kept as it came (in `native`). |
-| [`ModelStep`](#modelstep) | model | the server | One model response: from Claude Code's transcript, or a Codex PostModelRequest. |
-| [`ModelText`](#modeltext) | model | the server | A block of text or thinking the model wrote. |
+| [`ModelStep`](#modelstep) | model | the server, `opencode` | One model response: from Claude Code's transcript, a Codex PostModelRequest, or OpenCode's plugin. |
+| [`ModelText`](#modeltext) | model | the server, `opencode` | A block of text or thinking the model wrote. |
 
 ### SessionStart
 
 A session starts or resumes.
 
-Category: lifecycle. Sent by `claude`, `codex`.
+Category: lifecycle. Sent by `claude`, `codex`, `opencode`.
 
 | Field | Type | Always | What it holds |
 | --- | --- | --- | --- |
@@ -88,7 +88,7 @@ Category: lifecycle. Sent by `claude`.
 
 You send a prompt.
 
-Category: prompt. Sent by `claude`, `codex`.
+Category: prompt. Sent by `claude`, `codex`, `opencode`.
 
 | Field | Type | Always | What it holds |
 | --- | --- | --- | --- |
@@ -109,7 +109,7 @@ Category: prompt. Sent by `claude`.
 
 A tool call starts.
 
-Category: from the tool it calls. Sent by `claude`, `codex`.
+Category: from the tool it calls. Sent by `claude`, `codex`, `opencode`.
 
 | Field | Type | Always | What it holds |
 | --- | --- | --- | --- |
@@ -122,7 +122,7 @@ Category: from the tool it calls. Sent by `claude`, `codex`.
 
 A tool call finishes.
 
-Category: from the tool it calls. Sent by `claude`, `codex`.
+Category: from the tool it calls. Sent by `claude`, `codex`, `opencode`.
 
 | Field | Type | Always | What it holds |
 | --- | --- | --- | --- |
@@ -136,7 +136,7 @@ Category: from the tool it calls. Sent by `claude`, `codex`.
 
 A tool call fails.
 
-Category: error. Sent by `claude`.
+Category: error. Sent by `claude`, `opencode`.
 
 | Field | Type | Always | What it holds |
 | --- | --- | --- | --- |
@@ -160,7 +160,7 @@ Category: from the tool it calls. Sent by `claude`.
 
 The agent asks you to allow a tool call.
 
-Category: permission. Sent by `claude`, `codex`.
+Category: permission. Sent by `claude`, `codex`, `opencode`.
 
 | Field | Type | Always | What it holds |
 | --- | --- | --- | --- |
@@ -278,7 +278,7 @@ Category: task. Sent by `claude`.
 
 The context is about to be compacted.
 
-Category: compact. Sent by `claude`, `codex`.
+Category: compact. Sent by `claude`, `codex`, `opencode`.
 
 | Field | Type | Always | What it holds |
 | --- | --- | --- | --- |
@@ -288,7 +288,7 @@ Category: compact. Sent by `claude`, `codex`.
 
 The context was compacted.
 
-Category: compact. Sent by `claude`, `codex`.
+Category: compact. Sent by `claude`, `codex`, `opencode`.
 
 | Field | Type | Always | What it holds |
 | --- | --- | --- | --- |
@@ -296,9 +296,9 @@ Category: compact. Sent by `claude`, `codex`.
 
 ### InstructionsLoaded
 
-An instruction file (CLAUDE.md, AGENTS.md, rules, memory) is loaded.
+An instruction file (CLAUDE.md, AGENTS.md, rules, memory) is loaded, or the system prompt changes.
 
-Category: context. Sent by `claude`.
+Category: context. Sent by `claude`, `opencode`.
 
 | Field | Type | Always | What it holds |
 | --- | --- | --- | --- |
@@ -308,7 +308,7 @@ Category: context. Sent by `claude`.
 
 The agent finishes its turn.
 
-Category: lifecycle. Sent by `claude`, `codex`.
+Category: lifecycle. Sent by `claude`, `codex`, `opencode`.
 
 | Field | Type | Always | What it holds |
 | --- | --- | --- | --- |
@@ -319,7 +319,7 @@ Category: lifecycle. Sent by `claude`, `codex`.
 
 The turn ends with an error.
 
-Category: error. Sent by `claude`.
+Category: error. Sent by `claude`, `opencode`.
 
 | Field | Type | Always | What it holds |
 | --- | --- | --- | --- |
@@ -335,7 +335,7 @@ Category: lifecycle. Sent by `claude`, `codex`, the server.
 
 The session ends.
 
-Category: lifecycle. Sent by `claude`, `codex`.
+Category: lifecycle. Sent by `claude`, `codex`, `opencode`.
 
 | Field | Type | Always | What it holds |
 | --- | --- | --- | --- |
@@ -377,9 +377,9 @@ Category: env. Sent by agents with a translation.
 
 ### ModelStep
 
-One model response: from Claude Code's transcript, or a Codex PostModelRequest.
+One model response: from Claude Code's transcript, a Codex PostModelRequest, or OpenCode's plugin.
 
-Category: model. Sent by the server.
+Category: model. Sent by the server, `opencode`.
 
 | Field | Type | Always | What it holds |
 | --- | --- | --- | --- |
@@ -396,7 +396,7 @@ Category: model. Sent by the server.
 
 A block of text or thinking the model wrote.
 
-Category: model. Sent by the server.
+Category: model. Sent by the server, `opencode`.
 
 | Field | Type | Always | What it holds |
 | --- | --- | --- | --- |

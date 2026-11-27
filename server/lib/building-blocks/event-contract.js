@@ -34,6 +34,7 @@ const COMMON = {
 };
 
 const BOTH = ['claude', 'codex'];
+const ALL = ['claude', 'codex', 'opencode']; // hook commands, and OpenCode's plugin
 const CLAUDE = ['claude'];
 const SERVER = ['server'];
 const TRANSLATED = ['translated']; // any agent whose own events are translated (an in-process plugin)
@@ -42,12 +43,12 @@ const TRANSLATED = ['translated']; // any agent whose own events are translated 
 // features/sessions/event-categories.js); `agents`: who sends it ('server' = made by the server)
 const EVENTS = {
   SessionStart: {
-    category: 'lifecycle', agents: BOTH, about: 'A session starts or resumes.',
+    category: 'lifecycle', agents: ALL, about: 'A session starts or resumes.',
     fields: { source: field('string', 'Why: `startup`, `resume`, `clear`, `compact`.'), model: COMMON.model, cwd: COMMON.cwd, transcript_path: COMMON.transcript_path },
   },
   Setup: { category: 'lifecycle', agents: CLAUDE, about: 'The agent sets itself up before a session.', fields: {} },
   UserPromptSubmit: {
-    category: 'prompt', agents: BOTH, about: 'You send a prompt.',
+    category: 'prompt', agents: ALL, about: 'You send a prompt.',
     fields: { prompt: field('string', 'What you wrote.', true), permission_mode: COMMON.permission_mode },
   },
   UserPromptExpansion: {
@@ -55,7 +56,7 @@ const EVENTS = {
     fields: { expanded_prompt: field('string', 'The prompt after expansion.') },
   },
   PreToolUse: {
-    category: null, agents: BOTH, about: 'A tool call starts.',
+    category: null, agents: ALL, about: 'A tool call starts.',
     fields: {
       tool_name: field('string', "The tool's name as the agent calls it (`Read`, `Bash`, `apply_patch`, `mcp__server__tool`).", true),
       tool_input: field('any', "The call's arguments."),
@@ -64,7 +65,7 @@ const EVENTS = {
     },
   },
   PostToolUse: {
-    category: null, agents: BOTH, about: 'A tool call finishes.',
+    category: null, agents: ALL, about: 'A tool call finishes.',
     fields: {
       tool_name: field('string', "The tool's name.", true),
       tool_input: field('any', "The call's arguments."),
@@ -74,7 +75,7 @@ const EVENTS = {
     },
   },
   PostToolUseFailure: {
-    category: 'error', agents: CLAUDE, about: 'A tool call fails.',
+    category: 'error', agents: ['claude', 'opencode'], about: 'A tool call fails.',
     fields: {
       tool_name: field('string', "The tool's name.", true),
       tool_input: field('any', "The call's arguments."),
@@ -88,7 +89,7 @@ const EVENTS = {
     fields: { tool_calls: field('array', 'The calls of the batch.') },
   },
   PermissionRequest: {
-    category: 'permission', agents: BOTH, about: 'The agent asks you to allow a tool call.',
+    category: 'permission', agents: ALL, about: 'The agent asks you to allow a tool call.',
     fields: { tool_name: field('string', 'The tool.'), tool_input: field('any', "The call's arguments."), permission_suggestions: field('array', 'The rules it offers.') },
   },
   PermissionDenied: { category: 'permission', agents: CLAUDE, about: 'A tool call is denied.', fields: { tool_name: field('string', 'The tool.') } },
@@ -110,19 +111,19 @@ const EVENTS = {
   TeammateIdle: { category: 'subagent', agents: CLAUDE, about: 'A teammate waits for work.', fields: { teammate_name: field('string', 'The teammate.'), team_name: field('string', 'The team.') } },
   TaskCreated: { category: 'task', agents: CLAUDE, about: 'A background task starts.', fields: { subject: field('string', 'What it does.') } },
   TaskCompleted: { category: 'task', agents: CLAUDE, about: 'A background task finishes.', fields: { subject: field('string', 'What it did.') } },
-  PreCompact: { category: 'compact', agents: BOTH, about: 'The context is about to be compacted.', fields: { trigger: field('string', '`manual` or `auto`.') } },
-  PostCompact: { category: 'compact', agents: BOTH, about: 'The context was compacted.', fields: { trigger: field('string', '`manual` or `auto`.') } },
+  PreCompact: { category: 'compact', agents: ALL, about: 'The context is about to be compacted.', fields: { trigger: field('string', '`manual` or `auto`.') } },
+  PostCompact: { category: 'compact', agents: ALL, about: 'The context was compacted.', fields: { trigger: field('string', '`manual` or `auto`.') } },
   InstructionsLoaded: {
-    category: 'context', agents: CLAUDE, about: 'An instruction file (CLAUDE.md, AGENTS.md, rules, memory) is loaded.',
+    category: 'context', agents: ['claude', 'opencode'], about: 'An instruction file (CLAUDE.md, AGENTS.md, rules, memory) is loaded, or the system prompt changes.',
     fields: { file_path: field('string', 'The file.') },
   },
   Stop: {
-    category: 'lifecycle', agents: BOTH, about: 'The agent finishes its turn.',
+    category: 'lifecycle', agents: ALL, about: 'The agent finishes its turn.',
     fields: { last_assistant_message: field('string', 'Its last reply.'), stop_hook_active: field('boolean', 'A Stop hook made it continue.') },
   },
-  StopFailure: { category: 'error', agents: CLAUDE, about: 'The turn ends with an error.', fields: { error: field('any', 'Why.') } },
+  StopFailure: { category: 'error', agents: ['claude', 'opencode'], about: 'The turn ends with an error.', fields: { error: field('any', 'Why.') } },
   Interrupt: { category: 'lifecycle', agents: [...BOTH, 'server'], about: 'You stop the agent mid-turn.', fields: {} },
-  SessionEnd: { category: 'lifecycle', agents: BOTH, about: 'The session ends.', fields: { reason: field('string', 'Why: `exit`, `clear`, `logout`, …') } },
+  SessionEnd: { category: 'lifecycle', agents: ALL, about: 'The session ends.', fields: { reason: field('string', 'Why: `exit`, `clear`, `logout`, …') } },
   PreModelRequest: {
     category: 'env', agents: ['codex'], about: 'Codex sends a request to the model.',
     fields: { request_id: field('string', 'The request.'), turn_id: field('string', 'The turn.') },
@@ -136,7 +137,7 @@ const EVENTS = {
     fields: { native_event: field('string', "The agent's name for it.", true) },
   },
   ModelStep: {
-    category: 'model', agents: SERVER, about: "One model response: from Claude Code's transcript, or a Codex PostModelRequest.",
+    category: 'model', agents: [...SERVER, 'opencode'], about: "One model response: from Claude Code's transcript, a Codex PostModelRequest, or OpenCode's plugin.",
     fields: {
       tokens: field('object', '`{ input, output, cache_read, cache_write, context }`.', true),
       model: field('string', 'The model.'),
@@ -149,7 +150,7 @@ const EVENTS = {
     },
   },
   ModelText: {
-    category: 'model', agents: SERVER, about: 'A block of text or thinking the model wrote.',
+    category: 'model', agents: [...SERVER, 'opencode'], about: 'A block of text or thinking the model wrote.',
     fields: {
       kind: field('string', '`text` or `thinking`.', true),
       text: field('string', 'The text, cut short.', true),

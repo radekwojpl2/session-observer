@@ -166,16 +166,33 @@ node scripts/setup-codex.js --remove
 
 On first use, open /hooks in Codex and trust the Session Observer hooks. The dashboard starts on the first session if it is not already running.
 
-## Claude Code and Codex: what differs
+### OpenCode
 
-| | Claude Code | Codex |
-|---|---|---|
-| Hook setup | Installed with the Claude Code plugin | Desktop plugin or CLI setup script |
-| Event source | Claude Code hook events | Codex hook events, including model request and usage events |
-| Message and context source | Claude session transcript | Codex rollout file in ~/.codex/sessions |
-| Context detail | Transcript, instructions, tools, skills and attachments when recorded | Rollout parser reads prompts, replies, tool activity and context metadata |
-| Reasoning | Shown when the transcript provides it | Codex stores reasoning encrypted; only available summaries are readable |
-| Dashboard | Same local dashboard and event log | Same local dashboard and event log |
+OpenCode has no hook commands, so Session Observer adds a plugin that runs inside it. From this repository:
+
+~~~sh
+node scripts/setup-opencode.js
+~~~
+
+This writes `session-observer.js` into OpenCode's plugin folder (`~/.config/opencode/plugin/`, or under `$XDG_CONFIG_HOME`). Restart OpenCode afterwards. Run it again if you move this repository. To remove it:
+
+~~~sh
+node scripts/setup-opencode.js --remove
+~~~
+
+The plugin starts the dashboard with the `node` on your PATH. What it records, passes through or leaves out: [server/lib/features/agents/opencode/FIDELITY.md](server/lib/features/agents/opencode/FIDELITY.md).
+
+## Claude Code, Codex and OpenCode: what differs
+
+| | Claude Code | Codex | OpenCode |
+|---|---|---|---|
+| Hook setup | Installed with the Claude Code plugin | Desktop plugin or CLI setup script | Plugin setup script |
+| Event source | Claude Code hook events | Codex hook events, including model request and usage events | Its plugin hooks and bus events, translated; each keeps OpenCode's own event |
+| Message and context source | Claude session transcript | Codex rollout file in ~/.codex/sessions | The plugin: steps, tokens, replies and the system prompt as they happen |
+| Context detail | Transcript, instructions, tools, skills and attachments when recorded | Rollout parser reads prompts, replies, tool activity and context metadata | Not yet: the Context view says so |
+| Subagents | In the same session | In the same session | A session of their own, linked to the task call that started it |
+| Reasoning | Shown when the transcript provides it | Codex stores reasoning encrypted; only available summaries are readable | Not recorded yet |
+| Dashboard | Same local dashboard and event log | Same local dashboard and event log | Same local dashboard and event log |
 
 ## Tricky details
 

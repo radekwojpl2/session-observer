@@ -112,7 +112,7 @@ test('the server reports its version: in the health check and first on the live 
 
 test('the agents the dashboard draws come from the server', async () => {
   const agents = await getJson('/api/agents');
-  assert.deepEqual(agents.map(agent => agent.id), ['claude', 'codex']);
+  assert.deepEqual(agents.map(agent => agent.id), ['claude', 'codex', 'opencode']);
   assert.equal(agents[1].name, 'Codex');
   assert.ok(agents[1].tools.roles.patch.includes('apply_patch'));
 });
