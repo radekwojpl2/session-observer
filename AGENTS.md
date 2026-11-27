@@ -14,6 +14,9 @@ and serves a live dashboard on http://127.0.0.1:4777.
   code by function (`model`, `render`, `controls`); dashboard `app/` wires the features and starts the page. A feature
   file runs nothing at load: its listeners go in an `init…Controls()` that `app/main.js` calls.
 - The hook must never block or fail Claude: it always exits 0 and swallows errors.
+- Events follow the contract in `server/lib/building-blocks/event-contract.js`. `docs/events.md` is generated from it
+  (`node scripts/events-doc.js`): change the contract, never the doc. Each agent's recorded sessions live in
+  `server/lib/features/agents/<agent>/fixtures/`; re-record them with `scripts/scrub-fixture.js` when the agent changes.
 - Files use CRLF. For scripted edits use Node, not Python (not installed here).
 
 ## Check your work

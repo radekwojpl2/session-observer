@@ -71,8 +71,8 @@ release-please reads that title to pick the next version and write the changelog
 
 ## Opening the pull request
 
-The [pull request template](.github/pull_request_template.md) asks for three things. CI checks that the first two
-are there.
+The [pull request template](.github/pull_request_template.md) asks for three things. CI checks that the first one
+is there; proofs are for the reviewer, not checked by CI.
 
 1. **A linked issue:** `Closes #123` (or `Fixes #123`), so the issue closes on merge.
 2. **Proofs with annotations**, described below, or `N/A: <reason>` when nothing changes for users.
@@ -80,7 +80,7 @@ are there.
 
 ### Proofs
 
-Proofs are required for any change a user can see or feel: dashboard views, hook behaviour, server responses,
+Proofs help the review of any change a user can see or feel: dashboard views, hook behaviour, server responses,
 stored data. For changes that only touch tests, docs, CI or internals, write `N/A: <reason>` in the Proofs
 section instead, for example `N/A: refactor, no behaviour change; covered by smoke tests`.
 

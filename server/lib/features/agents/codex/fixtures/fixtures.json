@@ -1,0 +1,10 @@
+{
+  "agentVersion": "codex-cli 0.171.0",
+  "fixtures": [
+    {
+      "file": "session.jsonl",
+      "recorded": "2026-11-27",
+      "what": "codex exec on Windows: a prompt, model requests with token usage, one shell command, then SessionEnd"
+    }
+  ]
+}

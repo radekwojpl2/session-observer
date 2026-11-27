@@ -1,0 +1,10 @@
+{
+  "agentVersion": "Claude Code 2.1.332",
+  "fixtures": [
+    {
+      "file": "session.jsonl",
+      "recorded": "2026-11-27",
+      "what": "claude -p on Windows: Read, a shell command, a general-purpose subagent with its own tool calls and permission requests, then Stop and SessionEnd"
+    }
+  ]
+}
