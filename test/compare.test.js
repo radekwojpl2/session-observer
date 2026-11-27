@@ -54,7 +54,10 @@ test('a session is measured from its events: turns, time, files from its folder,
     ['UserPromptSubmit', { prompt: 'run the tests' }],
     ['PreToolUse', { tool_name: 'Bash', tool_input: { command: 'cd app && cat src/b.ts | head -5; sed -n 1,20p src/c.ts 2>/dev/null' } }],
     ['Stop', { last_assistant_message: 'tests pass' }],
+    ['Notification', { message: 'waiting for your input' }],
+    ['SessionEnd', { reason: 'exit' }],
   ]);
+  events[events.length - 1].ts = new Date(Date.UTC(2026, 0, 1, 0, 30)).toISOString(); // the window closed half an hour later
   sandbox.events = events;
   const measure = vm.runInContext(`measureSessionEvents(events, 'D:\\\\work\\\\app\\\\')`, sandbox);
   assert.deepEqual([...measure.edited], ['src/a.ts'], 'an edited path is read from the session folder, with /');
@@ -63,7 +66,7 @@ test('a session is measured from its events: turns, time, files from its folder,
   assert.equal(measure.commands, 1);
   assert.deepEqual({ ...measure.groups }, { files: 4, shell: 1 });
   assert.equal(measure.turns.length, 2);
-  assert.equal(measure.activeMs, 5000 + 2000);
+  assert.equal(measure.activeMs, 5000 + 2000, 'a turn ends at its reply, not when the session closes');
   assert.equal(measure.firstPrompt, 'fix the bug');
   assert.deepEqual(Array.from(measure.turns, turn => turn.answer), ['first answer', 'tests pass']);
   assert.equal(vm.runInContext(`turnBySeq.get('page')`, sandbox), 'kept', "the page's own turn index is left as it was");
