@@ -12,6 +12,7 @@ module.exports = {
     subagentCall: ['Agent', 'Task'], // starts a subagent
     subagent: ['Agent', 'Task', 'SendMessage'], // counted as subagent activity
     question: ['AskUserQuestion'], // waits for your answer
+    asyncQuestion: [], // asks, and also waits for your next message
     task: ['TodoWrite', 'TaskCreate', 'TaskUpdate', 'TaskGet', 'TaskList', 'TaskStop'],
     patch: [], // edits files with a patch in its input
   },

@@ -5,9 +5,9 @@
 // The rollout is Codex's own record, not a stable interface: rows this reader doesn't know are skipped. Reasoning is
 // stored encrypted, so it shows only when Codex kept a summary of it.
 'use strict';
-const { readTranscriptRows, clipText, clipDeep, textLength } = require('../transcript-rows');
+const { readTranscriptRows, clipText, clipDeep, textLength } = require('../../context/transcript-rows');
 const { codexPreludeOf, messageParts, partRole, kindLabel, payloadOf, isMessage } = require('./rollout-prelude');
-const { tokensOf } = require('../../sessions/codex-model-steps');
+const { tokensOf } = require('./model-steps');
 
 const PLAUSIBLE_CHARS_PER_TOKEN = [1.5, 8];
 

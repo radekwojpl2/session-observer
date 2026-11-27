@@ -4,9 +4,9 @@
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { AGENT_IDS, DEFAULT_AGENT, agentById, isKnownAgent, toolsWithRole, publicAgents } = require('../server/lib/features/agents/registry');
+const { AGENT_IDS, DEFAULT_AGENT, agentById, isKnownAgent, toolsWithRole, publicAgents, agentServer } = require('../server/lib/features/agents/registry');
 
-const ROLES = ['command', 'subagentCall', 'subagent', 'question', 'task', 'patch'];
+const ROLES = ['command', 'subagentCall', 'subagent', 'question', 'asyncQuestion', 'task', 'patch'];
 const sorted = set => [...set].sort();
 
 test('Claude Code and Codex are registered, Claude Code first and the default', () => {
@@ -45,10 +45,26 @@ test('the roles add up to the sets the server spelled out before', () => {
   assert.deepEqual(sorted(toolsWithRole('command')), ['Bash', 'PowerShell', 'exec_command', 'local_shell', 'shell']);
   assert.deepEqual(sorted(toolsWithRole('subagentCall')), ['Agent', 'Task', 'spawn_agent']);
   assert.deepEqual(sorted(toolsWithRole('patch')), ['apply_patch']);
+  assert.deepEqual(sorted(toolsWithRole('asyncQuestion')), ['request_user_input_async']);
 });
 
-test('the dashboard gets names, colours and tools, but not server-side behaviour', () => {
-  const [claude] = publicAgents();
-  assert.deepEqual(Object.keys(claude).sort(), ['color', 'id', 'name', 'shortName', 'tools']);
+test('the dashboard gets names, colours, tools and how the context differs, but not server-side behaviour', () => {
+  const [claude, codex] = publicAgents();
+  assert.deepEqual(Object.keys(claude).sort(), ['autocompactBuffer', 'color', 'contextNoteKey', 'id', 'name', 'reportsContextWindow', 'shortName', 'tools']);
   assert.equal(claude.name, 'Claude Code');
+  assert.deepEqual([claude.reportsContextWindow, claude.autocompactBuffer, claude.contextNoteKey], [false, true, null]);
+  assert.deepEqual([codex.reportsContextWindow, codex.autocompactBuffer, codex.contextNoteKey], [true, false, 'codexContextNote']);
+});
+
+test('Codex has server hooks for its model steps, session file and Context view; an unknown agent has none', () => {
+  const codex = agentServer('codex');
+  for (const hook of ['noteEvent', 'modelStepFrom', 'addStepUsage', 'transcriptRowEvents', 'sessionContext', 'reset', 'clearSession']) {
+    assert.equal(typeof codex[hook], 'function', hook);
+  }
+  assert.equal(codex.readsSubagentTranscripts, false);
+  assert.equal(agentServer('nobody'), null);
+  const request = { event: 'PostModelRequest', agent: 'codex', session_id: 's', ts: '2026-11-27T10:00:00.000Z', data: { token_usage: { input_tokens: 10, output_tokens: 2 } } };
+  assert.equal(codex.modelStepFrom(request), true);
+  assert.equal(request.event, 'ModelStep');
+  assert.equal(codex.modelStepFrom({ event: 'Stop', agent: 'codex', data: {} }), false);
 });

@@ -11,8 +11,7 @@ const { systemPromptOf, firstRequestShape } = require('./system-prompt');
 const { sentMessagesOf } = require('./sent-messages');
 const { conversationItems, measuredSize, reportedContextWindow } = require('./conversation-items');
 const { subagentDirOf } = require('../sessions/transcript-steps');
-const { CODEX } = require('../sessions/codex-model-steps');
-const { codexSessionContext } = require('./codex/codex-context');
+const { agentServer } = require('../agents/registry');
 const { contextUsage } = require('../sessions/observed-context');
 
 const SUBAGENT_TRANSCRIPT = /^agent-([\w-]+)\.jsonl$/;
@@ -45,7 +44,8 @@ function subagentContexts(mainTranscript) {
 }
 
 function sessionContext(session) {
-  if (session.agent === CODEX) return codexSessionContext(session); // Codex's session file has its own format
+  const own = agentServer(session.agent)?.sessionContext; // an agent whose session file has its own format (Codex)
+  if (own) return own(session);
   const mainTranscript = session.transcript_path;
   const rows = mainTranscript && readTranscriptRows(mainTranscript);
   if (!rows) return { error: 'transcript not found', transcript: mainTranscript || null };

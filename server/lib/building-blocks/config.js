@@ -18,8 +18,6 @@ const LOAD_DAYS = (days => (Number.isFinite(days) && days >= 0 ? Math.floor(days
 const MAX_EVENTS_PER_SESSION = Number(process.env.OBSERVER_MAX_EVENTS || 5000);
 const MAX_ALL_EVENTS = Number(process.env.OBSERVER_MAX_ALL_EVENTS || 10000);
 const CONTEXT_WINDOW = Number(process.env.OBSERVER_CONTEXT_WINDOW || 200000);
-// a Codex session's context window when Codex doesn't report one
-const CODEX_CONTEXT_WINDOW = Number(process.env.OBSERVER_CODEX_CONTEXT_WINDOW || 272000);
 // characters kept per text in the Context view, so one huge output can't stall the page
 const CONTEXT_FIELD_MAX = Number(process.env.OBSERVER_CONTEXT_FIELD || 100000);
 // a peer that isn't this machine needs this token (see request-guard.js)
@@ -43,6 +41,6 @@ const VERSION = readPluginVersion();
 
 module.exports = {
   PORT, HOST, DATA_DIR, LOG_FILE, SESSION_LOG_DIR, DELETED_SESSIONS_FILE, LOAD_DAYS,
-  MAX_EVENTS_PER_SESSION, MAX_ALL_EVENTS, CONTEXT_WINDOW, CODEX_CONTEXT_WINDOW, CONTEXT_FIELD_MAX,
+  MAX_EVENTS_PER_SESSION, MAX_ALL_EVENTS, CONTEXT_WINDOW, CONTEXT_FIELD_MAX,
   TOKEN, EXTRA_ALLOWED_HOSTS, DASHBOARD_PAGE, DASHBOARD_ASSETS_DIR, VERSION,
 };

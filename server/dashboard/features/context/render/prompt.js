@@ -107,7 +107,8 @@ const contextNoteHtml = text => `<div class="cxnote muted">${escapeHtml(text)}</
 // everything above the conversation; `isMainAgent`: the session itself (notes on what is missing), not a subagent
 function contextPreludeHtml(prompt, idPrefix, isMainAgent) {
   let html = '';
-  if (isMainAgent && prompt.agent === CODEX) html += contextNoteHtml(TEXT.codexContextNote);
+  const agentNote = agentContextNote(prompt.agent); // an agent whose session file is read with caveats (Codex)
+  if (isMainAgent && agentNote) html += contextNoteHtml(agentNote);
   const measured = isMainAgent && prompt.measured;
   if (measured) html += contextNoteHtml(TEXT.measuredNote(formatCompactNumber(measured.firstCtx), measured.cpt ? localizeDecimal(measured.cpt.toFixed(1)) : null));
   if (prompt.system != null) html += systemPromptCardHtml(prompt, idPrefix) + toolDefinitionsCardHtml(prompt, idPrefix);
