@@ -137,8 +137,8 @@ test('setup-opencode.js adds the plugin loader, keeps a file it did not write, a
     assert.match(source, /createRequire\(import\.meta\.url\)/);
     assert.match(source, /export const SessionObserver = createOpencodePlugin\(\);/);
     assert.equal(run('--remove').status, 0);
-    assert.equal(fs.existsSync(loader), false);
-    fs.writeFileSync(loader, '// my own plugin');
+    assert.throws(() => fs.readFileSync(loader), { code: 'ENOENT' }, 'removed');
+    fs.writeFileSync(loader, '// my own plugin', { flag: 'wx' });
     assert.notEqual(run().status, 0, 'a file it did not write is not replaced');
     assert.notEqual(run('--remove').status, 0, 'nor removed');
     assert.equal(fs.readFileSync(loader, 'utf8'), '// my own plugin');

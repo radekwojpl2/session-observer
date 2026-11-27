@@ -25,19 +25,41 @@ const loaderSource = (modulePath = PLUGIN_MODULE) => [
 function install(env = process.env) {
   const dir = pluginDir(env);
   const file = path.join(dir, PLUGIN_FILE);
-  if (fs.existsSync(file) && !fs.readFileSync(file, 'utf8').includes(MARKER)) {
-    throw new Error(`${file} exists and was not written by Session Observer: not replacing it`);
-  }
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(file, loaderSource());
+  // one open, no check-then-write: create the file, or else open the existing one and replace it only if it is ours
+  let fd;
+  try {
+    fd = fs.openSync(file, 'wx');
+  } catch (error) {
+    if (error.code !== 'EEXIST') throw error;
+    fd = fs.openSync(file, 'r+');
+    try {
+      if (!fs.readFileSync(fd, 'utf8').includes(MARKER)) throw new Error(`${file} exists and was not written by Session Observer: not replacing it`);
+      fs.ftruncateSync(fd, 0);
+    } catch (readError) {
+      fs.closeSync(fd);
+      throw readError;
+    }
+  }
+  try {
+    fs.writeSync(fd, loaderSource(), 0);
+  } finally {
+    fs.closeSync(fd);
+  }
   return file;
+}
+
+// the file's text, or null when there is none
+function readIfThere(file) {
+  try { return fs.readFileSync(file, 'utf8'); } catch (error) { if (error.code === 'ENOENT') return null; throw error; }
 }
 
 function remove(env = process.env) {
   const file = path.join(pluginDir(env), PLUGIN_FILE);
-  if (!fs.existsSync(file)) return null;
-  if (!fs.readFileSync(file, 'utf8').includes(MARKER)) throw new Error(`${file} was not written by Session Observer: leaving it`);
-  fs.rmSync(file);
+  const text = readIfThere(file);
+  if (text === null) return null;
+  if (!text.includes(MARKER)) throw new Error(`${file} was not written by Session Observer: leaving it`);
+  fs.rmSync(file, { force: true });
   return file;
 }
 
