@@ -11,7 +11,7 @@ module.exports = {
     command: ['bash'],
     subagentCall: ['task'],
     subagent: ['task'],
-    question: [],
+    question: ['question'], // asks you, and waits for your answer
     asyncQuestion: [],
     task: ['todowrite', 'todoread'],
     patch: [],

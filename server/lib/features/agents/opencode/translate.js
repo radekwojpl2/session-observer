@@ -21,6 +21,51 @@ const textOfParts = parts => (Array.isArray(parts) ? parts : [])
   .filter(part => part && part.type === 'text' && !part.synthetic && typeof part.text === 'string')
   .map(part => part.text).join('\n').trim();
 
+// The instruction files OpenCode put in a system prompt (AGENTS.md, CLAUDE.md, its config's instructions): each is a
+// block "Instructions from: <path>", a new line, then the file's content (session/instruction.ts), followed by the
+// next block or by the skills
+// listing. Recorded one by one, so each keeps its own field limit and the Context view can list them.
+const INSTRUCTIONS_FROM = 'Instructions from: ';
+const AFTER_INSTRUCTIONS = /^(Instructions from: |Skills provide specialized instructions|<available_skills>)/;
+function instructionFilesOf(system) {
+  const files = [];
+  let current = null;
+  for (const line of system.split(/\r?\n/)) {
+    if (line.startsWith(INSTRUCTIONS_FROM)) {
+      if (current) files.push(current);
+      current = { path: line.slice(INSTRUCTIONS_FROM.length).trim(), lines: [] };
+    } else if (current && AFTER_INSTRUCTIONS.test(line)) {
+      files.push(current);
+      current = null;
+    } else if (current) current.lines.push(line);
+  }
+  if (current) files.push(current);
+  return files.map(file => ({ path: file.path, content: file.lines.join('\n').trim() }));
+}
+
+// the skills OpenCode lists in a system prompt: <available_skills><skill><name>…</name><description>…</description>
+// <location>…</location></skill>…</available_skills>
+function skillsOf(system) {
+  const listing = /<available_skills>([\s\S]*?)<\/available_skills>/.exec(system);
+  if (!listing) return [];
+  const field = (block, name) => (new RegExp(`<${name}>([\\s\\S]*?)</${name}>`).exec(block)?.[1] || '').trim();
+  return [...listing[1].matchAll(/<skill>([\s\S]*?)<\/skill>/g)]
+    .map(match => ({ name: field(match[1], 'name'), description: field(match[1], 'description'), location: field(match[1], 'location') || null }))
+    .filter(skill => skill.name);
+}
+
+// the subagent types the task tool offers: its description lists "- <name>: <what it does>" lines
+function agentTypesOf(taskDescription) {
+  return String(taskDescription || '').split(/\r?\n/)
+    .map(line => /^- ([\w.-]+): (.+)$/.exec(line.trim()))
+    .filter(Boolean)
+    .map(([, name, description]) => ({ name, description: description.trim() }));
+}
+
+// a long text in parts the log keeps whole (the recorder cuts any one field at OBSERVER_MAX_FIELD, 8000 by default)
+const PROMPT_PART = 7000;
+const partsOf = text => Array.from({ length: Math.ceil(text.length / PROMPT_PART) }, (_, i) => text.slice(i * PROMPT_PART, (i + 1) * PROMPT_PART));
+
 // a short, stable digest of a text, to record the system prompt only when it changes
 function digestOf(text) {
   let hash = 0;
@@ -28,7 +73,8 @@ function digestOf(text) {
   return (hash >>> 0).toString(16) + ':' + text.length;
 }
 
-function createOpencodeTranslator({ emit, onFirstSession = () => {} }) {
+// `databasePath`: where this OpenCode keeps its sessions (opencode.db), recorded so the Context view can read them
+function createOpencodeTranslator({ emit, onFirstSession = () => {}, databasePath = null }) {
   const windows = new Map();       // session id → { window, model }, from chat.params
   const systemPrompts = new Map(); // session id → the system prompt last sent (experimental.chat.system.transform)
   const recordedPrompts = new Map(); // session id → digest of the system prompt last recorded
@@ -39,6 +85,7 @@ function createOpencodeTranslator({ emit, onFirstSession = () => {} }) {
   const taskCalls = new Map();     // session id → its latest task call id, which the next child session comes from
   const lastReplies = new Map();   // session id → the text the model wrote last
   const sessionsSeen = new Set();
+  const toolDefinitions = new Map(); // tool id → { name, description, schema }, as sent to the model (tool.definition)
 
   const send = (eventName, sessionId, data, options = {}) => {
     if (!sessionId) return null;
@@ -51,7 +98,7 @@ function createOpencodeTranslator({ emit, onFirstSession = () => {} }) {
     sessionsSeen.add(info.id);
     const parents = info.parentID ? [{ agent: AGENT, session_id: info.parentID, tool_call_id: taskCalls.get(info.parentID) || undefined }] : [];
     for (const parent of parents) if (!parent.tool_call_id) delete parent.tool_call_id;
-    send('SessionStart', info.id, { source: 'startup', cwd: info.directory || null, title: info.title || null, opencode_version: info.version || null }, { native, parents });
+    send('SessionStart', info.id, { source: 'startup', cwd: info.directory || null, title: info.title || null, opencode_version: info.version || null, opencode_db: databasePath }, { native, parents });
   }
 
   // a tool part as it changes: remember which step asked for the call, and record a failure no hook reports
@@ -104,6 +151,15 @@ function createOpencodeTranslator({ emit, onFirstSession = () => {} }) {
     if (part.type === 'tool') toolPart(part, native);
     else if (part.type === 'step-start' && part.messageID && !stepStarts.has(part.messageID)) stepStarts.set(part.messageID, new Date().toISOString());
     else if (part.type === 'step-finish') stepFinish(part, native);
+    else if (part.type === 'reasoning') reasoningPart(part, native);
+  }
+
+  // a finished block of reasoning, as the model's thinking (once, when its end time is set)
+  function reasoningPart(part, native) {
+    const text = typeof part.text === 'string' ? part.text.trim() : '';
+    if (!text || !part.time?.end || seenParts.has(part.id)) return;
+    seenParts.add(part.id);
+    send('ModelText', part.sessionID, { kind: 'thinking', text: text.length > 2000 ? text.slice(0, 2000) + '…' : text, msg_id: part.messageID || null, subagent: false, agent_id: null }, { native });
   }
 
   function busEvent(event) {
@@ -144,11 +200,28 @@ function createOpencodeTranslator({ emit, onFirstSession = () => {} }) {
       windows.set(input.sessionID, { window: Number.isFinite(limit) && limit > 0 ? limit : null, model: input.model?.id || null });
       const system = systemPrompts.get(input.sessionID);
       if (!system) return;
-      const digest = digestOf(system);
+      const tools = [...toolDefinitions.values()];
+      const digest = digestOf(system + '\u0000' + tools.map(tool => tool.name).join(','));
       if (recordedPrompts.get(input.sessionID) === digest) return;
       recordedPrompts.set(input.sessionID, digest);
-      send('InstructionsLoaded', input.sessionID, { file_path: 'system prompt', system_prompt: system, system_prompt_chars: system.length, digest },
-        { native: { event: 'experimental.chat.system.transform', data: { parts: 1 } } });
+      // the whole prompt in parts, and what the Context view lists from it: tools, skills, subagent types
+      send('InstructionsLoaded', input.sessionID, {
+        file_path: 'system prompt', system_prompt_parts: partsOf(system), system_prompt_chars: system.length, digest,
+        tools, skills: skillsOf(system), agents: agentTypesOf(toolDefinitions.get('task')?.description),
+      }, { native: { event: 'experimental.chat.system.transform', data: { parts: 1 } } });
+      for (const file of instructionFilesOf(system)) {
+        send('InstructionsLoaded', input.sessionID, { file_path: file.path, content: file.content, from: 'system prompt' },
+          { native: { event: 'experimental.chat.system.transform', data: { instructions_from: file.path } } });
+      }
+    },
+
+    // a tool as it is described to the model (its id, description and parameters)
+    toolDefinition(input, output) {
+      if (!input?.toolID) return;
+      // (OpenCode 1.17.8 hands over its own schema objects, not JSON Schema: only a JSON Schema is kept)
+      const parameters = output?.parameters;
+      const isJsonSchema = parameters && typeof parameters === 'object' && (typeof parameters.type === 'string' || parameters.properties);
+      toolDefinitions.set(input.toolID, { name: input.toolID, description: String(output?.description || ''), schema: isJsonSchema ? parameters : null });
     },
 
     systemTransform(input, output) {
@@ -202,4 +275,4 @@ function createOpencodeTranslator({ emit, onFirstSession = () => {} }) {
   };
 }
 
-module.exports = { createOpencodeTranslator, DROPPED };
+module.exports = { createOpencodeTranslator, instructionFilesOf, skillsOf, agentTypesOf, DROPPED };

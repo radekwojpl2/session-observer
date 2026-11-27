@@ -49,7 +49,7 @@ flowchart LR
   H -->|append by day and session| L[(~/.claude/session-observer/sessions/DAY/*.jsonl)]
   L -->|recent days at start, older on request| S[Local Node server]
   S -->|HTTP and live updates| D[Dashboard in your browser]
-  S -. reads transcript when needed .-> T[Claude transcript or Codex rollout]
+  S -. reads transcript when needed .-> T[Claude transcript, Codex rollout or opencode.db]
 ~~~
 
 Each integration appends every event to a JSONL file for its session inside a folder for the current UTC day. The server keeps sessions in memory. At start it reads only the last few days, and the dashboard can load older days on request. The dashboard labels sessions by agent and reads transcripts when a view needs message or context detail.
@@ -192,9 +192,9 @@ The plugin starts the dashboard with the `node` on your PATH. What it records, p
 | Hook setup | Installed with the Claude Code plugin | Desktop plugin or CLI setup script | Plugin setup script |
 | Event source | Claude Code hook events | Codex hook events, including model request and usage events | Its plugin hooks and bus events, translated; each keeps OpenCode's own event |
 | Message and context source | Claude session transcript | Codex rollout file in ~/.codex/sessions | The plugin: steps, tokens, replies and the system prompt as they happen |
-| Context detail | Transcript, instructions, tools, skills and attachments when recorded | Rollout parser reads prompts, replies, tool activity and context metadata | Not yet: the Context view says so |
+| Context detail | Transcript, instructions, tools, skills and attachments when recorded | Rollout parser reads prompts, replies, tool activity and context metadata | OpenCode's own database (`opencode.db`, read-only, Node 22.5+): prompts, replies, reasoning, tool calls with full output, steps, subagents. Tool definitions aren't stored there |
 | Subagents | In the same session | In the same session | A session of their own, linked to the task call that started it |
-| Reasoning | Shown when the transcript provides it | Codex stores reasoning encrypted; only available summaries are readable | Not recorded yet |
+| Reasoning | Shown when the transcript provides it | Codex stores reasoning encrypted; only available summaries are readable | In the Context view, from its database |
 | Dashboard | Same local dashboard and event log | Same local dashboard and event log | Same local dashboard and event log |
 
 ## Tricky details
@@ -208,7 +208,7 @@ The plugin starts the dashboard with the `node` on your PATH. What it records, p
 
 ## Privacy and stored data
 
-Session Observer writes hook events to `~/.claude/session-observer/sessions/<day>/<session-hash>.jsonl`. At each start, the server moves the former combined `events.jsonl` into these folders. Until their plugin is updated, older installed hooks keep appending to that file, and the server tails it. `deleted-sessions.jsonl` keeps the ids and times of deleted sessions, so that import skips them. Session logs can contain prompts, commands and tool output. The server binds to `127.0.0.1` by default and reads Claude transcripts or Codex rollouts locally when needed. Treat them as sensitive.
+Session Observer writes hook events to `~/.claude/session-observer/sessions/<day>/<session-hash>.jsonl`. At each start, the server moves the former combined `events.jsonl` into these folders. Until their plugin is updated, older installed hooks keep appending to that file, and the server tails it. `deleted-sessions.jsonl` keeps the ids and times of deleted sessions, so that import skips them. Session logs can contain prompts, commands and tool output. The server binds to `127.0.0.1` by default and reads Claude transcripts, Codex rollouts or OpenCode's `opencode.db` (read-only) locally when needed. Treat them as sensitive.
 
 To clear Observer's event history, stop the server and delete the `sessions` directory, `events.jsonl` and `deleted-sessions.jsonl` from the configured data directory. To drop only old history, delete the day folders you no longer need (`~/.claude/session-observer` by default). This does not delete the original Claude or Codex transcripts, or OpenCode's own sessions.
 

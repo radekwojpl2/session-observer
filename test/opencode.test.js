@@ -94,7 +94,7 @@ test("the title generator's call is left out, and the system prompt is recorded 
   translate.chatParams({ sessionID: 's1', agent: 'build', model: { id: 'm', limit: { context: 64000 } } });
   const loaded = events.filter(event => event.event === 'InstructionsLoaded');
   assert.equal(loaded.length, 1);
-  assert.match(loaded[0].data.system_prompt, /Always be brief/);
+  assert.match(loaded[0].data.system_prompt_parts.join(''), /Always be brief/, 'the whole prompt, in parts the log keeps whole');
 });
 
 test('noise is dropped, other session events pass through, and commands see their session', () => {
@@ -160,5 +160,169 @@ test('setup-opencode.js adds the plugin loader, keeps a file it did not write, a
     assert.equal(fs.readFileSync(loader, 'utf8'), '// my own plugin');
   } finally {
     fs.rmSync(home, { recursive: true, force: true });
+  }
+});
+
+// ---- the Context view, from OpenCode's database (a copy built from fixtures/context-db.json)
+const { opencodeSessionContext, databasePathOf } = require('../server/lib/features/agents/opencode/context');
+const DB_ROWS = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'server', 'lib', 'features', 'agents', 'opencode', 'fixtures', 'context-db.json'), 'utf8'));
+const PARENT = 'ses_de33d44e3ffeQJYNIZqP65DOAN', CHILD = 'ses_de33d4169ffeqrU9f7TyfNv5hk';
+
+// OpenCode's tables, with only the columns the reader uses
+function fixtureDatabase() {
+  const { DatabaseSync } = require('node:sqlite');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'so-opencode-db-'));
+  const file = path.join(dir, 'opencode.db');
+  const db = new DatabaseSync(file);
+  db.exec('CREATE TABLE session (id TEXT PRIMARY KEY, parent_id TEXT, title TEXT, time_created INTEGER);'
+    + 'CREATE TABLE message (id TEXT PRIMARY KEY, session_id TEXT, time_created INTEGER, data TEXT);'
+    + 'CREATE TABLE part (id TEXT PRIMARY KEY, message_id TEXT, session_id TEXT, data TEXT);');
+  for (const row of DB_ROWS.session) db.prepare('INSERT INTO session VALUES (?, ?, ?, ?)').run(row.id, row.parent_id, row.title, row.time_created);
+  for (const row of DB_ROWS.message) db.prepare('INSERT INTO message VALUES (?, ?, ?, ?)').run(row.id, row.session_id, row.time_created, row.data);
+  for (const row of DB_ROWS.part) db.prepare('INSERT INTO part VALUES (?, ?, ?, ?)').run(row.id, row.message_id, row.session_id, row.data);
+  db.close();
+  return { dir, file };
+}
+
+const recordedSession = (id, file) => ({
+  id, model: 'fake-model', context: { tokens: 1200, window: 64000 },
+  events: [
+    { event: 'SessionStart', data: { opencode_db: file } },
+    { event: 'InstructionsLoaded', data: { file_path: 'system prompt', system_prompt_parts: ['You are opencode. ', 'Always be brief.'],
+      tools: [{ name: 'bash', description: 'Runs a command.', schema: { type: 'object' } }], skills: [{ name: 'aspire', description: 'Router.' }],
+      agents: [{ name: 'general', description: 'General agent' }] } },
+  ],
+});
+
+test('the Context view reads the conversation from OpenCode\'s database, in the shape the view shows', () => {
+  const { dir, file } = fixtureDatabase();
+  try {
+    const context = opencodeSessionContext(recordedSession(PARENT, file));
+    assert.equal(context.error, undefined);
+    assert.equal(context.agent, 'opencode');
+    assert.equal(context.window, 64000);
+    assert.equal(context.system, 'You are opencode. Always be brief.', 'the system prompt the plugin recorded');
+    assert.deepEqual(context.tools, [{ name: 'bash', description: 'Runs a command.', schema: { type: 'object' } }], 'as sent to the model (tool.definition)');
+    assert.deepEqual([context.skills, context.agents], [[{ name: 'aspire', description: 'Router.' }], [{ name: 'general', description: 'General agent' }]]);
+    const kinds = context.items.map(item => item.kind);
+    assert.deepEqual(kinds, ['user', 'step', 'call', 'result', 'step', 'text'], 'each step before what it produced');
+    const call = context.items.find(item => item.kind === 'call');
+    assert.deepEqual([call.name, call.id, call.input.subagent_type], ['task', 'call_task', 'general']);
+    assert.deepEqual(context.items.find(item => item.kind === 'step'), { kind: 'step', ts: context.items[1].ts, model: 'fake-model', out: 30, ctx: 1200 });
+    assert.match(context.items.at(-1).text, /spike-ok/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('a subagent session shows under its parent, linked to the task call that started it', () => {
+  const { dir, file } = fixtureDatabase();
+  try {
+    const { subagents } = opencodeSessionContext(recordedSession(PARENT, file));
+    assert.deepEqual(Object.keys(subagents), [CHILD]);
+    assert.deepEqual([subagents[CHILD].toolUseId, subagents[CHILD].type, subagents[CHILD].description], ['call_task', 'general', 'Child run']);
+    const bash = subagents[CHILD].items.find(item => item.kind === 'call');
+    assert.deepEqual([bash.name, bash.input.command], ['bash', 'echo spike-ok']);
+    assert.match(subagents[CHILD].items.find(item => item.kind === 'result').text, /spike-ok/, 'the full tool output');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('a missing database or session says so instead of failing', () => {
+  assert.match(opencodeSessionContext(recordedSession(PARENT, path.join(os.tmpdir(), 'no-such-dir', 'opencode.db'))).error, /not found/);
+  const { dir, file } = fixtureDatabase();
+  try {
+    assert.match(opencodeSessionContext(recordedSession('ses_unknown', file)).error, /not in the OpenCode database/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("the database is the one the plugin recorded, unless OBSERVER_OPENCODE_DB says otherwise", () => {
+  const session = recordedSession(PARENT, '/data/opencode/opencode.db');
+  assert.equal(databasePathOf(session, {}), '/data/opencode/opencode.db');
+  assert.equal(databasePathOf(session, { OBSERVER_OPENCODE_DB: '/elsewhere.db' }), '/elsewhere.db');
+  assert.equal(databasePathOf({ events: [] }, { XDG_DATA_HOME: '/xdg' }), path.join('/xdg', 'opencode', 'opencode.db'));
+});
+
+// ---- instruction files (AGENTS.md, CLAUDE.md, …), which OpenCode puts in the system prompt
+const { instructionFilesOf } = require('../server/lib/features/agents/opencode/translate');
+const SYSTEM_WITH_FILES = [
+  'You are opencode.', '<env>', '  Working directory: /work/app', '</env>',
+  'Instructions from: /work/app/AGENTS.md', '# App', 'Always be brief.', '',
+  'Instructions from: /home/me/.config/opencode/AGENTS.md', 'Use tabs.',
+  'Skills provide specialized instructions and workflows for specific tasks.', '<available_skills>', '</available_skills>',
+].join('\n');
+
+test("the instruction files in OpenCode's system prompt are found, each with its own content", () => {
+  assert.deepEqual(instructionFilesOf(SYSTEM_WITH_FILES), [
+    { path: '/work/app/AGENTS.md', content: '# App\nAlways be brief.' },
+    { path: '/home/me/.config/opencode/AGENTS.md', content: 'Use tabs.' },
+  ]);
+  assert.deepEqual(instructionFilesOf('You are opencode.\nNo files here.'), []);
+});
+
+test('each instruction file is recorded on its own, and the Context view lists them', () => {
+  const { translate, events } = translator();
+  translate.systemTransform({ sessionID: 's1' }, { system: [SYSTEM_WITH_FILES] });
+  translate.chatParams({ sessionID: 's1', agent: 'build', model: { id: 'm', limit: { context: 64000 } } });
+  const files = events.filter(event => event.event === 'InstructionsLoaded' && event.data.from === 'system prompt');
+  assert.deepEqual(files.map(event => event.data.file_path), ['/work/app/AGENTS.md', '/home/me/.config/opencode/AGENTS.md']);
+  for (const event of files) assert.deepEqual(eventProblems(event), []);
+
+  const { dir, file } = fixtureDatabase();
+  try {
+    const context = opencodeSessionContext({ ...recordedSession(PARENT, file), cwd: '/work/app', events: [{ event: 'SessionStart', data: { opencode_db: file } }, ...events] });
+    assert.deepEqual(context.instructions, [
+      { path: '/work/app/AGENTS.md', type: 'Project', content: '# App\nAlways be brief.' },
+      { path: '/home/me/.config/opencode/AGENTS.md', type: null, content: 'Use tabs.' },
+    ]);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('tool definitions, skills and subagent types are recorded with the system prompt, and older recordings still read', () => {
+  const { translate, events } = translator();
+  translate.toolDefinition({ toolID: 'bash' }, { description: 'Runs a command.', parameters: { type: 'object' } });
+  const taskDescription = ['Launch a subagent.', 'Available agent types:', '- general: General agent', '- explore: Fast search'].join('\n');
+  translate.toolDefinition({ toolID: 'task' }, { description: taskDescription, parameters: {} });
+  const system = ['You are opencode.', '<available_skills>', '<skill>', '<name>aspire</name>', '<description>Router.</description>', '</skill>', '</available_skills>'].join('\n');
+  translate.systemTransform({ sessionID: 's1' }, { system: [system] });
+  translate.chatParams({ sessionID: 's1', agent: 'build', model: { id: 'm', limit: { context: 64000 } } });
+  const prompt = events.find(event => event.data.file_path === 'system prompt');
+  assert.deepEqual(prompt.data.tools.map(tool => tool.name), ['bash', 'task']);
+  assert.deepEqual(prompt.data.skills, [{ name: 'aspire', description: 'Router.', location: null }]);
+  assert.deepEqual(prompt.data.agents.map(agent => agent.name), ['general', 'explore']);
+  assert.deepEqual(eventProblems(prompt), []);
+
+  const { dir, file } = fixtureDatabase();
+  try {
+    const old = opencodeSessionContext({ id: PARENT, events: [{ event: 'SessionStart', data: { opencode_db: file } }, { event: 'InstructionsLoaded', data: { file_path: 'system prompt', system_prompt: 'Recorded in one field.' } }] }, () => null);
+    assert.equal(old.system, 'Recorded in one field.');
+    assert.deepEqual(old.tools, []);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("a reasoning part becomes the model's thinking, once, when it ends", () => {
+  const { translate, events } = translator();
+  translate.event(part({ id: 'r1', type: 'reasoning', text: 'Let me think.', time: { start: 1 } }));
+  translate.event(part({ id: 'r1', type: 'reasoning', text: 'Let me think.', time: { start: 1, end: 2 } }));
+  translate.event(part({ id: 'r1', type: 'reasoning', text: 'Let me think.', time: { start: 1, end: 2 } }));
+  assert.deepEqual(events.map(event => [event.event, event.data.kind, event.data.text]), [['ModelText', 'thinking', 'Let me think.']]);
+});
+
+test("a subagent's own recorded prompt and tools show under it", () => {
+  const { dir, file } = fixtureDatabase();
+  try {
+    const child = { id: CHILD, events: [{ event: 'InstructionsLoaded', data: { file_path: 'system prompt', system_prompt_parts: ['Child prompt.'], tools: [{ name: 'bash', description: '', schema: null }] } }] };
+    const { subagents } = opencodeSessionContext(recordedSession(PARENT, file), id => (id === CHILD ? child : null));
+    assert.equal(subagents[CHILD].system, 'Child prompt.');
+    assert.deepEqual(subagents[CHILD].tools.map(tool => tool.name), ['bash']);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
   }
 });

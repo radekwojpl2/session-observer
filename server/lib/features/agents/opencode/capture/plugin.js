@@ -3,6 +3,7 @@
 // through translate.js into the same log as the hook commands (scripts/hook.js). Like a hook, it must never break
 // OpenCode: every handler swallows its errors and returns nothing OpenCode would act on.
 'use strict';
+const os = require('os');
 const path = require('path');
 const { createOpencodeTranslator } = require('../translate');
 
@@ -20,12 +21,15 @@ function createOpencodePlugin() {
         hook.recordEvent({ ...data, session_id: sessionId, hook_event_name: eventName }, eventName, AGENT, parents, native, ts),
       // OpenCode runs on Bun: the dashboard server is started with the node on PATH
       onFirstSession: () => { hook.ensureServer('node').catch(() => {}); },
+      // OpenCode's database, by OpenCode's own environment (the server's can differ)
+      databasePath: path.join(process.env.XDG_DATA_HOME || path.join(os.homedir(), '.local', 'share'), 'opencode', 'opencode.db'),
     });
     return {
       event: quietly(({ event }) => translator.event(event)),
       'chat.message': quietly((input, output) => translator.chatMessage(input, output)),
       'chat.params': quietly(input => translator.chatParams(input)),
       'experimental.chat.system.transform': quietly((input, output) => translator.systemTransform(input, output)),
+      'tool.definition': quietly((input, output) => translator.toolDefinition(input, output)),
       'tool.execute.before': quietly((input, output) => translator.toolBefore(input, output)),
       'tool.execute.after': quietly((input, output) => translator.toolAfter(input, output)),
       'permission.ask': quietly(input => translator.permissionAsk(input)),
