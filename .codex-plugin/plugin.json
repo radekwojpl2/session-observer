@@ -1,6 +1,6 @@
 {
   "name": "session-observer",
-  "version": "0.19.0",
+  "version": "0.20.0",
   "description": "Observe everything that happens in a Codex session (prompts, tool calls, patches, subagents, permissions, compactions, tokens) on a live local dashboard, together with your Claude Code sessions.",
   "author": {
     "name": "Radek"
