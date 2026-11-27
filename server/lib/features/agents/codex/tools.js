@@ -12,6 +12,7 @@ module.exports = {
     subagentCall: ['spawn_agent'],
     subagent: ['spawn_agent'],
     question: ['request_user_input', 'request_user_input_async'], // the async form also waits for your next message
+    asyncQuestion: ['request_user_input_async'], // asks, and also waits for your next message
     task: ['update_plan'],
     patch: ['apply_patch'],
   },

@@ -11,4 +11,6 @@ module.exports = {
   capture: 'hook commands',
   runtime: 'node',
   reportsContextWindow: false, // its context window is inferred from the model
+  autocompactBuffer: true, // Claude Code keeps a buffer free for compaction, shown in the Context view
+  contextNoteKey: null,
 };

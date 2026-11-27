@@ -11,4 +11,8 @@ module.exports = {
   capture: 'hook commands',
   runtime: 'node',
   reportsContextWindow: true, // its model requests carry model_context_window
+  // the window when a request names none (OBSERVER_CODEX_CONTEXT_WINDOW to change it)
+  contextWindow: Number(process.env.OBSERVER_CODEX_CONTEXT_WINDOW || 272000),
+  autocompactBuffer: false, // Codex compacts at its reported window, with no buffer kept free
+  contextNoteKey: 'codexContextNote', // shown over its Context view: its session file's format is undocumented
 };

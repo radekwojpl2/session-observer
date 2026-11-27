@@ -3,7 +3,6 @@
 // server/lib/features/agents/): each one's name, colour and tool map. Every event says which agent sent it (the server
 // stamps it); a session's agent is its events' agent.
 const DEFAULT_AGENT = 'claude';
-const CODEX = 'codex'; // Codex-only views (its Context note, its reported window) name it until they move to its folder
 let AGENTS = new Map(); // id → { id, name, shortName, color, tools }
 
 // every agent's tools, by what the dashboard does with them; filled by setAgents()
@@ -34,6 +33,12 @@ const knownAgents = () => [...AGENTS.values()];
 const agentKey = agent => (AGENTS.has(agent) ? agent : DEFAULT_AGENT);
 const agentName = agent => AGENTS.get(agentKey(agent))?.name || agentKey(agent);
 const agentShortName = agent => AGENTS.get(agentKey(agent))?.shortName || agentName(agent);
+// the agent reports its context window itself (Codex), instead of it being inferred from the model
+const agentReportsContextWindow = agent => !!AGENTS.get(agentKey(agent))?.reportsContextWindow;
+// the agent keeps a buffer free for compaction, which the Context view shows (Claude Code)
+const agentKeepsAutocompactBuffer = agent => AGENTS.get(agentKey(agent))?.autocompactBuffer !== false;
+// a note over the agent's Context view, in the chosen language (TEXT[key]), or null
+const agentContextNote = agent => { const key = AGENTS.get(agentKey(agent))?.contextNoteKey; return (key && TEXT[key]) || null; };
 const agentOfSession = sessionId => state.sessions.get(sessionId)?.agent || DEFAULT_AGENT;
 const agentOfEvent = event => event.agent || agentOfSession(event.session_id);
 // a class naming the agent an event comes from ("agent-codex"), for what is labelled or colored by agent

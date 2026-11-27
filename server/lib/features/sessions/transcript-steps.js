@@ -1,5 +1,6 @@
-// Model steps and token usage, read from each Claude Code session's transcript. Codex sessions: their steps come from
-// a hook (codex-model-steps.js), and what the model wrote from Codex's session file (codex-rollout-texts.js).
+// Model steps and token usage, read from each Claude Code session's transcript. An agent whose server hooks say
+// otherwise (features/agents/<agent>/server.js, e.g. Codex) makes its steps from its own events, and reads its own
+// session file for what the model wrote.
 //
 // Hooks don't see individual model calls, so each assistant API response in the transcript (and in the subagent
 // transcripts) becomes a synthetic "ModelStep" event, and every block of text or thinking it wrote a "ModelText".
@@ -14,8 +15,7 @@ const { dropSubagentCall } = require('./subagent-list');
 const { broadcast, isBroadcasting } = require('../../building-blocks/live-updates');
 const { noteContextThresholds } = require('./context-thresholds');
 const { ONE_MILLION_WINDOW, contextTokensOf, hasOneMillionWindow } = require('../../building-blocks/token-usage');
-const { CODEX, isCodexModelRequest, noteCodexEvent, toCodexModelStep, addCodexUsage, resetCodexSteps, clearCodexSession } = require('./codex-model-steps');
-const { codexRolloutTexts, resetCodexRolloutTexts, clearCodexSession: clearCodexRolloutSession } = require('./codex-rollout-texts');
+const { agentServer, allAgentServers } = require('../agents/registry');
 
 const MODEL_TEXT_MAX = 2000;          // characters kept of one text / thinking block
 const REMEMBERED_STEPS_MAX = 2000;    // recent ModelSteps kept by message id
@@ -31,18 +31,19 @@ const scheduledReads = new Map();     // session id → timer
 const transcriptWrittenAt = new Map(); // session id → the newest line's timestamp read from its transcripts (ms)
 
 const readsTranscript = session => !!session.transcript_path;
-const isCodex = session => session.agent === CODEX;
+// the agent reads its own session file (its server hooks), instead of as a Claude Code transcript
+const readsOwnSessionFile = session => !!agentServer(session.agent)?.transcriptRowEvents;
 
 // takes an event into its session and, unless it came from the transcript itself, reads the transcript soon after.
-// A Codex model request becomes a ModelStep right here (with the tool calls it started) instead.
+// An agent that reports its model requests (Codex) has one become a ModelStep right here instead.
 function ingestEvent(event) {
-  noteCodexEvent(event);
+  const own = agentServer(event.agent);
+  own?.noteEvent?.(event);
   if (event.event === 'SubagentStart' && !event.synthetic && isBroadcasting()) readBeforeSubagentStart(event);
-  const isCodexStep = isCodexModelRequest(event);
-  if (isCodexStep) toCodexModelStep(event);
+  const isOwnStep = !!own?.modelStepFrom?.(event);
   const session = ingest(event);
-  if (isCodexStep) {
-    addCodexUsage(session, event);
+  if (isOwnStep) {
+    own.addStepUsage(session, event);
     if (!event.data.subagent && event.data.tokens.context) noteContextThresholds(session, event);
     if (event.data.msg_id) rememberStep(event.data.msg_id, event);
   }
@@ -55,7 +56,7 @@ function ingestEvent(event) {
 // (Live only: the start-up load reads every transcript once, after the log.)
 function readBeforeSubagentStart(event) {
   const session = sessions.get(event.session_id);
-  if (!session || !readsTranscript(session) || isCodex(session) || !session.subagentDescriptionsWaiting.length) return;
+  if (!session || !readsTranscript(session) || readsOwnSessionFile(session) || !session.subagentDescriptionsWaiting.length) return;
   try { readTranscripts(session); } catch { /* ignore */ }
 }
 
@@ -79,7 +80,7 @@ const subagentDirOf = transcriptPath =>
 function transcriptFilesOf(session) {
   const mainTranscript = session.transcript_path;
   const files = [{ file: mainTranscript, isSubagent: false }];
-  if (isCodex(session)) return files; // (Codex keeps its subagents in rollouts of their own)
+  if (agentServer(session.agent)?.readsSubagentTranscripts === false) return files; // (Codex keeps them in files of their own)
   const subagentDir = subagentDirOf(mainTranscript);
   try {
     for (const name of fs.readdirSync(subagentDir)) {
@@ -285,13 +286,14 @@ function readTranscripts(session) {
   const seen = seenIdsOf(session.id);
   const fresh = []; // events to push to the open pages
   const before = summaryShape(session);
+  const ownRowEvents = agentServer(session.agent)?.transcriptRowEvents;
   for (const { file, isSubagent } of transcriptFilesOf(session)) {
     for (const line of tailOf(file).readNewLines()) {
       if (!line) continue;
       let row;
       try { row = JSON.parse(line); } catch { continue; }
       noteTranscriptTime(session, row);
-      if (isCodex(session)) ingestAll(codexRolloutTexts(session, row, id => stepByMessageId.get(id)), fresh);
+      if (ownRowEvents) ingestAll(ownRowEvents(session, row, id => stepByMessageId.get(id)), fresh);
       else readTranscriptRow(session, row, isSubagent, seen, fresh);
     }
   }
@@ -314,8 +316,7 @@ function resetTranscriptState() {
   stepByMessageId.clear();
   transcriptTails.clear();
   transcriptWrittenAt.clear();
-  resetCodexSteps();
-  resetCodexRolloutTexts();
+  for (const hooks of allAgentServers()) hooks.reset?.();
 }
 
 function clearSessionState(sessionId, session) {
@@ -325,8 +326,7 @@ function clearSessionState(sessionId, session) {
   seenMessageIds.delete(sessionId);
   for (const [id, step] of stepByMessageId) if (step.session_id === sessionId) stepByMessageId.delete(id);
   if (session?.transcript_path) for (const { file } of transcriptFilesOf(session)) transcriptTails.delete(file);
-  clearCodexSession(sessionId);
-  clearCodexRolloutSession(sessionId);
+  for (const hooks of allAgentServers()) hooks.clearSession?.(sessionId);
 }
 
 module.exports = {

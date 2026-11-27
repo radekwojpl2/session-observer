@@ -191,7 +191,7 @@ function stepTokensHtml(tokens, contextTokens, window) {
 function modelStepCardHtml(step, turn) {
   const data = step.data || {}, tokens = data.tokens || {}, contextTokens = tokens.context || 0;
   const session = state.sessions.get(step.session_id);
-  const window = contextWindowFor(data.subagent && session?.agent !== CODEX ? null : session, contextTokens, data.model);
+  const window = contextWindowFor(data.subagent && !agentReportsContextWindow(session?.agent) ? null : session, contextTokens, data.model);
   const { calls, texts } = modelStepParts(step, turn);
   const stopReason = STOP_REASONS[data.stop_reason] || (data.stop_reason ? data.stop_reason : TEXT.noStopReason);
   const header = `<div class="hd"><b>${escapeHtml(data.subagent ? TEXT.subagent : TEXT.mainAgent)}</b><span class="muted">${escapeHtml(data.model || '?')}</span><span>${escapeHtml(stopReason)}</span></div>`;
