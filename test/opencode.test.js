@@ -167,6 +167,9 @@ test('setup-opencode.js adds the plugin loader, keeps a file it did not write, a
 const { opencodeSessionContext, databasePathOf } = require('../server/lib/features/agents/opencode/context');
 const DB_ROWS = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'server', 'lib', 'features', 'agents', 'opencode', 'fixtures', 'context-db.json'), 'utf8'));
 const PARENT = 'ses_de33d44e3ffeQJYNIZqP65DOAN', CHILD = 'ses_de33d4169ffeqrU9f7TyfNv5hk';
+// node:sqlite is in Node 22.5 and later; on an older Node these tests are skipped and the view says why instead
+const hasSqlite = (() => { try { require('node:sqlite'); return true; } catch { return false; } })();
+const NEEDS_SQLITE = { skip: !hasSqlite && 'node:sqlite needs Node 22.5 or later' };
 
 // OpenCode's tables, with only the columns the reader uses
 function fixtureDatabase() {
@@ -194,7 +197,7 @@ const recordedSession = (id, file) => ({
   ],
 });
 
-test('the Context view reads the conversation from OpenCode\'s database, in the shape the view shows', () => {
+test('the Context view reads the conversation from OpenCode\'s database, in the shape the view shows', NEEDS_SQLITE, () => {
   const { dir, file } = fixtureDatabase();
   try {
     const context = opencodeSessionContext(recordedSession(PARENT, file));
@@ -215,7 +218,7 @@ test('the Context view reads the conversation from OpenCode\'s database, in the 
   }
 });
 
-test('a subagent session shows under its parent, linked to the task call that started it', () => {
+test('a subagent session shows under its parent, linked to the task call that started it', NEEDS_SQLITE, () => {
   const { dir, file } = fixtureDatabase();
   try {
     const { subagents } = opencodeSessionContext(recordedSession(PARENT, file));
@@ -229,7 +232,7 @@ test('a subagent session shows under its parent, linked to the task call that st
   }
 });
 
-test('a missing database or session says so instead of failing', () => {
+test('a missing database or session says so instead of failing', NEEDS_SQLITE, () => {
   assert.match(opencodeSessionContext(recordedSession(PARENT, path.join(os.tmpdir(), 'no-such-dir', 'opencode.db'))).error, /not found/);
   const { dir, file } = fixtureDatabase();
   try {
@@ -237,6 +240,10 @@ test('a missing database or session says so instead of failing', () => {
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test('on a Node without node:sqlite, the Context view says which Node it needs', { skip: hasSqlite && 'this Node has node:sqlite' }, () => {
+  assert.match(opencodeSessionContext(recordedSession(PARENT, path.join(os.tmpdir(), 'opencode.db'))).error, /needs Node 22\.5 or later/);
 });
 
 test("the database is the one the plugin recorded, unless OBSERVER_OPENCODE_DB says otherwise", () => {
@@ -263,7 +270,7 @@ test("the instruction files in OpenCode's system prompt are found, each with its
   assert.deepEqual(instructionFilesOf('You are opencode.\nNo files here.'), []);
 });
 
-test('each instruction file is recorded on its own, and the Context view lists them', () => {
+test('each instruction file is recorded on its own, and the Context view lists them', NEEDS_SQLITE, () => {
   const { translate, events } = translator();
   translate.systemTransform({ sessionID: 's1' }, { system: [SYSTEM_WITH_FILES] });
   translate.chatParams({ sessionID: 's1', agent: 'build', model: { id: 'm', limit: { context: 64000 } } });
@@ -283,7 +290,7 @@ test('each instruction file is recorded on its own, and the Context view lists t
   }
 });
 
-test('tool definitions, skills and subagent types are recorded with the system prompt, and older recordings still read', () => {
+test('tool definitions, skills and subagent types are recorded with the system prompt, and older recordings still read', NEEDS_SQLITE, () => {
   const { translate, events } = translator();
   translate.toolDefinition({ toolID: 'bash' }, { description: 'Runs a command.', parameters: { type: 'object' } });
   const taskDescription = ['Launch a subagent.', 'Available agent types:', '- general: General agent', '- explore: Fast search'].join('\n');
@@ -315,7 +322,7 @@ test("a reasoning part becomes the model's thinking, once, when it ends", () => 
   assert.deepEqual(events.map(event => [event.event, event.data.kind, event.data.text]), [['ModelText', 'thinking', 'Let me think.']]);
 });
 
-test("a subagent's own recorded prompt and tools show under it", () => {
+test("a subagent's own recorded prompt and tools show under it", NEEDS_SQLITE, () => {
   const { dir, file } = fixtureDatabase();
   try {
     const child = { id: CHILD, events: [{ event: 'InstructionsLoaded', data: { file_path: 'system prompt', system_prompt_parts: ['Child prompt.'], tools: [{ name: 'bash', description: '', schema: null }] } }] };
