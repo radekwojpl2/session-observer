@@ -7,6 +7,7 @@ const { trackNeedsYou } = require('./needs-you');
 const { trackSubagents } = require('./subagent-list');
 const { trackParents, parentOf } = require('./session-links');
 const { contextUsage } = require('./observed-context');
+const { newSessionCost, addStepCost } = require('../cost/step-cost');
 
 const TITLE_MAX = 140; // characters of the first prompt kept as the session's title
 const sessions = new Map(); // session id → session
@@ -21,6 +22,7 @@ function newSession(id) {
     counts: {}, tools: {}, skills: {}, mcp: {}, agents: {},
     toolMs: 0, toolCalls: 0, failures: 0, modelSteps: 0,
     usage: { input: 0, output: 0, cache_read: 0, cache_write: 0, turns: 0, models: {} },
+    cost: newSessionCost(), // what its model steps cost: { usd, priced, unpriced, reported } (features/cost)
     context: null, observedContext: null,
     contextCrossings: [], // each time the context filled past a threshold: [{ threshold, tokens, window, pct, change, seq, ts }]
     needsYou: [],     // what it waits on you for: [{ kind: permission | question | mcp, tool, text, since, agentId }]
@@ -137,6 +139,7 @@ function ingest(event) {
   updateSessionFields(session, event, data);
   increment(session.counts, event.category);
   updateLifecycle(session, event, data);
+  if (event.event === 'ModelStep') addStepCost(session, event);
   if (event.event === 'PreToolUse' && data.tool_name) countToolCall(session, event, data);
   if ((event.event === 'PostToolUse' || event.event === 'PostToolUseFailure') && data.tool_use_id) timeToolResult(session, event, data);
   if (event.category === 'error') session.failures++;

@@ -93,6 +93,8 @@ function initSessionsControls() {
   elementById('sessions').onclick = event => {
     const pinButton = event.target.closest('[data-pin-session]');
     if (pinButton) return toggleSessionPin(pinButton);
+    const compareButton = event.target.closest('[data-compare-session]');
+    if (compareButton) return toggleCompared(compareButton.dataset.compareSession);
     const deleteButton = event.target.closest('[data-delete-session]');
     if (deleteButton) {
       event.preventDefault();

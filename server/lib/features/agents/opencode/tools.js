@@ -15,6 +15,8 @@ module.exports = {
     asyncQuestion: [],
     task: ['todowrite', 'todoread'],
     patch: [],
+    read: ['read'],
+    edit: ['write', 'edit', 'patch', 'multiedit'],
   },
   pathFields: ['filePath'],
 };

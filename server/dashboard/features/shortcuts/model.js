@@ -16,7 +16,7 @@ const SHORTCUT_SECTIONS = [
       { keys: ['0'], what: 'allSessions' },
       { keys: ['u'], what: 'needsYouSession' },
       { keys: ['/'], what: 'search' },
-      { keys: ['1–5'], what: 'views' },
+      { keys: ['1–6'], what: 'views' },
       { keys: ['?'], what: 'help' },
     ],
   },

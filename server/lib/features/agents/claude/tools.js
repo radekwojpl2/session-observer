@@ -15,6 +15,8 @@ module.exports = {
     asyncQuestion: [], // asks, and also waits for your next message
     task: ['TodoWrite', 'TaskCreate', 'TaskUpdate', 'TaskGet', 'TaskList', 'TaskStop'],
     patch: [], // edits files with a patch in its input
+    read: ['Read', 'NotebookRead'], // reads the file it names
+    edit: ['Write', 'Edit', 'MultiEdit', 'NotebookEdit'], // changes the file it names
   },
   pathFields: ['file_path', 'notebook_path'], // where a file tool's input names its file
 };

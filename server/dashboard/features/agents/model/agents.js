@@ -11,11 +11,13 @@ const SHELL_TOOLS = new Set();         // run or watch shell commands: the Shell
 const COMMAND_TOOLS = new Set();       // run input.command in a shell
 const SUBAGENT_CALL_TOOLS = new Set(); // start a subagent
 const PATCH_TOOLS = new Set();         // edit files with a patch in their input (Codex's apply_patch)
+const READ_TOOLS = new Set();          // read the file they name
+const EDIT_TOOLS = new Set();          // change the file they name (the other file tools search: Glob, Grep, LS…)
 const PATH_FIELDS = [];                // where a file tool's input names its file
 
 function setAgents(list) {
   AGENTS = new Map((Array.isArray(list) ? list : []).map(agent => [agent.id, agent]));
-  for (const set of [FILE_TOOLS, SHELL_TOOLS, COMMAND_TOOLS, SUBAGENT_CALL_TOOLS, PATCH_TOOLS]) set.clear();
+  for (const set of [FILE_TOOLS, SHELL_TOOLS, COMMAND_TOOLS, SUBAGENT_CALL_TOOLS, PATCH_TOOLS, READ_TOOLS, EDIT_TOOLS]) set.clear();
   PATH_FIELDS.length = 0;
   for (const { tools } of AGENTS.values()) {
     const add = (set, names) => (names || []).forEach(name => set.add(name));
@@ -24,6 +26,8 @@ function setAgents(list) {
     add(COMMAND_TOOLS, tools?.roles?.command);
     add(SUBAGENT_CALL_TOOLS, tools?.roles?.subagentCall);
     add(PATCH_TOOLS, tools?.roles?.patch);
+    add(READ_TOOLS, tools?.roles?.read);
+    add(EDIT_TOOLS, tools?.roles?.edit);
     for (const field of tools?.pathFields || []) if (!PATH_FIELDS.includes(field)) PATH_FIELDS.push(field);
   }
 }

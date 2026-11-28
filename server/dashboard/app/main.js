@@ -16,6 +16,7 @@ function initControls() {
   initSessionsControls();
   initOverviewControls();
   initHomeControls();
+  initCompareControls();
   initAlertControls();
   initShortcutControls();
   initPointerHold();

@@ -70,9 +70,25 @@ function formatDuration(ms) {
   if (ms == null || isNaN(ms)) return '';
   if (ms < SECOND) return `${Math.round(ms)}${UNITS.ms}`;
   if (ms < MINUTE) return `${localizeDecimal((ms / SECOND).toFixed(1))}${UNITS.s}`;
-  if (ms < HOUR) return `${Math.floor(ms / MINUTE)}${UNITS.m} ${twoDigits(Math.round(ms % MINUTE / SECOND))}${UNITS.s}`;
+  if (ms < HOUR) {
+    const seconds = Math.round(ms / SECOND); // rounded first: 29m 59.6s is 30m 00s, not 29m 60s
+    return `${Math.floor(seconds / 60)}${UNITS.m} ${twoDigits(seconds % 60)}${UNITS.s}`;
+  }
   return `${Math.floor(ms / HOUR)}${UNITS.h} ${twoDigits(Math.floor(ms % HOUR / MINUTE))}${UNITS.m}`;
 }
+
+// a cost in US dollars, written the language's way: $0.42, $12.30, $123; under a cent, "<$0.01"
+const USD_FORMATS = {};
+function formatUsd(usd) {
+  const digits = usd >= 100 ? 0 : 2;
+  USD_FORMATS[digits] ??= new Intl.NumberFormat(TIME_LOCALE, { style: 'currency', currency: 'USD', minimumFractionDigits: digits, maximumFractionDigits: digits });
+  return usd > 0 && usd < 0.01 ? '<' + USD_FORMATS[digits].format(0.01) : USD_FORMATS[digits].format(usd);
+}
+
+// a session's cost (features/cost on the server): its estimate in USD, or null when no step of it has a price
+const sessionCostOf = session => (session.cost?.priced ? session.cost.usd : null);
+// some of its steps have no price, so the cost leaves them out
+const isCostPartial = session => session.cost?.unpriced > 0;
 
 // how long ago, in one unit: 12s, 5m, 3h, 2d
 function formatAge(ms) {

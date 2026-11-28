@@ -383,7 +383,8 @@ Category: model. Sent by the server, `opencode`.
 
 | Field | Type | Always | What it holds |
 | --- | --- | --- | --- |
-| `tokens` | object | yes | `{ input, output, cache_read, cache_write, context }`. |
+| `tokens` | object | yes | `{ input, output, cache_read, cache_write, context }`, and `cache_write_1h` when the agent says how much of cache_write was cached for an hour. |
+| `cost` | number |  | What it cost in USD, when the agent says (OpenCode). Otherwise the server estimates it from the tokens. |
 | `model` | string |  | The model. |
 | `stop_reason` | string |  | Why the response ended. |
 | `tools` | array |  | The tools it called. |

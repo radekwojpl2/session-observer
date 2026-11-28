@@ -62,6 +62,13 @@ function sessionPinHtml(session, className) {
   return `<button class="session-pin ${className}" type="button" data-pin-session="${escapeHtml(session.id)}" title="${escapeHtml(pinTitle)}" aria-label="${escapeHtml(TEXT.home.pinSession)}" aria-pressed="${!!session.pinned}">${iconSvg('star')}</button>`;
 }
 
+// in or out of Compare (features/compare): the session's letter there while it is compared
+function sessionCompareHtml(session) {
+  const slot = compareSlotOf(session.id), full = slot < 0 && isCompareFull();
+  const title = slot >= 0 ? TEXT.compare.remove : full ? TEXT.compare.full : TEXT.compare.addThis;
+  return `<button class="session-compare ${slot >= 0 ? 'cmp-' + slot : ''}" type="button" data-compare-session="${escapeHtml(session.id)}" title="${escapeHtml(title)}" aria-label="${escapeHtml(TEXT.compare.addThis)}" aria-pressed="${slot >= 0}"${full ? ' aria-disabled="true"' : ''}>${slot >= 0 ? COMPARE_LETTERS[slot] : iconSvg('compare')}</button>`;
+}
+
 // The list shows the state dot, the title, and under it when and where; the rest is in a card that floats beside it on hover.
 // The agent badge shows only when the list has sessions of more than one agent.
 function sessionCardHtml(session, showAgent) {
@@ -75,7 +82,7 @@ function sessionCardHtml(session, showAgent) {
   const meta = `${session.last ? escapeHtml(formatAgo(session.last)) : ''} · ${escapeHtml(countOf(session.turns || 0, 'turn'))} · ${escapeHtml(countOf(session.toolCalls || 0, 'tool'))}`
     + (outputTokens ? ` · ${escapeHtml(TEXT.outX(formatCompactNumber(outputTokens)))}` : '');
   return `<div class="card ${session.id === state.scope ? 'sel' : ''}" data-id="${escapeHtml(session.id)}">
-        <div class="row1">${sessionPinHtml(session, 'sidebar-session-pin')}<span class="${dotClass}" title="${status}"></span><span class="name">${name}</span>${agentTag}<button class="session-delete" type="button" data-delete-session="${escapeHtml(session.id)}" title="${escapeHtml(TEXT.deleteSessionTitle)}" aria-label="${escapeHtml(TEXT.deleteSessionTitle)}">×</button></div>
+        <div class="row1">${sessionPinHtml(session, 'sidebar-session-pin')}${sessionCompareHtml(session)}<span class="${dotClass}" title="${status}"></span><span class="name">${name}</span>${agentTag}<button class="session-delete" type="button" data-delete-session="${escapeHtml(session.id)}" title="${escapeHtml(TEXT.deleteSessionTitle)}" aria-label="${escapeHtml(TEXT.deleteSessionTitle)}">×</button></div>
         ${where ? `<div class="sline">${escapeHtml(where)}</div>` : ''}
         <template class="sdet"><div class="row1"><span class="name">${name}</span><span class="state"><span class="${dotClass}"></span>${status}</span></div>
         <div class="meta">${meta}</div>${lastTool}

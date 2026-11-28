@@ -76,6 +76,7 @@ function modelStepEvent(session, row, message, toolCalls, isSubagentFile) {
       tokens: {
         input: usage.input_tokens || 0, output: usage.output_tokens || 0,
         cache_read: usage.cache_read_input_tokens || 0, cache_write: usage.cache_creation_input_tokens || 0,
+        cache_write_1h: usage.cache_creation?.ephemeral_1h_input_tokens || 0, // Claude Code caches mostly for an hour, which costs more
         context: contextTokensOf(usage),
       },
     },

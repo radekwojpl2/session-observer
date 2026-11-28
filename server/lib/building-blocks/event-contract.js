@@ -139,7 +139,8 @@ const EVENTS = {
   ModelStep: {
     category: 'model', agents: [...SERVER, 'opencode'], about: "One model response: from Claude Code's transcript, a Codex PostModelRequest, or OpenCode's plugin.",
     fields: {
-      tokens: field('object', '`{ input, output, cache_read, cache_write, context }`.', true),
+      tokens: field('object', '`{ input, output, cache_read, cache_write, context }`, and `cache_write_1h` when the agent says how much of cache_write was cached for an hour.', true),
+      cost: field('number', 'What it cost in USD, when the agent says (OpenCode). Otherwise the server estimates it from the tokens.'),
       model: field('string', 'The model.'),
       stop_reason: field('string', 'Why the response ended.'),
       tools: field('array', 'The tools it called.'),

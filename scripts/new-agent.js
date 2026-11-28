@@ -47,6 +47,8 @@ module.exports = {
     asyncQuestion: [], // ask, and also wait for your next message
     task: [], // a to-do or plan list
     patch: [], // edit files with a patch in their input
+    read: [], // read the file they name
+    edit: [], // change the file they name
   },
   pathFields: [], // where a file tool's input names its file, e.g. 'file_path'
 };

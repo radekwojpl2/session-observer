@@ -1,7 +1,6 @@
 'use strict';
 // Session Observer dashboard — Overview lists: the files worked on, shell commands, subagents and problems.
 const LIST_ROWS_MAX = 8;
-const READ_TOOLS = new Set(['Read', 'NotebookRead']);
 
 const listHtml = rows => `<div class="vlist">${rows.join('')}</div>`;
 const noneHtml = text => `<div class="none">${escapeHtml(text)}</div>`;
@@ -21,11 +20,13 @@ function pathParts(scopeFolder) {
 function filesListHtml(events) {
   const byPath = new Map();
   for (const event of events) {
-    if (event.event !== 'PreToolUse' || !FILE_TOOLS.has(event.data?.tool_name)) continue;
-    for (const filePath of filesOfToolCall(event.data.tool_name, event.data.tool_input || {})) {
+    const tool = event.data?.tool_name;
+    // a tool that reads or changes the file it names (a search tool names a folder or a pattern, not a file worked on)
+    if (event.event !== 'PreToolUse' || !(READ_TOOLS.has(tool) || EDIT_TOOLS.has(tool))) continue;
+    for (const filePath of filesOfToolCall(tool, event.data.tool_input || {})) {
       const file = byPath.get(filePath) || { reads: 0, writes: 0, seq: event.seq };
       file.seq = event.seq; // the latest call
-      if (READ_TOOLS.has(event.data.tool_name)) file.reads++;
+      if (READ_TOOLS.has(tool)) file.reads++;
       else file.writes++;
       byPath.set(filePath, file);
     }

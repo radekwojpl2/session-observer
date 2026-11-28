@@ -15,6 +15,8 @@ module.exports = {
     asyncQuestion: ['request_user_input_async'], // asks, and also waits for your next message
     task: ['update_plan'],
     patch: ['apply_patch'],
+    read: [], // (Codex reads files through the shell)
+    edit: ['apply_patch'],
   },
   pathFields: [],
 };

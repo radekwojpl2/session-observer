@@ -5,6 +5,9 @@ const BETWEEN_TURN_EVENTS = new Set(['PreModelSwitch', 'PostModelSwitch', 'Confi
   'WorktreeCreate', 'WorktreeRemove', 'SessionStart', 'PreCompact', 'PostCompact']);
 // a slash command's expansion joins the prompt that follows it when they come this close together
 const EXPANSION_JOIN_MS = 2000;
+// What comes after a turn has finished without being its work: the session closing, a settings change, a notice. They
+// stay in the turn but don't make it longer (closing the window half an hour after the reply is not half an hour of work).
+const AFTER_WORK_EVENTS = new Set([...BETWEEN_TURN_EVENTS, 'SessionEnd', 'Notification', 'TeammateIdle']);
 
 function newTurn(event, prompt, awaitingPrompt) {
   return {
@@ -80,7 +83,7 @@ function buildTurns(events) {
       turns.push(turn);
     }
     turn.events.push(event);
-    turn.end = event.ts;
+    if (!(turn.done && AFTER_WORK_EVENTS.has(event.event))) turn.end = event.ts;
     turnBySeq.set(event.seq, turn);
     countEventInTurn(turn, event, subagentKey, turnBySubagent);
   }

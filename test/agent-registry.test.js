@@ -6,7 +6,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { AGENT_IDS, DEFAULT_AGENT, agentById, isKnownAgent, toolsWithRole, publicAgents, agentServer } = require('../server/lib/features/agents/registry');
 
-const ROLES = ['command', 'subagentCall', 'subagent', 'question', 'asyncQuestion', 'task', 'patch'];
+const ROLES = ['command', 'subagentCall', 'subagent', 'question', 'asyncQuestion', 'task', 'patch', 'read', 'edit'];
 const sorted = set => [...set].sort();
 
 test('Claude Code, Codex and OpenCode are registered, Claude Code first and the default', () => {
@@ -40,6 +40,8 @@ test('every tool map has its groups, all roles and its path fields', () => {
     for (const role of ROLES) assert.ok(Array.isArray(tools.roles[role]), `${id}: roles.${role}`);
     assert.ok(Array.isArray(tools.pathFields), `${id}: pathFields`);
     for (const name of tools.roles.command) assert.ok(tools.groups.shell.includes(name), `${id}: ${name} runs commands, so it is a shell tool`);
+    for (const name of [...tools.roles.read, ...tools.roles.edit]) assert.ok(tools.groups.files.includes(name), `${id}: ${name} reads or changes a file, so it is a file tool`);
+    assert.ok(!tools.roles.read.some(name => tools.roles.edit.includes(name)), `${id}: a tool reads or changes a file, not both`);
   }
 });
 

@@ -24,13 +24,20 @@ function overviewChartsHtml(session, filterNote) {
 
 const sumOf = (sessions, field) => sessions.reduce((total, session) => total + (session[field] || 0), 0);
 
+// the estimated cost at API prices, for one session or several; – when none of their steps has a price
+function costTileHtml(sessions) {
+  const costs = sessions.map(sessionCostOf).filter(cost => cost !== null);
+  const note = sessions.some(isCostPartial) ? TEXT.costPartial : TEXT.costNote;
+  return statTileHtml(TEXT.tiles.cost, costs.length ? formatUsd(costs.reduce((total, cost) => total + cost, 0)) : '–', costs.length ? note : '');
+}
+
 function allActivityHtml(filterNote) {
   const cutoff = rangeCutoffIso();
   const sessions = [...state.sessions.values()].filter(session => !cutoff || (session.last || '') >= cutoff);
   const outputTokens = sessions.reduce((total, session) => total + (session.usage?.output || 0), 0);
   const labels = TEXT.tiles, failures = sumOf(sessions, 'failures');
   return `<h2>${escapeHtml(TEXT.allActivity)}</h2><p class="lead">${escapeHtml(TEXT.allLead(selectedRangeLabel()))}</p>
-      <div class="tiles">${statTileHtml(labels.sessions, sessions.length)}${statTileHtml(labels.turns, sumOf(sessions, 'turns'))}${statTileHtml(labels.toolCalls, sumOf(sessions, 'toolCalls'))}${statTileHtml(labels.modelSteps, sumOf(sessions, 'modelSteps'))}${statTileHtml(labels.problems, failures, labels.failedOrDenied, failures > 0)}${statTileHtml(labels.outputTokens, formatCompactNumber(outputTokens))}</div>
+      <div class="tiles">${statTileHtml(labels.sessions, sessions.length)}${statTileHtml(labels.turns, sumOf(sessions, 'turns'))}${statTileHtml(labels.toolCalls, sumOf(sessions, 'toolCalls'))}${statTileHtml(labels.modelSteps, sumOf(sessions, 'modelSteps'))}${statTileHtml(labels.problems, failures, labels.failedOrDenied, failures > 0)}${statTileHtml(labels.outputTokens, formatCompactNumber(outputTokens))}${costTileHtml(sessions)}</div>
       ${overviewChartsHtml(null, filterNote)}`;
 }
 
@@ -56,7 +63,8 @@ function sessionTilesHtml(session) {
   return `${statTileHtml(labels.turns, session.turns || 0)}${statTileHtml(labels.toolCalls, session.toolCalls, TEXT.inTools(formatDuration(session.toolMs)))}${statTileHtml(labels.modelSteps, session.modelSteps || 0)}${statTileHtml(labels.subagents, session.subagents || 0)}${statTileHtml(labels.problems, session.failures, '', session.failures > 0)}
         ${statTileHtml(labels.duration, formatDuration(Date.parse(session.last) - Date.parse(session.started)))}`
     + statTileHtml(labels.context, context ? Math.round(context.pct * 100) + '%' : '–', context ? `${formatCompactNumber(context.tokens)} / ${formatCompactNumber(context.window)}` : '')
-    + statTileHtml(labels.tokens, formatCompactNumber(totalTokens), TEXT.tokSub(formatCompactNumber(usage.output || 0)));
+    + statTileHtml(labels.tokens, formatCompactNumber(totalTokens), TEXT.tokSub(formatCompactNumber(usage.output || 0)))
+    + costTileHtml([session]);
 }
 
 function sessionOverviewHtml(session, filterNote) {
